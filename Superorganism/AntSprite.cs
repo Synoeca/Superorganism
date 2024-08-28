@@ -24,6 +24,10 @@ namespace Superorganism
 
 		public Color Color { get; set; } = Color.White;
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="content"></param>
 		public void LoadContent(ContentManager content)
 		{
 			texture = content.Load<Texture2D>("ant");
