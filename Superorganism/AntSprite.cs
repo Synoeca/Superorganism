@@ -34,22 +34,32 @@ namespace Superorganism
 			gamePadState = GamePad.GetState(0);
 			keyboardState = Keyboard.GetState();
 
+			float movementSpeed = (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift)) ? 2f : 1f;
+
 			// Apply the gamepad movement with inverted Y axis
 			position += gamePadState.ThumbSticks.Left * new Vector2(1, -1);
 			if (gamePadState.ThumbSticks.Left.X < 0) flipped = true;
 			if (gamePadState.ThumbSticks.Left.X > 0) flipped = false;
 
 			// Apply keyboard movement
-			if (keyboardState.IsKeyDown(Keys.Up) || keyboardState.IsKeyDown(Keys.W)) position += new Vector2(0, -1);
-			if (keyboardState.IsKeyDown(Keys.Down) || keyboardState.IsKeyDown(Keys.S)) position += new Vector2(0, 1);
+			if (keyboardState.IsKeyDown(Keys.Up) || keyboardState.IsKeyDown(Keys.W))
+			{
+				position += new Vector2(0, -movementSpeed);
+			}
+
+			if (keyboardState.IsKeyDown(Keys.Down) || keyboardState.IsKeyDown(Keys.S))
+			{
+				position += new Vector2(0, movementSpeed);
+			}
+
 			if (keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A))
 			{
-				position += new Vector2(-1, 0);
+				position += new Vector2(-movementSpeed, 0);
 				flipped = true;
 			}
 			if (keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D))
 			{
-				position += new Vector2(1, 0);
+				position += new Vector2(movementSpeed, 0);
 				flipped = false;
 			}
 
