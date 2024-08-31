@@ -10,6 +10,7 @@ namespace Superorganism
 	{
 		private GraphicsDeviceManager _graphics;
 		private SpriteBatch _spriteBatch;
+		private SpriteFont _spriteFont;
 
 		private CropSprite[] _crops;
 		private int _cropsLeft;
@@ -84,6 +85,7 @@ namespace Superorganism
 			}
 			_ant.LoadContent(Content);
 			_antEnemy.LoadContent(Content);
+			_spriteFont = Content.Load<SpriteFont>("arial");
 			_groundTexture = new Texture2D(GraphicsDevice, 1, 1);
 			_groundTexture.SetData(new[] { new Color(139, 69, 19) });
 			// TODO: use this.Content to load your game content here
@@ -130,6 +132,7 @@ namespace Superorganism
 			}
 			// Draw the ground texture
 			_spriteBatch.Draw(_groundTexture, new Rectangle(0, _groundY, _graphics.PreferredBackBufferWidth, _groundHeight), Color.White);
+			_spriteBatch.DrawString(_spriteFont, $"Crops left: {_cropsLeft}", new Vector2(2, 2), Color.Gold);
 			_ant.Draw(gameTime, _spriteBatch);
 			_antEnemy.Draw(gameTime, _spriteBatch);
 			_spriteBatch.End();

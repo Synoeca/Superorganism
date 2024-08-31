@@ -49,6 +49,13 @@
 /processorParam:TextureFormat=Color
 /build:antEnemy.png
 
+#begin arial.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:arial.spritefont
+
 #begin coins.png
 /importer:TextureImporter
 /processor:TextureProcessor
