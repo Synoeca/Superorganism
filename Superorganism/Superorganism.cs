@@ -1,8 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using SpriteExample;
 using System;
+using System.Linq;
 
 namespace Superorganism
 {
@@ -14,13 +17,24 @@ namespace Superorganism
 
 		private CropSprite[] _crops;
 		private int _cropsLeft;
-		private BatSprite[] _bats;
+		private FliesSprite[] _flies;
 		private AntSprite _ant;
 		private AntEnemySprite _antEnemy;
 
-		private Texture2D _groundTexture;
+		private GroundSprite _groundTexture;
 		private int _groundHeight = 100;
 		private int _groundY = 400;
+		private int _cropY = 383;
+
+		private SoundEffect _cropPickup;
+		private SoundEffect _fliesDestroy;
+		private Song _backgroundMusic;
+
+		private double _damageTimer;
+		private double _elapsedTime;
+
+		private bool _isGameOver = false;
+		private bool _isGameWon = false;
 
 		public Superorganism()
 		{
@@ -31,45 +45,52 @@ namespace Superorganism
 
 		protected override void Initialize()
 		{
-			// Initialize crops
+			ResetGame();
+			base.Initialize();
+		}
+
+		private void ResetGame()
+		{
 			Random rand = new();
 			_crops =
 			[
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
-				new(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, 383)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
+				new CropSprite(new Vector2((float)rand.NextDouble() * GraphicsDevice.Viewport.Width, _cropY)),
 			];
 			_cropsLeft = _crops.Length;
 
-			int numberOfBats = rand.Next(3, 21);
-			_bats = new BatSprite[numberOfBats];
+			int numberOfFlies = rand.Next(15, 21);
+			_flies = new FliesSprite[numberOfFlies];
 
-			for (int i = 0; i < numberOfBats; i++)
+			for (int i = 0; i < numberOfFlies; i++)
 			{
 				float xPos = rand.Next(0, 800);
 				float yPos = rand.Next(0, 600);
 				Direction randomDirection = (Direction)rand.Next(0, 4);
 
-				_bats[i] = new BatSprite
-				{
-					Position = new Vector2(xPos, yPos),
-					Direction = randomDirection
-				};
+				_flies[i] = new FliesSprite();
+				_flies[i].Position = new Vector2(xPos, yPos);
+				_flies[i].Direction = randomDirection;
 			}
 
 			_ant = new AntSprite();
 			_antEnemy = new AntEnemySprite();
+			_groundTexture = new GroundSprite(_graphics, _groundY, _groundHeight);
 
-			base.Initialize();
+			_isGameOver = false;
+			_isGameWon = false;
+			_elapsedTime = 0;
+			_damageTimer = 0;
 		}
 
 		protected override void LoadContent()
@@ -79,39 +100,101 @@ namespace Superorganism
 			{
 				crop.LoadContent(Content);
 			}
-			foreach (BatSprite bat in _bats)
+			foreach (FliesSprite fly in _flies)
 			{
-				bat.LoadContent(Content);
+				fly.LoadContent(Content);
 			}
 			_ant.LoadContent(Content);
 			_antEnemy.LoadContent(Content);
 			_spriteFont = Content.Load<SpriteFont>("arial");
-			_groundTexture = new Texture2D(GraphicsDevice, 1, 1);
-			_groundTexture.SetData(new[] { new Color(139, 69, 19) });
-			// TODO: use this.Content to load your game content here
+
+			_groundTexture.LoadContent(Content);
+			_backgroundMusic = Content.Load<Song>("MaxBrhon_Cyberpunk");
+			MediaPlayer.IsRepeating = true;
+			MediaPlayer.Volume = 0.2f;
+			MediaPlayer.Play(_backgroundMusic);
+			_cropPickup = Content.Load<SoundEffect>("Pickup_Coin4");
+			_fliesDestroy = Content.Load<SoundEffect>("damaged");
 		}
 
 		protected override void Update(GameTime gameTime)
 		{
+			if (Keyboard.GetState().IsKeyDown(Keys.R))
+			{
+				ResetGame();
+				LoadContent();
+				return;
+			}
 			if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
 				Exit();
 
-			_ant.Update(gameTime);
-			_antEnemy.Update(gameTime, _ant.Position());
-
-			_ant.Color = Color.White;
-			foreach (CropSprite crop in _crops)
+			if (Keyboard.GetState().IsKeyDown(Keys.R))
 			{
-				if (!crop.Collected && crop.Bounds.CollidesWith(_ant.Bounds))
-				{
-					_ant.Color = Color.Red;
-					crop.Collected = true;
-					_cropsLeft--;
-				}
+				ResetGame();
+				return;
 			}
-			foreach (BatSprite bat in _bats)
+
+			if (!_isGameOver && !_isGameWon)
 			{
-				bat.Update(gameTime);
+				_elapsedTime += gameTime.ElapsedGameTime.TotalSeconds;
+				_ant.Update(gameTime);
+				_antEnemy.Update(gameTime, _ant.Position());
+
+				_ant.Color = Color.White;
+				_antEnemy.Color = Color.White;
+
+				foreach (CropSprite crop in _crops)
+				{
+					if (!crop.Collected && crop.Bounds.CollidesWith(_ant.Bounds))
+					{
+						_ant.Color = Color.Gold;
+						crop.Collected = true;
+						_cropsLeft--;
+						_cropPickup.Play();
+					}
+				}
+
+				if (_cropsLeft <= 0)
+				{
+					_isGameWon = true;
+				}
+
+				foreach (FliesSprite fly in _flies)
+				{
+					if (!fly.Destroyed)
+					{
+						fly.Update(gameTime, GraphicsDevice.Viewport.Width, _cropY + 26);
+						if (fly.Bounds.CollidesWith(_ant.Bounds))
+						{
+							if (_elapsedTime > 1.5)
+							{
+								_ant.Color = Color.Gray;
+								fly.Destroyed = true;
+								_fliesDestroy.Play();
+								_ant.HitPoint = Math.Max(0, _ant.HitPoint - 10);
+							}
+						}
+					}
+				}
+
+				if (_antEnemy.Bounds.CollidesWith(_ant.Bounds))
+				{
+					_ant.Color = Color.Gray;
+					_antEnemy.Color = Color.Gray;
+
+					_damageTimer += gameTime.ElapsedGameTime.TotalSeconds;
+					if (_damageTimer >= 0.1)
+					{
+						_ant.HitPoint = Math.Max(0, _ant.HitPoint - 15);
+						_damageTimer = 0;
+						_fliesDestroy.Play();
+					}
+				}
+
+				if (_ant.HitPoint <= 0)
+				{
+					_isGameOver = true;
+				}
 			}
 
 			base.Update(gameTime);
@@ -120,21 +203,62 @@ namespace Superorganism
 		protected override void Draw(GameTime gameTime)
 		{
 			GraphicsDevice.Clear(Color.CornflowerBlue);
-			
+
 			_spriteBatch.Begin();
 			foreach (CropSprite crop in _crops)
 			{
 				crop.Draw(gameTime, _spriteBatch);
 			}
-			foreach (BatSprite bat in _bats)
+			foreach (FliesSprite fly in _flies)
 			{
-				bat.Draw(gameTime, _spriteBatch);
+				fly.Draw(gameTime, _spriteBatch);
 			}
-			// Draw the ground texture
-			_spriteBatch.Draw(_groundTexture, new Rectangle(0, _groundY, _graphics.PreferredBackBufferWidth, _groundHeight), Color.White);
-			_spriteBatch.DrawString(_spriteFont, $"Crops left: {_cropsLeft}", new Vector2(2, 2), Color.Gold);
+
+			_groundTexture.Draw(_spriteBatch);
+
+			_spriteBatch.DrawString(_spriteFont, $"Ant HP: {_ant.HitPoint}", new Vector2(4, 2), Color.Gold);
+			_spriteBatch.DrawString(_spriteFont, $"Crops left: {_cropsLeft}", new Vector2(4, 35), Color.Gold);
 			_ant.Draw(gameTime, _spriteBatch);
 			_antEnemy.Draw(gameTime, _spriteBatch);
+
+			if (_isGameOver)
+			{
+				string message = "You Lose";
+				Vector2 textSize = _spriteFont.MeasureString(message);
+				Vector2 textPosition = new Vector2(
+					(GraphicsDevice.Viewport.Width - textSize.X) / 2,
+					(GraphicsDevice.Viewport.Height - textSize.Y) / 2);
+
+				_spriteBatch.DrawString(_spriteFont, message, textPosition, Color.Red);
+
+				string restartMessage = "Press R to Restart";
+				Vector2 restartTextSize = _spriteFont.MeasureString(restartMessage);
+				Vector2 restartTextPosition = new Vector2(
+					(GraphicsDevice.Viewport.Width - restartTextSize.X) / 2,
+					(GraphicsDevice.Viewport.Height - restartTextSize.Y) / 2 + 40);
+
+				_spriteBatch.DrawString(_spriteFont, restartMessage, restartTextPosition, Color.White);
+			}
+
+			if (_isGameWon)
+			{
+				string message = "You Win";
+				Vector2 textSize = _spriteFont.MeasureString(message);
+				Vector2 textPosition = new Vector2(
+					(GraphicsDevice.Viewport.Width - textSize.X) / 2,
+					(GraphicsDevice.Viewport.Height - textSize.Y) / 2);
+
+				_spriteBatch.DrawString(_spriteFont, message, textPosition, Color.Green);
+
+				string restartMessage = "Press R to Restart";
+				Vector2 restartTextSize = _spriteFont.MeasureString(restartMessage);
+				Vector2 restartTextPosition = new Vector2(
+					(GraphicsDevice.Viewport.Width - restartTextSize.X) / 2,
+					(GraphicsDevice.Viewport.Height - restartTextSize.Y) / 2 + 40);
+
+				_spriteBatch.DrawString(_spriteFont, restartMessage, restartTextPosition, Color.White);
+			}
+
 			_spriteBatch.End();
 
 			base.Draw(gameTime);

@@ -1,46 +1,36 @@
 ﻿using CollisionExample.Collisions;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Superorganism
 {
 	public class AntSprite
 	{
-		private GamePadState gamePadState;
+		private GamePadState _gamePadState;
+		private KeyboardState _keyboardState;
 
-		private KeyboardState keyboardState;
+		private float _animationTimer = 0f;
+		private float _animationInterval = 0.15f;
+		private Texture2D _currentTexture;
 
-		private Texture2D texture;
+		private Texture2D _texture1;
+		private Texture2D _texture2;
 
-		private Vector2 position = new(200, 200);
-		public Vector2 Position()
-		{
-			return position;
-		}
+		private Vector2 _position = new(200, 200);
+		public Vector2 Position() => _position;
 
-		private Vector2 velocity = Vector2.Zero;
-
+		private Vector2 _velocity = Vector2.Zero;
 		private bool _flipped;
 
-		private BoundingRectangle bounds = new BoundingRectangle(new Vector2(200 - 16, 200 - 16), 32, 32);
-
-		/// <summary>
-		/// The bounding volume of the sprite
-		/// </summary>
-		public BoundingRectangle Bounds => bounds;
+		private BoundingRectangle _bounds = new BoundingRectangle(new Vector2(200 - 16, 200 - 16), 32, 32);
+		public BoundingRectangle Bounds => _bounds;
 
 		private bool _isOnGround = true;
-		public bool IsOnGround()
-		{
-			return _isOnGround;
-		}
+		public bool IsOnGround() => _isOnGround;
 
 		private float _gravity = 0.5f;
 		private float _groundLevel = 400;
@@ -48,85 +38,134 @@ namespace Superorganism
 		private float _movementSpeed = 3f;
 		private float _friction = 0.8f;
 
-
 		public Color Color { get; set; } = Color.White;
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="content"></param>
+		private SoundEffect _moveSound;
+		private SoundEffect _jumpSound;
+		private float _moveSoundInterval = 0.25f;
+		private float _shiftMoveSoundInterval = 0.15f;
+		private double _soundTimer = 0.0;
+		private bool _isJumping = false;
+
+		public int HitPoint { get; set; } = 100;
+
 		public void LoadContent(ContentManager content)
 		{
-			texture = content.Load<Texture2D>("ant");
+			_texture1 = content.Load<Texture2D>("ant");
+			_texture2 = content.Load<Texture2D>("ant2");
+			_currentTexture = _texture1;
+
+			_moveSound = content.Load<SoundEffect>("move");
+			_jumpSound = content.Load<SoundEffect>("jump");
 		}
 
 		public void Update(GameTime gameTime)
 		{
-			gamePadState = GamePad.GetState(0);
-			keyboardState = Keyboard.GetState();
+			_gamePadState = GamePad.GetState(0);
+			_keyboardState = Keyboard.GetState();
 
-			_movementSpeed = (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift)) ? 2.5f : 1f;
+			_movementSpeed = (_keyboardState.IsKeyDown(Keys.LeftShift) || _keyboardState.IsKeyDown(Keys.RightShift)) ? 2.5f : 1f;
 
-			// Apply the gamepad movement with inverted Y axis
-			position += gamePadState.ThumbSticks.Left * new Vector2(1, -1);
-			if (gamePadState.ThumbSticks.Left.X < 0) _flipped = true;
-			if (gamePadState.ThumbSticks.Left.X > 0) _flipped = false;
-
-			// Handle horizontal movement input
-			if (keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A))
+			if (_isOnGround && _keyboardState.IsKeyDown(Keys.Space))
 			{
-				velocity.X = -_movementSpeed;
+				_velocity.Y = _jumpStrength;
+				_isOnGround = false;
+				_isJumping = true;
+				_jumpSound.Play();
+			}
+
+			if (_keyboardState.IsKeyDown(Keys.Left) || _keyboardState.IsKeyDown(Keys.A))
+			{
+				_velocity.X = -_movementSpeed;
 				_flipped = true;
-			}
-			else if (keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D))
-			{
-				velocity.X = _movementSpeed;
-				_flipped = false;
-			}
-			else if (_isOnGround)
-			{
-				// Apply friction to gradually stop the sprite when on the ground
-				velocity.X *= _friction;
-				if (Math.Abs(velocity.X) < 0.1f)
+				if (!_isJumping)
 				{
-					velocity.X = 0;
+					PlayMoveSound(gameTime, GetMoveSoundInterval());
+				}
+			}
+			else if (_keyboardState.IsKeyDown(Keys.Right) || _keyboardState.IsKeyDown(Keys.D))
+			{
+				_velocity.X = _movementSpeed;
+				_flipped = false;
+				if (!_isJumping)
+				{
+					PlayMoveSound(gameTime, GetMoveSoundInterval());
+				}
+			}
+			else
+			{
+				if (_isOnGround)
+				{
+					_velocity.X *= _friction;
+					if (Math.Abs(_velocity.X) < 0.1f)
+					{
+						_velocity.X = 0;
+					}
+				}
+
+				if (_soundTimer > 0 && _velocity.X == 0)
+				{
+					_soundTimer = 0.0;
 				}
 			}
 
-			// Handle vertical movement input (jump)
-			if (_isOnGround && keyboardState.IsKeyDown(Keys.Space))
+			_velocity.Y += _gravity;
+
+			_position += _velocity;
+
+			if (_position.Y >= _groundLevel)
 			{
-				velocity.Y = _jumpStrength;
-				_isOnGround = false; // The sprite is now in the air
-			}
-
-			// Apply gravity to the velocity
-			velocity.Y += _gravity;
-
-			// Update position based on velocity
-			position += velocity;
-
-			// Simple ground collision detection
-			if (position.Y >= _groundLevel)
-			{
-				position.Y = _groundLevel; // Keep the sprite on the ground
-				velocity.Y = 0; // Stop the downward velocity when on the ground
+				_position.Y = _groundLevel;
+				_velocity.Y = 0;
 				_isOnGround = true;
+
+				if (_isJumping)
+				{
+					_isJumping = false;
+				}
 			}
 
-			// Update the bounds
-			bounds.X = position.X - 16;
-			bounds.Y = position.Y - 16;
+			_bounds.X = _position.X - 16;
+			_bounds.Y = _position.Y - 16;
 
-			velocity.X = MathHelper.Clamp(velocity.X, -_movementSpeed * 2, _movementSpeed * 2);
+			_velocity.X = MathHelper.Clamp(_velocity.X, -_movementSpeed * 2, _movementSpeed * 2);
+
+			if (_isOnGround && Math.Abs(_velocity.X) > 0)
+			{
+				_animationTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+				_animationInterval = 0.15f / Math.Abs(_velocity.X);
+
+				if (_animationTimer >= _animationInterval)
+				{
+					_currentTexture = (_currentTexture == _texture1) ? _texture2 : _texture1;
+					_animationTimer = 0f;
+				}
+			}
+			else if (!_isOnGround)
+			{
+				_currentTexture = _texture1;
+			}
+		}
+
+		private void PlayMoveSound(GameTime gameTime, float interval)
+		{
+			_soundTimer += gameTime.ElapsedGameTime.TotalSeconds;
+			if (_soundTimer >= interval)
+			{
+				_moveSound.Play();
+				_soundTimer = 0.0;
+			}
+		}
+
+		private float GetMoveSoundInterval()
+		{
+			return (_keyboardState.IsKeyDown(Keys.LeftShift) || _keyboardState.IsKeyDown(Keys.RightShift)) ? _shiftMoveSoundInterval : _moveSoundInterval;
 		}
 
 		public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{
 			SpriteEffects spriteEffects = (_flipped) ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-			spriteBatch.Draw(texture, position, null, Color, 0, new Vector2(120, 120), 0.25f, spriteEffects, 0);
+			spriteBatch.Draw(_currentTexture, _position, null, Color, 0, new Vector2(120, 120), 0.25f, spriteEffects, 0);
 		}
-
-		
 	}
 }
