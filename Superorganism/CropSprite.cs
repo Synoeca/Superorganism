@@ -47,7 +47,7 @@ namespace Superorganism
 		/// <param name="content">The ContentManager to load with</param>
 		public void LoadContent(ContentManager content)
 		{
-			texture = content.Load<Texture2D>("coins");
+			texture = content.Load<Texture2D>("crops");
 		}
 
 		/// <summary>
