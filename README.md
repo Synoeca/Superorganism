@@ -1,4 +1,5 @@
-![image](https://github.com/user-attachments/assets/5aa78635-4197-45e5-90e8-2cb601ad4952)
+![image](https://github.com/user-attachments/assets/cede583f-3e4d-436d-b0c9-9eef4b8862fd)
+
 ### How to Play:
 
 - **Move**: Use **AD** to control your character.
