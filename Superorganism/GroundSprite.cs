@@ -11,10 +11,10 @@ namespace Superorganism
 		private Vector2 _position;
 		private int _groundY;
 		private int _groundHeight;
-		private GraphicsDeviceManager _graphics;
+		private GraphicsDevice _graphics;
 
 
-		public GroundSprite(GraphicsDeviceManager graphics, int groundY, int groundHeight)
+		public GroundSprite(GraphicsDevice graphics, int groundY, int groundHeight)
 		{
 			_graphics = graphics;
 			_groundY = groundY;
@@ -36,7 +36,8 @@ namespace Superorganism
 		/// <param name="spriteBatch">The spritebatch to render with</param>
 		public void Draw(SpriteBatch spriteBatch)
 		{
-			int screenWidth = _graphics.PreferredBackBufferWidth;
+			int screenWidth = _graphics.Viewport.Width;  // Use Viewport to get the screen width
+
 			int textureWidth = _texture.Width; 
 			int textureHeight = _texture.Height;
 

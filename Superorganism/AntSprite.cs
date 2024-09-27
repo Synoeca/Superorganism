@@ -48,6 +48,7 @@ namespace Superorganism
 		private bool _isJumping = false;
 
 		public int HitPoint { get; set; } = 100;
+		public int MaxHitPoint { get; private set; } = 100; // Maximum health
 
 		public void LoadContent(ContentManager content)
 		{
