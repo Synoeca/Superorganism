@@ -16,7 +16,7 @@ namespace Superorganism
 		private Texture2D _texture1;
 		private Texture2D _texture2;
 		private Texture2D _texture3;
-		private Vector2 _position = new Vector2(450, 400);
+		private Vector2 _position = new Vector2(550, 400);
 		private Vector2 _velocity = Vector2.Zero;
 
 		private bool _flipped;
