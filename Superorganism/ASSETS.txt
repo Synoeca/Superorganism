@@ -1,1 +1,29 @@
 ﻿Content/ant.png - created by Copilot for this project, released under public domain
+
+Content/ant2.png - created by Synoeca for this project with Aseprite, released under public domain
+
+Content/antEnemy.png - created by Copilot for this project, released under public domain
+
+Content/antEnemy2.png - created by Synoeca for this project with Aseprite, released under public domain
+
+Content/antEnemy3.png - created by Synoeca for this project with Aseprite, released under public domain
+
+Content/crops.png - created by Synoeca for this project with Aseprite, released under public domain
+
+Content/damaged.wav - created by Synoeca for this project with BXFR, released under public domain
+
+Content/flies.png - created by Synoeca for this project with Aseprite, released under public domain
+
+Content/Jump.wav - created by Synoeca for this project with BXFR, released under public domain
+
+Content/MaxBrhon_Cyberpunk.mp3 - Song: Max Brhon - Cyberpunk [NCS Release]
+	Music provided by NoCopyrightSounds
+	Free Download/Stream: http://ncs.io/Cyberpunk
+	Watch: http://youtu.be/iqoNoU-rm14
+
+Content/move.wav - created by Synoeca for this project with BXFR, released under public domain
+
+Content/Pickup_Coin4.wav - created by Synoeca for this project with BXFR, released under public domain
+
+Content/tiles2.png - created by Synoeca for this project with Aseprite, released under public domain
+
