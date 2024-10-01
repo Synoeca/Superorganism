@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 
-namespace CollisionExample.Collisions
+namespace Superorganism.Collisions
 {
 	/// <summary>
 	/// A struct representing circular bounds
 	/// </summary>
-	public struct BoundingCircle
+	public struct BoundingCircle : ICollisionBounding
 	{
 		/// <summary>
 		/// The center of the BoundingCircle
@@ -38,14 +38,17 @@ namespace CollisionExample.Collisions
 		/// </summary>
 		/// <param name="other">The other bounding circle</param>
 		/// <returns>true for collision, false otherwise</returns>
-		public bool CollidesWith(BoundingCircle other)
+		public bool CollidesWith(ICollisionBounding other)
 		{
-			return CollisionHelper.Collides(this, other);
-		}
-
-		public bool CollidesWith(BoundingRectangle other)
-		{
-			return CollisionHelper.Collides(this, other);
+			if (other is BoundingCircle otherCircle)
+			{
+				return CollisionHelper.Collides(this, otherCircle);
+			}
+			else if (other is BoundingRectangle otherRectangle)
+			{
+				return CollisionHelper.Collides(this, otherRectangle);
+			}
+			return false;
 		}
 	}
 }

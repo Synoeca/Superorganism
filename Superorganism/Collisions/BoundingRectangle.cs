@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.Xna.Framework;
 
-namespace CollisionExample.Collisions
+namespace Superorganism.Collisions
 {
 	/// <summary>
 	/// A bounding rectangle for collision detection
 	/// </summary>
-	public struct BoundingRectangle
+	public struct BoundingRectangle : ICollisionBounding
 	{
 		public float X;
 
@@ -45,14 +45,17 @@ namespace CollisionExample.Collisions
 			Height = height;
 		}
 
-		public bool CollidesWith(BoundingRectangle other)
+		public bool CollidesWith(ICollisionBounding other)
 		{
-			return CollisionHelper.Collides(this, other);
-		}
-
-		public bool CollidesWith(BoundingCircle other)
-		{
-			return CollisionHelper.Collides(other, this);
+			if (other is BoundingRectangle otherRectangle)
+			{
+				return CollisionHelper.Collides(this, otherRectangle);
+			}
+			else if (other is BoundingCircle otherCircle)
+			{
+				return CollisionHelper.Collides(otherCircle, this);
+			}
+			return false;
 		}
 	}
 }

@@ -2,9 +2,9 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using System;
-using CollisionExample.Collisions;
+using Superorganism.Collisions;
 
-namespace SpriteExample
+namespace Superorganism
 {
 	public enum Direction
 	{
@@ -90,8 +90,8 @@ namespace SpriteExample
 			}
 
 			Direction = Math.Abs(velocity.X) > Math.Abs(velocity.Y)
-				? (velocity.X > 0 ? Direction.Right : Direction.Left)
-				: (velocity.Y > 0 ? Direction.Down : Direction.Up);
+				? velocity.X > 0 ? Direction.Right : Direction.Left
+				: velocity.Y > 0 ? Direction.Down : Direction.Up;
 		}
 
 		public void Draw(GameTime gameTime, SpriteBatch spriteBatch)

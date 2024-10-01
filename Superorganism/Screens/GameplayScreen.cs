@@ -7,7 +7,6 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
 using GameArchitectureExample.StateManagement;
 using Superorganism;
-using SpriteExample;
 
 namespace GameArchitectureExample.Screens
 {
@@ -137,7 +136,7 @@ namespace GameArchitectureExample.Screens
 				_elapsedTime += gameTime.ElapsedGameTime.TotalSeconds;
 
 				_ant.Update(gameTime);
-				_antEnemy.Update(gameTime, _ant.Position());
+				_antEnemy.Update(gameTime, _ant.Position);
 				_ant.Color = Color.White;
 				_antEnemy.Color = Color.White;
 
