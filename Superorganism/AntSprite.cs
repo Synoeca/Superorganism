@@ -26,7 +26,7 @@ namespace Superorganism
 		private Vector2 _velocity = Vector2.Zero;
 		private bool _flipped;
 
-		private BoundingRectangle _bounds = new BoundingRectangle(new Vector2(200 - 16, 200 - 16), 32, 32);
+		private BoundingRectangle _bounds = new(new Vector2(200 - 16, 200 - 16), 32, 32);
 		public BoundingRectangle Bounds => _bounds;
 
 		private bool _isOnGround = true;
@@ -48,7 +48,7 @@ namespace Superorganism
 		private bool _isJumping = false;
 
 		public int HitPoint { get; set; } = 100;
-		public int MaxHitPoint { get; private set; } = 100; // Maximum health
+		public int MaxHitPoint { get; private set; } = 100;
 
 		public void LoadContent(ContentManager content)
 		{

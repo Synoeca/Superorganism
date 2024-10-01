@@ -45,8 +45,8 @@ namespace GameArchitectureExample.Screens
 			TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
 			_pauseAction = new InputAction(
-				new[] { Buttons.Start, Buttons.Back },
-				new[] { Keys.Back, Keys.Escape }, true);
+				[Buttons.Start, Buttons.Back],
+				[Keys.Back, Keys.Escape], true);
 		}
 
 		public override void Activate()
@@ -138,6 +138,8 @@ namespace GameArchitectureExample.Screens
 
 				_ant.Update(gameTime);
 				_antEnemy.Update(gameTime, _ant.Position());
+				_ant.Color = Color.White;
+				_antEnemy.Color = Color.White;
 
 				foreach (CropSprite crop in _crops)
 				{
