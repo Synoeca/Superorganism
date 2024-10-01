@@ -14,13 +14,24 @@ namespace Superorganism
 		/// <summary>
 		/// 
 		/// </summary>
-		Vector2 Position { get; set; }
+		Texture2D Texture { get; set; }
 
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="gameTime"></param>
-		void Update(GameTime gameTime);
+		Vector2 Position { get; set; }
+
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="gameTime"></param>
+		//abstract void Update(GameTime gameTime);
+
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="collected"></param>
+		//abstract void Update(bool collected);
 
 		/// <summary>
 		/// 

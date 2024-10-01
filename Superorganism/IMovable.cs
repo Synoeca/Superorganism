@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Superorganism
 {
-	public interface IMoveable : IEntity
+	public interface IMovable : IEntity
 	{
 		Vector2 Velocity { get; set; }
 

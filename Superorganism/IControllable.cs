@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace Superorganism
 {
-	public interface IControllable : IMoveable
+	public interface IControllable : IMovable
 	{
-
 		void HandleInput(KeyboardState keyboardState, GamePadState gamePadState);
 	}
 }

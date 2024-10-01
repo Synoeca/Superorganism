@@ -10,7 +10,7 @@ namespace Superorganism
 {
 	public interface IAnimated
 	{
-		void UpdateAnimation(GameTime gameTime, float movementSpeed);
+		void UpdateAnimation(GameTime gameTime);
 		void DrawAnimation(SpriteBatch spriteBatch);
 	}
 }

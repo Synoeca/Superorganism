@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Superorganism
 {
-	public interface ISoundEffect
+	public interface IMoveSoundEffect
 	{
-		void PlayMoveSound();
+		void PlayMoveSound(GameTime gameTime, float interval);
 		void PlayJumpSound();
 	}
 }

@@ -56,8 +56,8 @@ namespace GameArchitectureExample.Screens
 			_gameFont = _content.Load<SpriteFont>("gamefont");
 
 			_groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
-			_ant = new AntSprite();
-			_antEnemy = new AntEnemySprite();
+			_ant = new AntSprite(new(200, 200));
+			_antEnemy = new AntEnemySprite(new(550, 400));
 
 			_groundTexture.LoadContent(_content);
 			_ant.LoadContent(_content);
@@ -136,7 +136,7 @@ namespace GameArchitectureExample.Screens
 				_elapsedTime += gameTime.ElapsedGameTime.TotalSeconds;
 
 				_ant.Update(gameTime);
-				_antEnemy.Update(gameTime, _ant.Position);
+				_antEnemy.Update(gameTime, ((IEntity)_ant).Position);
 				_ant.Color = Color.White;
 				_antEnemy.Color = Color.White;
 

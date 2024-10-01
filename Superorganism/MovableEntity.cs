@@ -9,119 +9,68 @@ using System;
 
 namespace Superorganism
 {
-	public class MovableEntity : AnimatedEntity, IMoveable, ISoundEffect
+	public class MovableEntity : AnimatedEntity, IMovable
 	{
+		private new float _animationTimer = 0f;
+		private new float _animationInterval = 0.15f;
+		protected Texture2D _currentTexture;
 
+		private Texture2D _texture1;
+		private Texture2D _texture2;
+		private Texture2D _texture3;
+		private new Vector2 _position = new(550, 400);
 		private Vector2 _velocity = Vector2.Zero;
+		public Vector2 Velocity { get; set; }
+
 		private bool _flipped;
-
-		private BoundingRectangle _bounds = new(new Vector2(200 - 16, 200 - 16), 32, 32);
-		public BoundingRectangle Bounds => _bounds;
-
-		protected bool _isOnGround = true;
-		protected bool IsOnGround() => _isOnGround;
+		private bool _isOnGround = true;
 
 		private float _gravity = 0.5f;
 		private float _groundLevel = 400;
-		private float _jumpStrength = -14f;
-		private float _movementSpeed = 3f;
+		private float _movementSpeed = 2.5f;
 		private float _friction = 0.8f;
+		private float _chaseThreshold = 300f;
+		private float _acceleration = 0.12f;
+
+		private BoundingRectangle _bounds = new BoundingRectangle(new Vector2(200 - 16, 200 - 16), 32, 32);
+		public new BoundingRectangle Bounds => _bounds;
+
+		private bool _movingRight = true;
 
 		public Color Color { get; set; } = Color.White;
 
-		private GamePadState _gamePadState;
-		private KeyboardState _keyboardState;
-		protected Texture2D _texture1;
-		protected Texture2D _texture2;
-
-		protected SoundEffect _moveSound;
-		protected SoundEffect _jumpSound;
-		protected float _soundTimer = 0.0f;
-		protected float _moveSoundInterval = 0.25f;
-		protected float _shiftMoveSoundInterval = 0.15f;
-		protected bool _isJumping = false;
-
-		// Velocity property from IMoveable
-		public virtual Vector2 Velocity { get; set; }
-
-		// Constructor
-		//public MovableEntity(Vector2 initialPosition) : base(initialPosition) { }
-
-		// Implement IMoveable methods
-		public virtual void Move(Vector2 direction)
+		public MovableEntity(Vector2 position) : base(position)
 		{
-			Velocity += direction;
+			this._position = position;
 		}
 
-		public virtual void ApplyGravity(float gravity)
+		public override void LoadContent(ContentManager content)
 		{
-			Velocity = new Vector2(Velocity.X, Velocity.Y + gravity);
+			_texture1 = content.Load<Texture2D>("antEnemy");
+			_texture2 = content.Load<Texture2D>("antEnemy2");
+			_texture3 = content.Load<Texture2D>("antEnemy3");
+			_currentTexture = _texture1;
 		}
 
-		//public virtual void UpdateAnimation(GameTime gameTime, float movementSpeed)
-		//{
-		//	// Implement animation logic for movable entities
-		//	// For example, you could change frames based on movement speed
-		//}
-
-		//public virtual void DrawAnimation(SpriteBatch spriteBatch)
-		//{
-		//	// Draw the current texture with its position
-		//	spriteBatch.Draw(_currentTexture, Position, Color.White);
-		//}
-
-		// Update the entity's state
-		public virtual void Update(GameTime gameTime)
+		public void Update(GameTime gameTime, Vector2 playerPosition)
 		{
-			//// Call the base class update for sound timer management
-			//UpdateSoundTimer(gameTime);
-			//// Update position based on velocity
-			//Position += Velocity;
-			_gamePadState = GamePad.GetState(0);
-			_keyboardState = Keyboard.GetState();
-			_movementSpeed = (_keyboardState.IsKeyDown(Keys.LeftShift) || _keyboardState.IsKeyDown(Keys.RightShift)) ? 2.5f : 1f;
+			float distanceToPlayerX = Math.Abs(_position.X - playerPosition.X);
 
-			if (_isOnGround && _keyboardState.IsKeyDown(Keys.Space))
+			if (distanceToPlayerX < _chaseThreshold)
 			{
-				_velocity.Y = _jumpStrength;
-				_isOnGround = false;
-				_isJumping = true;
-				_jumpSound.Play();
-			}
-
-			if (_keyboardState.IsKeyDown(Keys.Left) || _keyboardState.IsKeyDown(Keys.A))
-			{
-				_velocity.X = -_movementSpeed;
-				_flipped = true;
-				if (!_isJumping)
-				{
-					PlayMoveSound(gameTime, GetMoveSoundInterval());
-				}
-			}
-			else if (_keyboardState.IsKeyDown(Keys.Right) || _keyboardState.IsKeyDown(Keys.D))
-			{
-				_velocity.X = _movementSpeed;
-				_flipped = false;
-				if (!_isJumping)
-				{
-					PlayMoveSound(gameTime, GetMoveSoundInterval());
-				}
+				float targetVelocityX = playerPosition.X > _position.X ? _movementSpeed : -_movementSpeed;
+				_velocity.X = MathHelper.Lerp(_velocity.X, targetVelocityX, _acceleration);
+				_flipped = _velocity.X < 0;
 			}
 			else
 			{
-				if (_isOnGround)
-				{
-					_velocity.X *= _friction;
-					if (Math.Abs(_velocity.X) < 0.1f)
-					{
-						_velocity.X = 0;
-					}
-				}
+				float targetVelocityX = _movingRight ? _movementSpeed : -_movementSpeed;
+				_velocity.X = MathHelper.Lerp(_velocity.X, targetVelocityX, _acceleration);
 
-				if (_soundTimer > 0 && _velocity.X == 0)
-				{
-					_soundTimer = 0.0f;
-				}
+				if (_position.X <= 100) _movingRight = true;
+				else if (_position.X >= 700) _movingRight = false;
+
+				_flipped = _velocity.X < 0;
 			}
 
 			_velocity.Y += _gravity;
@@ -133,17 +82,14 @@ namespace Superorganism
 				_position.Y = _groundLevel;
 				_velocity.Y = 0;
 				_isOnGround = true;
-
-				if (_isJumping)
-				{
-					_isJumping = false;
-				}
+			}
+			else
+			{
+				_isOnGround = false;
 			}
 
 			_bounds.X = _position.X - 16;
 			_bounds.Y = _position.Y - 16;
-
-			_velocity.X = MathHelper.Clamp(_velocity.X, -_movementSpeed * 2, _movementSpeed * 2);
 
 			if (_isOnGround && Math.Abs(_velocity.X) > 0)
 			{
@@ -152,7 +98,7 @@ namespace Superorganism
 
 				if (_animationTimer >= _animationInterval)
 				{
-					_currentTexture = (_currentTexture == _texture1) ? _texture2 : _texture1;
+					_currentTexture = (_currentTexture == _texture2) ? _texture3 : _texture2;
 					_animationTimer = 0f;
 				}
 			}
@@ -160,85 +106,33 @@ namespace Superorganism
 			{
 				_currentTexture = _texture1;
 			}
+			else if (_isOnGround && Math.Abs(_velocity.X) == 0)
+			{
+				_currentTexture = _texture1;
+			}
+
+			if (_isOnGround && distanceToPlayerX >= _chaseThreshold)
+			{
+				_velocity.X *= _friction;
+				if (Math.Abs(_velocity.X) < 0.1f)
+				{
+					_velocity.X = 0;
+				}
+			}
 		}
 
-		// Load content for the entity
-		public virtual void LoadContent(ContentManager content)
-		{
-			//// Load the textures or other content needed for the entity
-			//// Example:
-			//_currentTexture = content.Load<Texture2D>("YourTextureName");
-			//// Load sound effects if needed
-			//_moveSound = content.Load<SoundEffect>("YourMoveSound");
-			//_jumpSound = content.Load<SoundEffect>("YourJumpSound");
-			_texture1 = content.Load<Texture2D>("ant");
-			_texture2 = content.Load<Texture2D>("ant2");
-			_currentTexture = _texture1;
-
-			_moveSound = content.Load<SoundEffect>("move");
-			_jumpSound = content.Load<SoundEffect>("jump");
-		}
-
-		// Draw the entity including animations
-		public virtual void Draw(GameTime gameTime, SpriteBatch spriteBatch)
-		{
-			DrawAnimation(spriteBatch);
-		}
-
-		public override void UpdateAnimation(GameTime gameTime, float movementSpeed)
-		{
-			throw new System.NotImplementedException();
-		}
-
-		public override void DrawAnimation(SpriteBatch spriteBatch)
+		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{
 			SpriteEffects spriteEffects = (_flipped) ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 			spriteBatch.Draw(_currentTexture, _position, null, Color, 0, new Vector2(120, 120), 0.25f, spriteEffects, 0);
 		}
 
-		private float GetMoveSoundInterval()
+		public void Move(Vector2 direction)
 		{
-			return (_keyboardState.IsKeyDown(Keys.LeftShift) || _keyboardState.IsKeyDown(Keys.RightShift)) ? _shiftMoveSoundInterval : _moveSoundInterval;
+			throw new NotImplementedException();
 		}
 
-		//// Implement sound effect methods
-		//public virtual void PlayMoveSound()
-		//{
-		//	if (_moveSound != null && _soundTimer <= 0)
-		//	{
-		//		_moveSound.Play();
-		//		_soundTimer = _moveSoundInterval; // Reset the sound timer to interval
-		//	}
-		//}
-
-		public virtual void PlayMoveSound(GameTime gameTime, float interval)
-		{
-			_soundTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-			if (_soundTimer >= interval)
-			{
-				_moveSound.Play();
-				_soundTimer = 0.0f;
-			}
-		}
-
-		public virtual void PlayJumpSound()
-		{
-			if (_jumpSound != null)
-			{
-				_jumpSound.Play();
-			}
-		}
-
-		// Update method to manage sound timer
-		public void UpdateSoundTimer(GameTime gameTime)
-		{
-			if (_soundTimer > 0)
-			{
-				_soundTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-			}
-		}
-
-		public void PlayMoveSound()
+		public void ApplyGravity(float gravity)
 		{
 			throw new NotImplementedException();
 		}

@@ -8,8 +8,13 @@ using System;
 
 namespace Superorganism
 {
-	public class AntSprite : MovableEntity
+	public class AntSprite : ControllerableEntity
 	{
+		public AntSprite(Vector2 position) : base(position)
+		{
+			this._position = position;
+		}
+
 		public int HitPoint { get; set; } = 100;
 		public int MaxHitPoint { get; private set; } = 100;
 	}
