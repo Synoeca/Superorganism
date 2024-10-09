@@ -110,15 +110,12 @@ namespace Superorganism
 				_animationTimer -= 0.04;
 			}
 
-			int directionIndex = (int)Direction;
-			if (Direction == Direction.Up)
+			int directionIndex = Direction switch
 			{
-				directionIndex = (int)Direction.Down;
-			}
-			else if (Direction == Direction.Down)
-			{
-				directionIndex = (int)Direction.Up;
-			}
+				Direction.Up => (int)Direction.Down,
+				Direction.Down => (int)Direction.Up,
+				_ => (int)Direction
+			};
 
 			Rectangle source = new Rectangle(_animationFrame * 32, directionIndex * 32, 32, 32);
 			spriteBatch.Draw(_texture, Position, source, Color.White);

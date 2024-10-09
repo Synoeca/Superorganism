@@ -3,77 +3,64 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.Collisions;
 
-namespace Superorganism
+namespace Superorganism;
+
+public abstract class AnimatedEntity(Vector2 position) : IEntity, IAnimated
 {
-	public abstract class AnimatedEntity : IEntity, IAnimated
+	private const float AnimationSpeed = 0.1f;
+
+	private int _animationFrame;
+
+	private double _animationTimer;
+
+	protected Vector2 _position = position;
+	protected float AnimationInterval = 0.15f;
+
+	// Animation variables
+	protected float AnimationTimer = 0f;
+
+	public bool Collected { get; set; }
+
+	public BoundingCircle Bounds { get; } = new(position + new Vector2(8, 8), 8);
+
+	public virtual void UpdateAnimation(GameTime gameTime)
 	{
-		public Texture2D Texture { get; set; }
+		_animationTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
-		private const float AnimationSpeed = 0.1f;
+		if (!(_animationTimer > AnimationSpeed)) return;
+		_animationFrame++;
+		if (_animationFrame > 7) { _animationFrame = 0; }
+		_animationTimer -= AnimationSpeed;
+	}
 
-		private double _animationTimer;
+	public virtual void DrawAnimation(SpriteBatch spriteBatch)
+	{
+		Rectangle source = new(_animationFrame * 16, 0, 16, 16);
+		spriteBatch.Draw(Texture, Position, source, Color.White);
+	}
 
-		private int _animationFrame;
+	public Texture2D Texture { get; set; }
 
-		public bool Collected { get; set; } = false;
+	public Vector2 Position
+	{
+		get => _position;
+		set => _position = value;
+	}
 
-		protected Vector2 _position;
+	public virtual void LoadContent(ContentManager content)
+	{
+		Texture = content.Load<Texture2D>("crops");
+	}
 
-		public Vector2 Position
-		{
-			get => _position;
-			set => _position = value;
-		}
+	public virtual void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+	{
+		if (Collected) return;
+		UpdateAnimation(gameTime);
+		DrawAnimation(spriteBatch);
+	}
 
-		private BoundingCircle _bounds;
-
-		public BoundingCircle Bounds => _bounds;
-
-		// Animation variables
-		protected float AnimationTimer = 0f;
-		protected float AnimationInterval = 0.15f;
-
-		public AnimatedEntity(Vector2 position)
-		{
-			this._position = position;
-			this._bounds = new BoundingCircle(position + new Vector2(8, 8), 8);
-		}
-
-		public virtual void UpdateAnimation(GameTime gameTime)
-		{
-			_animationTimer += gameTime.ElapsedGameTime.TotalSeconds;
-
-			if (_animationTimer > AnimationSpeed)
-			{
-				_animationFrame++;
-				if (_animationFrame > 7) _animationFrame = 0;
-				_animationTimer -= AnimationSpeed;
-			}
-		}
-		public virtual void DrawAnimation(SpriteBatch spriteBatch)
-		{
-			Rectangle source = new Rectangle(_animationFrame * 16, 0, 16, 16);
-			spriteBatch.Draw(Texture, Position, source, Color.White);
-		}
-
-		public void Update(bool collected)
-		{
-			this.Collected = collected;
-		}
-
-		public virtual void LoadContent(ContentManager content)
-		{
-			Texture = content.Load<Texture2D>("crops");
-		}
-
-		public virtual void Draw(GameTime gameTime, SpriteBatch spriteBatch)
-		{
-			if (Collected)
-			{
-				return;
-			}
-			UpdateAnimation(gameTime);
-			DrawAnimation(spriteBatch);
-		}
+	public void Update(bool collected)
+	{
+		Collected = collected;
 	}
 }

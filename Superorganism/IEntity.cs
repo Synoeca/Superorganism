@@ -28,17 +28,17 @@ namespace Superorganism
 		///// <param name="collected"></param>
 		//abstract void Update(bool collected);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="content"></param>
-		void LoadContent(ContentManager content);
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="content"></param>
+		//void LoadContent(ContentManager content);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="gameTime"></param>
-		/// <param name="spriteBatch"></param>
-		void Draw(GameTime gameTime, SpriteBatch spriteBatch);
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="gameTime"></param>
+		///// <param name="spriteBatch"></param>
+		//void Draw(GameTime gameTime, SpriteBatch spriteBatch);
 	}
 }
