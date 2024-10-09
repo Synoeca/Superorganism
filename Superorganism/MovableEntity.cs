@@ -13,7 +13,7 @@ namespace Superorganism
 	{
 		private new float _animationTimer = 0f;
 		private new float _animationInterval = 0.15f;
-		protected Texture2D _currentTexture;
+		protected Texture2D CurrentTexture;
 
 		private Texture2D _texture1;
 		private Texture2D _texture2;
@@ -49,7 +49,7 @@ namespace Superorganism
 			_texture1 = content.Load<Texture2D>("antEnemy");
 			_texture2 = content.Load<Texture2D>("antEnemy2");
 			_texture3 = content.Load<Texture2D>("antEnemy3");
-			_currentTexture = _texture1;
+			CurrentTexture = _texture1;
 		}
 
 		public void Update(GameTime gameTime, Vector2 playerPosition)
@@ -60,7 +60,6 @@ namespace Superorganism
 			{
 				float targetVelocityX = playerPosition.X > _position.X ? _movementSpeed : -_movementSpeed;
 				_velocity.X = MathHelper.Lerp(_velocity.X, targetVelocityX, _acceleration);
-				_flipped = _velocity.X < 0;
 			}
 			else
 			{
@@ -69,9 +68,9 @@ namespace Superorganism
 
 				if (_position.X <= 100) _movingRight = true;
 				else if (_position.X >= 700) _movingRight = false;
-
-				_flipped = _velocity.X < 0;
 			}
+
+			_flipped = _velocity.X < 0;
 
 			_velocity.Y += _gravity;
 
@@ -91,40 +90,39 @@ namespace Superorganism
 			_bounds.X = _position.X - 16;
 			_bounds.Y = _position.Y - 16;
 
-			if (_isOnGround && Math.Abs(_velocity.X) > 0)
+			switch (_isOnGround)
 			{
-				_animationTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-				_animationInterval = 0.15f / Math.Abs(_velocity.X);
-
-				if (_animationTimer >= _animationInterval)
+				case true when Math.Abs(_velocity.X) > 0:
 				{
-					_currentTexture = (_currentTexture == _texture2) ? _texture3 : _texture2;
-					_animationTimer = 0f;
+					_animationTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+					_animationInterval = 0.15f / Math.Abs(_velocity.X);
+
+					if (_animationTimer >= _animationInterval)
+					{
+						CurrentTexture = (CurrentTexture == _texture2) ? _texture3 : _texture2;
+						_animationTimer = 0f;
+					}
+
+					break;
 				}
-			}
-			else if (!_isOnGround)
-			{
-				_currentTexture = _texture1;
-			}
-			else if (_isOnGround && Math.Abs(_velocity.X) == 0)
-			{
-				_currentTexture = _texture1;
+				case false:
+				case true when Math.Abs(_velocity.X) == 0:
+					CurrentTexture = _texture1;
+					break;
 			}
 
-			if (_isOnGround && distanceToPlayerX >= _chaseThreshold)
+			if (!_isOnGround || !(distanceToPlayerX >= _chaseThreshold)) return;
+			_velocity.X *= _friction;
+			if (Math.Abs(_velocity.X) < 0.1f)
 			{
-				_velocity.X *= _friction;
-				if (Math.Abs(_velocity.X) < 0.1f)
-				{
-					_velocity.X = 0;
-				}
+				_velocity.X = 0;
 			}
 		}
 
 		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{
 			SpriteEffects spriteEffects = (_flipped) ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-			spriteBatch.Draw(_currentTexture, _position, null, Color, 0, new Vector2(120, 120), 0.25f, spriteEffects, 0);
+			spriteBatch.Draw(CurrentTexture, _position, null, Color, 0, new Vector2(120, 120), 0.25f, spriteEffects, 0);
 		}
 
 		public void Move(Vector2 direction)

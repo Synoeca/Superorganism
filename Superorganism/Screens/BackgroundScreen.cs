@@ -2,9 +2,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using GameArchitectureExample.StateManagement;
+using Superorganism.StateManagement;
 
-namespace GameArchitectureExample.Screens
+namespace Superorganism.Screens
 {
     // The background screen sits behind all the other menu screens.
     // It draws a background image that remains fixed in place regardless
@@ -51,9 +51,9 @@ namespace GameArchitectureExample.Screens
 
         public override void Draw(GameTime gameTime)
         {
-            var spriteBatch = ScreenManager.SpriteBatch;
-            var viewport = ScreenManager.GraphicsDevice.Viewport;
-            var fullscreen = new Rectangle(0, 0, viewport.Width, viewport.Height);
+            SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
+            Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
+            Rectangle fullscreen = new Rectangle(0, 0, viewport.Width, viewport.Height);
 
             spriteBatch.Begin();
 

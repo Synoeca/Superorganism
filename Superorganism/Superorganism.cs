@@ -1,13 +1,12 @@
-﻿using GameArchitectureExample.Screens;
-using GameArchitectureExample.StateManagement;
-using GameArchitectureExample;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using System;
 using System.Linq;
+using Superorganism.Screens;
+using Superorganism.StateManagement;
 
 namespace Superorganism
 {
@@ -22,7 +21,7 @@ namespace Superorganism
 			Content.RootDirectory = "Content";
 			IsMouseVisible = true;
 
-			var screenFactory = new ScreenFactory();
+			ScreenFactory screenFactory = new ScreenFactory();
 			Services.AddService(typeof(IScreenFactory), screenFactory);
 
 			_screenManager = new ScreenManager(this);

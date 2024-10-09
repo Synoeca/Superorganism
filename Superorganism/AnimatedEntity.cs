@@ -9,11 +9,11 @@ namespace Superorganism
 	{
 		public Texture2D Texture { get; set; }
 
-		private const float ANIMATION_SPEED = 0.1f;
+		private const float AnimationSpeed = 0.1f;
 
-		private double animationTimer;
+		private double _animationTimer;
 
-		private int animationFrame;
+		private int _animationFrame;
 
 		public bool Collected { get; set; } = false;
 
@@ -30,8 +30,8 @@ namespace Superorganism
 		public BoundingCircle Bounds => _bounds;
 
 		// Animation variables
-		protected float _animationTimer = 0f;
-		protected float _animationInterval = 0.15f;
+		protected float AnimationTimer = 0f;
+		protected float AnimationInterval = 0.15f;
 
 		public AnimatedEntity(Vector2 position)
 		{
@@ -41,18 +41,18 @@ namespace Superorganism
 
 		public virtual void UpdateAnimation(GameTime gameTime)
 		{
-			animationTimer += gameTime.ElapsedGameTime.TotalSeconds;
+			_animationTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
-			if (animationTimer > ANIMATION_SPEED)
+			if (_animationTimer > AnimationSpeed)
 			{
-				animationFrame++;
-				if (animationFrame > 7) animationFrame = 0;
-				animationTimer -= ANIMATION_SPEED;
+				_animationFrame++;
+				if (_animationFrame > 7) _animationFrame = 0;
+				_animationTimer -= AnimationSpeed;
 			}
 		}
 		public virtual void DrawAnimation(SpriteBatch spriteBatch)
 		{
-			var source = new Rectangle(animationFrame * 16, 0, 16, 16);
+			Rectangle source = new Rectangle(_animationFrame * 16, 0, 16, 16);
 			spriteBatch.Draw(Texture, Position, source, Color.White);
 		}
 

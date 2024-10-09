@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 
-namespace GameArchitectureExample.Screens
+namespace Superorganism.Screens
 {
     // Custom event argument which includes the index of the player who
     // triggered the event. This is used by the MenuEntry.Selected event.

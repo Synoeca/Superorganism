@@ -1,6 +1,4 @@
-﻿using GameArchitectureExample.StateManagement;
-
-namespace GameArchitectureExample.Screens
+﻿namespace Superorganism.Screens
 {
     // The pause menu comes up over the top of the game,
     // giving the player options to resume or quit.
@@ -8,8 +6,8 @@ namespace GameArchitectureExample.Screens
     {
         public PauseMenuScreen() : base("Paused")
         {
-            var resumeGameMenuEntry = new MenuEntry("Resume Game");
-            var quitGameMenuEntry = new MenuEntry("Quit Game");
+            MenuEntry resumeGameMenuEntry = new MenuEntry("Resume Game");
+            MenuEntry quitGameMenuEntry = new MenuEntry("Quit Game");
 
             resumeGameMenuEntry.Selected += OnCancel;
             quitGameMenuEntry.Selected += QuitGameMenuEntrySelected;
@@ -21,7 +19,7 @@ namespace GameArchitectureExample.Screens
         private void QuitGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
             const string message = "Are you sure you want to quit this game?";
-            var confirmQuitMessageBox = new MessageBoxScreen(message);
+            MessageBoxScreen confirmQuitMessageBox = new MessageBoxScreen(message);
 
             confirmQuitMessageBox.Accepted += ConfirmQuitMessageBoxAccepted;
 

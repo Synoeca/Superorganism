@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using GameArchitectureExample.StateManagement;
+using Superorganism.StateManagement;
 
-namespace GameArchitectureExample.Screens
+namespace Superorganism.Screens
 {
     // Helper class represents a single entry in a MenuScreen. By default this
     // just draws the entry text string, but it can be customized to display menu
@@ -55,7 +55,7 @@ namespace GameArchitectureExample.Screens
         // This can be overridden to customize the appearance.
         public virtual void Draw(MenuScreen screen, bool isSelected, GameTime gameTime)
         {
-            var color = isSelected ? Color.Yellow : Color.White;
+            Color color = isSelected ? Color.Yellow : Color.White;
 
             // Pulsate the size of the selected menu entry.
             double time = gameTime.TotalGameTime.TotalSeconds;
@@ -66,11 +66,11 @@ namespace GameArchitectureExample.Screens
             color *= screen.TransitionAlpha;
 
             // Draw text, centered on the middle of each line.
-            var screenManager = screen.ScreenManager;
-            var spriteBatch = screenManager.SpriteBatch;
-            var font = screenManager.Font;
+            ScreenManager screenManager = screen.ScreenManager;
+            SpriteBatch spriteBatch = screenManager.SpriteBatch;
+            SpriteFont font = screenManager.Font;
 
-            var origin = new Vector2(0, font.LineSpacing / 2);
+            Vector2 origin = new Vector2(0, font.LineSpacing / 2);
 
             spriteBatch.DrawString(font, _text, _position, color, 0,
                 origin, scale, SpriteEffects.None, 0);

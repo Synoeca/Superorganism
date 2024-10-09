@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GameArchitectureExample.StateManagement
+namespace Superorganism.StateManagement
 {
     /// <summary>
     /// Defines an object that can create a screen when given its type.

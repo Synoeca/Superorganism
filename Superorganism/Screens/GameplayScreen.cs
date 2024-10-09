@@ -1,14 +1,13 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
-using GameArchitectureExample.StateManagement;
-using Superorganism;
+using Superorganism.StateManagement;
 
-namespace GameArchitectureExample.Screens
+namespace Superorganism.Screens
 {
 	public class GameplayScreen : GameScreen
 	{
@@ -56,8 +55,8 @@ namespace GameArchitectureExample.Screens
 			_gameFont = _content.Load<SpriteFont>("gamefont");
 
 			_groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
-			_ant = new AntSprite(new(200, 200));
-			_antEnemy = new AntEnemySprite(new(550, 400));
+			_ant = new AntSprite(new Vector2(200, 200));
+			_antEnemy = new AntEnemySprite(new Vector2(550, 400));
 
 			_groundTexture.LoadContent(_content);
 			_ant.LoadContent(_content);
@@ -106,9 +105,11 @@ namespace GameArchitectureExample.Screens
 				float yPos = rand.Next(0, 600);
 				Direction randomDirection = (Direction)rand.Next(0, 4);
 
-				_flies[i] = new FliesSprite();
-				_flies[i].Position = new Vector2(xPos, yPos);
-				_flies[i].Direction = randomDirection;
+				_flies[i] = new FliesSprite
+				{
+					Position = new Vector2(xPos, yPos),
+					Direction = randomDirection
+				};
 			}
 
 			_isGameOver = false;
@@ -131,67 +132,57 @@ namespace GameArchitectureExample.Screens
 		{
 			base.Update(gameTime, otherScreenHasFocus, false);
 
-			if (IsActive && !_isGameOver && !_isGameWon)
+			if (!IsActive || _isGameOver || _isGameWon) return;
+			_elapsedTime += gameTime.ElapsedGameTime.TotalSeconds;
+
+			_ant.Update(gameTime);
+			_antEnemy.Update(gameTime, ((IEntity)_ant).Position);
+			_ant.Color = Color.White;
+			_antEnemy.Color = Color.White;
+
+			foreach (CropSprite crop in _crops)
 			{
-				_elapsedTime += gameTime.ElapsedGameTime.TotalSeconds;
+				if (crop.Collected || !crop.Bounds.CollidesWith(_ant.Bounds)) continue;
+				_ant.Color = Color.Gold;
+				crop.Collected = true;
+				_cropsLeft--;
+				_cropPickup.Play();
+			}
 
-				_ant.Update(gameTime);
-				_antEnemy.Update(gameTime, ((IEntity)_ant).Position);
-				_ant.Color = Color.White;
-				_antEnemy.Color = Color.White;
+			if (_cropsLeft <= 0)
+			{
+				_isGameWon = true;
+			}
 
-				foreach (CropSprite crop in _crops)
+			foreach (FliesSprite fly in _flies)
+			{
+				if (fly.Destroyed) continue;
+				fly.Update(gameTime, ScreenManager.GraphicsDevice.Viewport.Width, _cropY + 26);
+				if (!fly.Bounds.CollidesWith(_ant.Bounds)) continue;
+				if (!(_elapsedTime > 1.5)) continue;
+				_ant.Color = Color.Gray;
+				fly.Destroyed = true;
+				_fliesDestroy.Play();
+				_ant.HitPoint = Math.Max(0, _ant.HitPoint - 10);
+			}
+
+			if (_antEnemy.Bounds.CollidesWith(_ant.Bounds))
+			{
+				_ant.Color = Color.Gray;
+				_antEnemy.Color = Color.Gray;
+
+				_damageTimer += gameTime.ElapsedGameTime.TotalSeconds;
+				if (_damageTimer >= 0.1)
 				{
-					if (!crop.Collected && crop.Bounds.CollidesWith(_ant.Bounds))
-					{
-						_ant.Color = Color.Gold;
-						crop.Collected = true;
-						_cropsLeft--;
-						_cropPickup.Play();
-					}
+					_ant.HitPoint = Math.Max(0, _ant.HitPoint - 15);
+					_damageTimer = 0;
+					_fliesDestroy.Play();
 				}
+			}
 
-				if (_cropsLeft <= 0)
-				{
-					_isGameWon = true;
-				}
-
-				foreach (FliesSprite fly in _flies)
-				{
-					if (!fly.Destroyed)
-					{
-						fly.Update(gameTime, ScreenManager.GraphicsDevice.Viewport.Width, _cropY + 26);
-						if (fly.Bounds.CollidesWith(_ant.Bounds))
-						{
-							if (_elapsedTime > 1.5)
-							{
-								_ant.Color = Color.Gray;
-								fly.Destroyed = true;
-								_fliesDestroy.Play();
-								_ant.HitPoint = Math.Max(0, _ant.HitPoint - 10);
-							}
-						}
-					}
-				}
-
-				if (_antEnemy.Bounds.CollidesWith(_ant.Bounds))
-				{
-					_ant.Color = Color.Gray;
-					_antEnemy.Color = Color.Gray;
-
-					_damageTimer += gameTime.ElapsedGameTime.TotalSeconds;
-					if (_damageTimer >= 0.1)
-					{
-						_ant.HitPoint = Math.Max(0, _ant.HitPoint - 15);
-						_damageTimer = 0;
-						_fliesDestroy.Play();
-					}
-				}
-
-				if (_ant.HitPoint <= 0)
-				{
-					_isGameOver = true;
-				}
+			if (_ant.HitPoint <= 0)
+			{
+				_isGameOver = true;
 			}
 		}
 
@@ -203,12 +194,10 @@ namespace GameArchitectureExample.Screens
 				return;
 			}
 
-			if (_isGameOver || _isGameWon)
+			if (!_isGameOver && !_isGameWon) return;
+			if (input.IsNewKeyPress(Keys.R, ControllingPlayer, out _))
 			{
-				if (input.IsNewKeyPress(Keys.R, ControllingPlayer, out _))
-				{
-					ScreenManager.AddScreen(new GameplayScreen(), ControllingPlayer);
-				}
+				ScreenManager.AddScreen(new GameplayScreen(), ControllingPlayer);
 			}
 		}
 
@@ -256,7 +245,7 @@ namespace GameArchitectureExample.Screens
 		{
 			ScreenManager.GraphicsDevice.Clear(Color.CornflowerBlue);
 
-			var spriteBatch = ScreenManager.SpriteBatch;
+			SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
 			spriteBatch.Begin();
 
 			_groundTexture.Draw(spriteBatch);
@@ -275,9 +264,9 @@ namespace GameArchitectureExample.Screens
 
 			if (_isGameOver)
 			{
-				var message = "You Lose";
-				var textSize = _gameFont.MeasureString(message);
-				var textPosition = new Vector2(
+				string message = "You Lose";
+				Vector2 textSize = _gameFont.MeasureString(message);
+				Vector2 textPosition = new Vector2(
 					(ScreenManager.GraphicsDevice.Viewport.Width - textSize.X) / 2,
 					(ScreenManager.GraphicsDevice.Viewport.Height - textSize.Y) / 2
 				);
@@ -289,9 +278,9 @@ namespace GameArchitectureExample.Screens
 				spriteBatch.DrawString(_gameFont, message, textPosition, Color.Red);
 
 
-				var restartMessage = "Press R to Restart";
-				var restartTextSize = _gameFont.MeasureString(restartMessage);
-				var restartTextPosition = new Vector2(
+				string restartMessage = "Press R to Restart";
+				Vector2 restartTextSize = _gameFont.MeasureString(restartMessage);
+				Vector2 restartTextPosition = new Vector2(
 					(ScreenManager.GraphicsDevice.Viewport.Width - restartTextSize.X) / 2,
 					textPosition.Y + textSize.Y + 20
 				);
@@ -305,9 +294,9 @@ namespace GameArchitectureExample.Screens
 
 			if (_isGameWon)
 			{
-				var message = "You Win"; 
-				var textSize = _gameFont.MeasureString(message);
-				var textPosition = new Vector2(
+				string message = "You Win"; 
+				Vector2 textSize = _gameFont.MeasureString(message);
+				Vector2 textPosition = new Vector2(
 					(ScreenManager.GraphicsDevice.Viewport.Width - textSize.X) / 2,
 					(ScreenManager.GraphicsDevice.Viewport.Height - textSize.Y) / 2
 				);
@@ -317,9 +306,9 @@ namespace GameArchitectureExample.Screens
 
 				spriteBatch.DrawString(_gameFont, message, textPosition, Color.Green);
 
-				var restartMessage = "Press R to Restart"; // Space added here
-				var restartTextSize = _gameFont.MeasureString(restartMessage);
-				var restartTextPosition = new Vector2(
+				string restartMessage = "Press R to Restart"; // Space added here
+				Vector2 restartTextSize = _gameFont.MeasureString(restartMessage);
+				Vector2 restartTextPosition = new Vector2(
 					(ScreenManager.GraphicsDevice.Viewport.Width - restartTextSize.X) / 2,
 					textPosition.Y + textSize.Y + 20 // Space below the win message
 				);
@@ -335,7 +324,7 @@ namespace GameArchitectureExample.Screens
 
 			if (TransitionPosition > 0 || _pauseAlpha > 0)
 			{
-				var alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
+				float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
 				ScreenManager.FadeBackBufferToBlack(alpha);
 			}
 		}

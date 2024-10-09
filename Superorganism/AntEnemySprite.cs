@@ -11,7 +11,7 @@ namespace Superorganism
 	{
 		public AntEnemySprite(Vector2 position) : base(position)
 		{
-			this.Position = position;
+			((AnimatedEntity)this).Position = position;
 		}
 	}
 }

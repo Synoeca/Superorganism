@@ -1,15 +1,10 @@
-﻿using GameArchitectureExample.StateManagement;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Superorganism.StateManagement;
 
-namespace GameArchitectureExample.Screens
+namespace Superorganism.Screens
 {
 	public class CutSceneScreen : GameScreen
 	{

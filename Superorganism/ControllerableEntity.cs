@@ -20,7 +20,7 @@ namespace Superorganism
 		private BoundingRectangle _bounds = new(new Vector2(200 - 16, 200 - 16), 32, 32);
 		public new BoundingRectangle Bounds => _bounds;
 
-		protected bool _isOnGround = true;
+		private bool _isOnGround = true;
 		protected bool IsOnGround() => _isOnGround;
 
 		private float _gravity = 0.5f;
@@ -33,15 +33,15 @@ namespace Superorganism
 
 		private GamePadState _gamePadState;
 		private KeyboardState _keyboardState;
-		protected Texture2D _texture1;
-		protected Texture2D _texture2;
+		protected Texture2D Texture1;
+		protected Texture2D Texture2;
 
-		protected SoundEffect _moveSound;
-		protected SoundEffect _jumpSound;
-		protected float _soundTimer = 0.0f;
-		protected float _moveSoundInterval = 0.25f;
-		protected float _shiftMoveSoundInterval = 0.15f;
-		protected bool _isJumping = false;
+		protected SoundEffect MoveSound;
+		protected SoundEffect JumpSound;
+		protected float SoundTimer = 0.0f;
+		protected float MoveSoundInterval = 0.25f;
+		protected float ShiftMoveSoundInterval = 0.15f;
+		protected bool IsJumping = false;
 
 		public ControllerableEntity(Vector2 position) : base(position)
 		{
@@ -76,15 +76,15 @@ namespace Superorganism
 			{
 				_velocity.Y = _jumpStrength;
 				_isOnGround = false;
-				_isJumping = true;
-				_jumpSound.Play();
+				IsJumping = true;
+				JumpSound.Play();
 			}
 
 			if (_keyboardState.IsKeyDown(Keys.Left) || _keyboardState.IsKeyDown(Keys.A))
 			{
 				_velocity.X = -_movementSpeed;
 				_flipped = true;
-				if (!_isJumping)
+				if (!IsJumping)
 				{
 					PlayMoveSound(gameTime, GetMoveSoundInterval());
 				}
@@ -93,7 +93,7 @@ namespace Superorganism
 			{
 				_velocity.X = _movementSpeed;
 				_flipped = false;
-				if (!_isJumping)
+				if (!IsJumping)
 				{
 					PlayMoveSound(gameTime, GetMoveSoundInterval());
 				}
@@ -109,9 +109,9 @@ namespace Superorganism
 					}
 				}
 
-				if (_soundTimer > 0 && _velocity.X == 0)
+				if (SoundTimer > 0 && _velocity.X == 0)
 				{
-					_soundTimer = 0.0f;
+					SoundTimer = 0.0f;
 				}
 			}
 
@@ -125,9 +125,9 @@ namespace Superorganism
 				_velocity.Y = 0;
 				_isOnGround = true;
 
-				if (_isJumping)
+				if (IsJumping)
 				{
-					_isJumping = false;
+					IsJumping = false;
 				}
 			}
 
@@ -138,30 +138,30 @@ namespace Superorganism
 
 			if (_isOnGround && Math.Abs(_velocity.X) > 0)
 			{
-				_animationTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-				_animationInterval = 0.15f / Math.Abs(_velocity.X);
+				AnimationTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+				AnimationInterval = 0.15f / Math.Abs(_velocity.X);
 
-				if (_animationTimer >= _animationInterval)
+				if (AnimationTimer >= AnimationInterval)
 				{
-					_currentTexture = (_currentTexture == _texture1) ? _texture2 : _texture1;
-					_animationTimer = 0f;
+					CurrentTexture = (CurrentTexture == Texture1) ? Texture2 : Texture1;
+					AnimationTimer = 0f;
 				}
 			}
 			else if (!_isOnGround)
 			{
-				_currentTexture = _texture1;
+				CurrentTexture = Texture1;
 			}
 		}
 
 		// Load content for the entity
 		public override void LoadContent(ContentManager content)
 		{
-			_texture1 = content.Load<Texture2D>("ant");
-			_texture2 = content.Load<Texture2D>("ant2");
-			_currentTexture = _texture1;
+			Texture1 = content.Load<Texture2D>("ant");
+			Texture2 = content.Load<Texture2D>("ant2");
+			CurrentTexture = Texture1;
 
-			_moveSound = content.Load<SoundEffect>("move");
-			_jumpSound = content.Load<SoundEffect>("jump");
+			MoveSound = content.Load<SoundEffect>("move");
+			JumpSound = content.Load<SoundEffect>("jump");
 		}
 
 		// Draw the entity including animations
@@ -178,35 +178,35 @@ namespace Superorganism
 		public override void DrawAnimation(SpriteBatch spriteBatch)
 		{
 			SpriteEffects spriteEffects = (_flipped) ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-			spriteBatch.Draw(_currentTexture, _position, null, Color, 0, new Vector2(120, 120), 0.25f, spriteEffects, 0);
+			spriteBatch.Draw(CurrentTexture, _position, null, Color, 0, new Vector2(120, 120), 0.25f, spriteEffects, 0);
 		}
 
 		private float GetMoveSoundInterval()
 		{
-			return (_keyboardState.IsKeyDown(Keys.LeftShift) || _keyboardState.IsKeyDown(Keys.RightShift)) ? _shiftMoveSoundInterval : _moveSoundInterval;
+			return (_keyboardState.IsKeyDown(Keys.LeftShift) || _keyboardState.IsKeyDown(Keys.RightShift)) ? ShiftMoveSoundInterval : MoveSoundInterval;
 		}
 
 		public virtual void PlayMoveSound(GameTime gameTime, float interval)
 		{
-			_soundTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-			if (_soundTimer >= interval)
+			SoundTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+			if (SoundTimer >= interval)
 			{
-				_moveSound.Play();
-				_soundTimer = 0.0f;
+				MoveSound.Play();
+				SoundTimer = 0.0f;
 			}
 		}
 
 		public virtual void PlayJumpSound()
 		{
-			_jumpSound?.Play();
+			JumpSound?.Play();
 		}
 
 		// Update method to manage sound timer
 		public void UpdateSoundTimer(GameTime gameTime)
 		{
-			if (_soundTimer > 0)
+			if (SoundTimer > 0)
 			{
-				_soundTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+				SoundTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
 			}
 		}
 	}
