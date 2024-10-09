@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace GameArchitectureExample.StateManagement
+namespace Superorganism.StateManagement
 {
     /// <summary>
     /// The ScreenManager is a component which manages one or more GameScreen instance.
@@ -63,7 +63,7 @@ namespace GameArchitectureExample.StateManagement
             BlankTexture = _content.Load<Texture2D>("blank");
 
             // Tell each of the screens to load thier content 
-            foreach (var screen in _screens)
+            foreach (GameScreen screen in _screens)
             {
                 screen.Activate();
             }
@@ -74,7 +74,7 @@ namespace GameArchitectureExample.StateManagement
         /// </summary>
         protected override void UnloadContent()
         {
-            foreach (var screen in _screens)
+            foreach (GameScreen screen in _screens)
             {
                 screen.Unload();
             }
@@ -100,7 +100,7 @@ namespace GameArchitectureExample.StateManagement
             while (_tmpScreensList.Count > 0)
             {
                 // Pop the topmost screen 
-                var screen = _tmpScreensList[_tmpScreensList.Count - 1];
+                GameScreen screen = _tmpScreensList[_tmpScreensList.Count - 1];
                 _tmpScreensList.RemoveAt(_tmpScreensList.Count - 1);
 
                 screen.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
@@ -127,7 +127,7 @@ namespace GameArchitectureExample.StateManagement
         /// <param name="gameTime">An object representing time in the game</param>
         public override void Draw(GameTime gameTime)
         {
-            foreach (var screen in _screens)
+            foreach (GameScreen screen in _screens)
             {
                 if (screen.ScreenState == ScreenState.Hidden) continue;
 

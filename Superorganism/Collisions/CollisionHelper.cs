@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CollisionExample.Collisions
+namespace Superorganism.Collisions
 {
 	public static class CollisionHelper
 	{
@@ -17,7 +17,7 @@ namespace CollisionExample.Collisions
 		/// <returns>true for collision, false otherwise</returns>
 		public static bool Collides(BoundingCircle a, BoundingCircle b)
 		{
-			return Math.Pow(a.Radius + b.Radius, 2) >= 
+			return Math.Pow(a.Radius + b.Radius, 2) >=
 				Math.Pow(a.Center.X - b.Center.X, 2) +
 				Math.Pow(a.Center.Y - b.Center.Y, 2);
 		}

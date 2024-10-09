@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using GameArchitectureExample.StateManagement;
+using Superorganism.StateManagement;
 
-namespace GameArchitectureExample.Screens
+namespace Superorganism.Screens
 {
     // Base class for screens that contain a menu of options. The user can
     // move up and down to select an entry, or cancel to back out of the screen.
@@ -102,10 +102,10 @@ namespace GameArchitectureExample.Screens
             float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
 
             // start at Y = 175; each X value is generated per entry
-            var position = new Vector2(0f, 175f);
+            Vector2 position = new Vector2(0f, 175f);
 
             // update each menu entry's location in turn
-            foreach (var menuEntry in _menuEntries)
+            foreach (MenuEntry menuEntry in _menuEntries)
             {
                 // each entry is to be centered horizontally
                 position.X = ScreenManager.GraphicsDevice.Viewport.Width / 2 - menuEntry.GetWidth(this) / 2;
@@ -140,15 +140,15 @@ namespace GameArchitectureExample.Screens
             // make sure our entries are in the right place before we draw them
             UpdateMenuEntryLocations();
 
-            var graphics = ScreenManager.GraphicsDevice;
-            var spriteBatch = ScreenManager.SpriteBatch;
-            var font = ScreenManager.Font;
+            GraphicsDevice graphics = ScreenManager.GraphicsDevice;
+            SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
+            SpriteFont font = ScreenManager.Font;
 
             spriteBatch.Begin();
 
             for (int i = 0; i < _menuEntries.Count; i++)
             {
-                var menuEntry = _menuEntries[i];
+                MenuEntry menuEntry = _menuEntries[i];
                 bool isSelected = IsActive && i == _selectedEntry;
                 menuEntry.Draw(this, isSelected, gameTime);
             }
@@ -159,9 +159,9 @@ namespace GameArchitectureExample.Screens
             float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
 
             // Draw the menu title centered on the screen
-            var titlePosition = new Vector2(graphics.Viewport.Width / 2, 80);
-            var titleOrigin = font.MeasureString(_menuTitle) / 2;
-            var titleColor = new Color(192, 192, 192) * TransitionAlpha;
+            Vector2 titlePosition = new Vector2(graphics.Viewport.Width / 2, 80);
+            Vector2 titleOrigin = font.MeasureString(_menuTitle) / 2;
+            Color titleColor = new Color(192, 192, 192) * TransitionAlpha;
             const float titleScale = 1.25f;
 
             titlePosition.Y -= transitionOffset * 100;

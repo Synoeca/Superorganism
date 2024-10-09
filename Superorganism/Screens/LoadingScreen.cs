@@ -1,8 +1,9 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
-using GameArchitectureExample.StateManagement;
+using Microsoft.Xna.Framework.Graphics;
+using Superorganism.StateManagement;
 
-namespace GameArchitectureExample.Screens
+namespace Superorganism.Screens
 {
     // The loading screen coordinates transitions between the menu system and the
     // game itself. Normally one screen will transition off at the same time as
@@ -36,11 +37,11 @@ namespace GameArchitectureExample.Screens
                                 PlayerIndex? controllingPlayer, params GameScreen[] screensToLoad)
         {
             // Tell all the current screens to transition off.
-            foreach (var screen in screenManager.GetScreens())
+            foreach (GameScreen screen in screenManager.GetScreens())
                 screen.ExitScreen();
 
             // Create and activate the loading screen.
-            var loadingScreen = new LoadingScreen(screenManager, loadingIsSlow, screensToLoad);
+            LoadingScreen loadingScreen = new LoadingScreen(screenManager, loadingIsSlow, screensToLoad);
 
             screenManager.AddScreen(loadingScreen, controllingPlayer);
         }
@@ -55,7 +56,7 @@ namespace GameArchitectureExample.Screens
             {
                 ScreenManager.RemoveScreen(this);
 
-                foreach (var screen in _screensToLoad)
+                foreach (GameScreen screen in _screensToLoad)
                 {
                     if (screen != null)
                         ScreenManager.AddScreen(screen, ControllingPlayer);
@@ -86,18 +87,18 @@ namespace GameArchitectureExample.Screens
             // to bother drawing the message.
             if (_loadingIsSlow)
             {
-                var spriteBatch = ScreenManager.SpriteBatch;
-                var font = ScreenManager.Font;
+                SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
+                SpriteFont font = ScreenManager.Font;
 
                 const string message = "Loading...";
 
                 // Center the text in the viewport.
-                var viewport = ScreenManager.GraphicsDevice.Viewport;
-                var viewportSize = new Vector2(viewport.Width, viewport.Height);
-                var textSize = font.MeasureString(message);
-                var textPosition = (viewportSize - textSize) / 2;
+                Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
+                Vector2 viewportSize = new Vector2(viewport.Width, viewport.Height);
+                Vector2 textSize = font.MeasureString(message);
+                Vector2 textPosition = (viewportSize - textSize) / 2;
 
-                var color = Color.White * TransitionAlpha;
+                Color color = Color.White * TransitionAlpha;
 
                 // Draw the text.
                 spriteBatch.Begin();

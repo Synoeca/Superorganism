@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace GameArchitectureExample.StateManagement
+namespace Superorganism.StateManagement
 {
     /// <summary>
     /// Defines an action that is designated by some set of buttons and/or keys.
@@ -70,12 +67,12 @@ namespace GameArchitectureExample.StateManagement
             }
 
             // Now we simply need to invoke the appropriate methods for each button and key in our collections
-            foreach (var button in _buttons)
+            foreach (Buttons button in _buttons)
             {
                 if (buttonTest(button, playerToTest, out player))
                     return true;
             }
-            foreach (var key in _keys)
+            foreach (Keys key in _keys)
             {
                 if (keyTest(key, playerToTest, out player))
                     return true;

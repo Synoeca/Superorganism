@@ -5,21 +5,13 @@ using System;
 
 namespace Superorganism
 {
-	public class GroundSprite
+	public class GroundSprite(GraphicsDevice graphics, int groundY, int groundHeight)
 	{
 		private Texture2D _texture;
 		private Vector2 _position;
-		private int _groundY;
-		private int _groundHeight;
-		private GraphicsDevice _graphics;
-
-
-		public GroundSprite(GraphicsDevice graphics, int groundY, int groundHeight)
-		{
-			_graphics = graphics;
-			_groundY = groundY;
-			_groundHeight = groundHeight;
-		}
+		private int _groundY = groundY;
+		private int _groundHeight = groundHeight;
+		private GraphicsDevice _graphics = graphics;
 
 		/// <summary>
 		/// Loads the sprite texture using the provided ContentManager

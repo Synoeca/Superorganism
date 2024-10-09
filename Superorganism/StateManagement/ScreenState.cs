@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace GameArchitectureExample.StateManagement
+﻿namespace Superorganism.StateManagement
 {
     /// <summary>
     /// Enumerations of the possible screen states
