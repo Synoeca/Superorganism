@@ -15,13 +15,25 @@ public abstract class AnimatedEntity(Vector2 position) : IEntity, IAnimated
 
 	protected Vector2 _position = position;
 	protected float AnimationInterval = 0.15f;
+	private short _animationFrame1;
 
 	// Animation variables
-	protected float AnimationTimer = 0f;
+	//protected float AnimationTimer = 0f;
 
 	public bool Collected { get; set; }
 
 	public BoundingCircle Bounds { get; } = new(position + new Vector2(8, 8), 8);
+
+	public bool IsSpriteAtlas { get; }
+	public bool HasDirection { get; }
+	public int NumOfSpriteCols { get; }
+	public int NumOfSpriteRows { get; }
+	public int DirectionIndex { get; }
+	public double AnimationTimer { get; set; }
+
+	short IAnimated.AnimationFrame => _animationFrame1;
+
+	public double AnimationFrame { get; set; }
 
 	public virtual void UpdateAnimation(GameTime gameTime)
 	{
@@ -46,6 +58,10 @@ public abstract class AnimatedEntity(Vector2 position) : IEntity, IAnimated
 		get => _position;
 		set => _position = value;
 	}
+
+	public Color Color { get; }
+
+	float IAnimated.AnimationInterval => throw new System.NotImplementedException();
 
 	public virtual void LoadContent(ContentManager content)
 	{

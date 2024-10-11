@@ -39,7 +39,7 @@ namespace Superorganism.Collisions
 		/// </summary>
 		/// <param name="c">the BoundingCircle</param>
 		/// <param name="r">the BoundingRectangle</param>
-		/// <returns>true for collision, flase otherwise</returns>
+		/// <returns>true for collision, false otherwise</returns>
 		public static bool Collides(BoundingCircle c, BoundingRectangle r)
 		{
 			float nearestX = MathHelper.Clamp(c.Center.X, r.Left, r.Right);

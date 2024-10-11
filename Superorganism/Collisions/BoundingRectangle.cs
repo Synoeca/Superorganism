@@ -29,6 +29,8 @@ namespace Superorganism.Collisions
 
 		public float Bottom => Y + Height;
 
+		public Vector2 Center { get; set; }
+
 		public BoundingRectangle(float x, float y, float width, float height)
 		{
 			X = x;

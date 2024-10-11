@@ -39,7 +39,7 @@ public class MovableEntity : AnimatedEntity, IMovable
 
 	public new BoundingRectangle Bounds => _bounds;
 
-	public Color Color { get; set; } = Color.White;
+	public Color Color { get; set; }
 	public Vector2 Velocity { get; set; }
 
 	public override void LoadContent(ContentManager content)

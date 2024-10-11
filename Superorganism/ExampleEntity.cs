@@ -13,6 +13,8 @@ namespace Superorganism
 	{
 		public Texture2D Texture { get; set; }
 		public Vector2 Position { get; set; }
+		public Color Color { get; }
+
 		public void LoadContent(ContentManager content)
 		{
 			throw new NotImplementedException();

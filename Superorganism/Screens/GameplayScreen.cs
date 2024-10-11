@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using Superorganism.Entities;
+using Superorganism.Enums;
 using Superorganism.StateManagement;
 
 namespace Superorganism.Screens;
@@ -26,6 +29,7 @@ public class GameplayScreen : GameScreen
 	private double _damageTimer;
 	private double _elapsedTime;
 	private FliesSprite[] _flies;
+	//private Fly[] _flies;
 	private SoundEffect _fliesDestroy;
 	private SpriteFont _gameFont;
 	private GroundSprite _groundTexture;
@@ -36,6 +40,10 @@ public class GameplayScreen : GameScreen
 	private bool _isGameWon;
 
 	private float _pauseAlpha;
+
+	public DecisionMaker Decision;
+
+	public List<Entity> Entities { get; set; } = [];
 
 	public GameplayScreen()
 	{
@@ -62,7 +70,7 @@ public class GameplayScreen : GameScreen
 		_ant.LoadContent(_content);
 		_antEnemy.LoadContent(_content);
 
-		ResetGame();
+		InitializeGame();
 
 		foreach (CropSprite crop in _crops) crop.LoadContent(_content);
 
@@ -77,7 +85,7 @@ public class GameplayScreen : GameScreen
 		MediaPlayer.Play(_backgroundMusic);
 	}
 
-	private void ResetGame()
+	private void InitializeGame()
 	{
 		Random rand = new();
 		_crops = new CropSprite[12];
@@ -85,6 +93,7 @@ public class GameplayScreen : GameScreen
 		for (int i = 0; i < _crops.Length; i++)
 			_crops[i] = new CropSprite(new Vector2(
 				(float)rand.NextDouble() * ScreenManager.GraphicsDevice.Viewport.Width, _cropY));
+
 
 		_cropsLeft = _crops.Length;
 
@@ -96,12 +105,12 @@ public class GameplayScreen : GameScreen
 			float xPos = rand.Next(0, 800);
 			float yPos = rand.Next(0, 600);
 			Direction randomDirection = (Direction)rand.Next(0, 4);
-
 			_flies[i] = new FliesSprite
 			{
 				Position = new Vector2(xPos, yPos),
-				Direction = randomDirection
+				Direction = randomDirection,
 			};
+			//Entities.Add(_flies[i]);
 		}
 
 		_isGameOver = false;
@@ -188,7 +197,7 @@ public class GameplayScreen : GameScreen
 	private Texture2D CreateTexture(GraphicsDevice graphicsDevice, Color color)
 	{
 		Texture2D texture = new(graphicsDevice, 1, 1);
-		texture.SetData(new[] { color });
+		texture.SetData([color]);
 		return texture;
 	}
 

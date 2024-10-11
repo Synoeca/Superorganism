@@ -3,18 +3,12 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using System;
 using Superorganism.Collisions;
+using Superorganism.Enums;
 
 namespace Superorganism
 {
-	public enum Direction
-	{
-		Down = 0,
-		Right = 1,
-		Up = 2,
-		Left = 3
-	}
 
-	public class FliesSprite
+    public class FliesSprite
 	{
 		private Texture2D _texture;
 		private double _directionTimer;
@@ -22,7 +16,7 @@ namespace Superorganism
 		private short _animationFrame = 1;
 		private double _directionChangeInterval;
 		private Vector2 _velocity;
-		private static Random _rand = new Random();
+		private static Random _rand = new();
 
 		private BoundingCircle _bounds;
 
