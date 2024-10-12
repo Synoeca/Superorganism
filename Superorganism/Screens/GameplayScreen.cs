@@ -8,12 +8,15 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using Superorganism.Entities;
 using Superorganism.Enums;
+using Superorganism.Particle;
 using Superorganism.StateManagement;
 
 namespace Superorganism.Screens;
 
 public class GameplayScreen : GameScreen
 {
+	private ExplosionParticleSystem _explosions;
+
 	private readonly InputAction _pauseAction;
 	private AntSprite _ant;
 	private AntEnemySprite _antEnemy;
@@ -33,6 +36,10 @@ public class GameplayScreen : GameScreen
 	private SoundEffect _fliesDestroy;
 	private SpriteFont _gameFont;
 	private GroundSprite _groundTexture;
+
+	private Matrix _cameraMatrix;
+	private Vector2 _cameraPosition;
+	private float _zoom = 1f;
 
 	private readonly int _groundY = 400;
 
@@ -66,6 +73,8 @@ public class GameplayScreen : GameScreen
 		_ant = new AntSprite(new Vector2(200, 200));
 		_antEnemy = new AntEnemySprite(new Vector2(550, 400));
 
+		_cameraPosition = _ant.Position; 
+
 		_groundTexture.LoadContent(_content);
 		_ant.LoadContent(_content);
 		_antEnemy.LoadContent(_content);
@@ -88,6 +97,8 @@ public class GameplayScreen : GameScreen
 	private void InitializeGame()
 	{
 		Random rand = new();
+		_explosions = new ExplosionParticleSystem(ScreenManager.Game, 20);
+		ScreenManager.Game.Components.Add(_explosions);
 		_crops = new CropSprite[12];
 
 		for (int i = 0; i < _crops.Length; i++)
@@ -134,12 +145,15 @@ public class GameplayScreen : GameScreen
 		base.Update(gameTime, otherScreenHasFocus, false);
 
 		if (!IsActive || _isGameOver || _isGameWon) return;
+
 		_elapsedTime += gameTime.ElapsedGameTime.TotalSeconds;
+
 
 		_ant.Update(gameTime);
 		_antEnemy.Update(gameTime, ((IEntity)_ant).Position);
 		_ant.Color = Color.White;
 		_antEnemy.Color = Color.White;
+
 
 		foreach (CropSprite crop in _crops)
 		{
@@ -152,18 +166,34 @@ public class GameplayScreen : GameScreen
 
 		if (_cropsLeft <= 0) _isGameWon = true;
 
+
 		foreach (FliesSprite fly in _flies)
 		{
 			if (fly.Destroyed) continue;
+
 			fly.Update(gameTime, ScreenManager.GraphicsDevice.Viewport.Width, _cropY + 26);
+
+
 			if (!fly.Bounds.CollidesWith(_ant.Bounds)) continue;
-			if (!(_elapsedTime > 1.5)) continue;
-			_ant.Color = Color.Gray;
-			fly.Destroyed = true;
-			_fliesDestroy.Play();
-			_ant.HitPoint = Math.Max(0, _ant.HitPoint - 10);
+
+			if (_elapsedTime > 1.5)
+			{
+
+				_ant.Color = Color.Gray;
+				fly.Destroyed = true;
+
+
+				_explosions.PlaceExplosion(_ant.Position); 
+
+
+				_fliesDestroy.Play();
+
+
+				_ant.HitPoint = Math.Max(0, _ant.HitPoint - 10);
+			}
 		}
 
+		// Handle collision with ant enemy
 		if (_antEnemy.Bounds.CollidesWith(_ant.Bounds))
 		{
 			_ant.Color = Color.Gray;
@@ -179,7 +209,9 @@ public class GameplayScreen : GameScreen
 		}
 
 		if (_ant.HitPoint <= 0) _isGameOver = true;
+		_cameraPosition = _ant.Position;
 	}
+
 
 	public override void HandleInput(GameTime gameTime, InputState input)
 	{
@@ -227,20 +259,39 @@ public class GameplayScreen : GameScreen
 			20
 		);
 
-		Vector2 shadowOffset = new(2, 2); // Adjust shadow offset as needed
+		Vector2 shadowOffset = new(2, 2);
 		spriteBatch.DrawString(_gameFont, cropsLeftText, textPosition + shadowOffset,
-			Color.Black * 0.5f); // Draw shadow with some transparency
+			Color.Black * 0.5f); 
 
 		spriteBatch.DrawString(_gameFont, cropsLeftText, textPosition, Color.White);
 	}
 
 
+	private void UpdateCameraMatrix()
+	{
+
+		_cameraMatrix = Matrix.CreateTranslation(new Vector3(-_cameraPosition.X + ScreenManager.GraphicsDevice.Viewport.Width / 2,
+			                -_cameraPosition.Y + ScreenManager.GraphicsDevice.Viewport.Height / 2,
+			                0)) *
+		                Matrix.CreateScale(_zoom);
+	}
+
 	public override void Draw(GameTime gameTime)
 	{
 		ScreenManager.GraphicsDevice.Clear(Color.CornflowerBlue);
-
+		UpdateCameraMatrix();
 		SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
-		spriteBatch.Begin();
+		spriteBatch.Begin(
+			SpriteSortMode.Deferred,
+			BlendState.AlphaBlend,
+			SamplerState.PointClamp,
+			DepthStencilState.None,
+			RasterizerState.CullNone,
+			null,
+			_cameraMatrix
+		);
+
+
 
 		_groundTexture.Draw(spriteBatch);
 		foreach (CropSprite crop in _crops)
@@ -253,6 +304,8 @@ public class GameplayScreen : GameScreen
 
 		DrawHealthBar(spriteBatch);
 		DrawCropsLeft(spriteBatch);
+
+
 
 		Vector2 shadowOffset = new(2, 2);
 
@@ -295,7 +348,7 @@ public class GameplayScreen : GameScreen
 				(ScreenManager.GraphicsDevice.Viewport.Height - textSize.Y) / 2
 			);
 
-			spriteBatch.DrawString(_gameFont, message, textPosition + shadowOffset, Color.Black * 0.5f); // Shadow
+			spriteBatch.DrawString(_gameFont, message, textPosition + shadowOffset, Color.Black * 0.5f); 
 
 
 			spriteBatch.DrawString(_gameFont, message, textPosition, Color.Green);
@@ -304,7 +357,7 @@ public class GameplayScreen : GameScreen
 			Vector2 restartTextSize = _gameFont.MeasureString(restartMessage);
 			Vector2 restartTextPosition = new(
 				(ScreenManager.GraphicsDevice.Viewport.Width - restartTextSize.X) / 2,
-				textPosition.Y + textSize.Y + 20 // Space below the win message
+				textPosition.Y + textSize.Y + 20 
 			);
 
 

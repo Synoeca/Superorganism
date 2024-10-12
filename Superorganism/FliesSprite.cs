@@ -10,6 +10,8 @@ namespace Superorganism
 
     public class FliesSprite
 	{
+		public event Action<Vector2> OnDestroyed;
+
 		private Texture2D _texture;
 		private double _directionTimer;
 		private double _animationTimer;
@@ -29,7 +31,7 @@ namespace Superorganism
 			set
 			{
 				_position = value;
-				_bounds.Center = _position + new Vector2(16, 16); // Update the bounds center when position changes
+				_bounds.Center = _position + new Vector2(16, 16); 
 			}
 		}
 
@@ -104,6 +106,7 @@ namespace Superorganism
 				_animationTimer -= 0.04;
 			}
 
+			float rotation = (float)Math.Atan2(_velocity.Y, _velocity.X);
 			int directionIndex = Direction switch
 			{
 				Direction.Up => (int)Direction.Down,
@@ -112,7 +115,9 @@ namespace Superorganism
 			};
 
 			Rectangle source = new Rectangle(_animationFrame * 32, directionIndex * 32, 32, 32);
-			spriteBatch.Draw(_texture, Position, source, Color.White);
+			Rectangle destination = new Rectangle((int)Position.X, (int)Position.Y, 32, 32);
+			spriteBatch.Draw(_texture, destination, source, Color.White, rotation, new Vector2(16, 16), SpriteEffects.None, 0f);
+
 		}
 
 		public bool CollidesWith(BoundingCircle other)
