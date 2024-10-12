@@ -1,4 +1,5 @@
-![image](https://github.com/user-attachments/assets/cede583f-3e4d-436d-b0c9-9eef4b8862fd)
+
+![ezgif-4-d563ef1bc6](https://github.com/user-attachments/assets/0a6f3058-1b40-4a17-a045-fec6f20b27b9)
 
 ### How to Play:
 
