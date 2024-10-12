@@ -2,131 +2,127 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using System;
-using CollisionExample.Collisions;
+using Superorganism.Collisions;
+using Superorganism.Enums;
 
-namespace SpriteExample
+namespace Superorganism
 {
-	public enum Direction
-	{
-		Down = 0,
-		Right = 1,
-		Up = 2,
-		Left = 3
-	}
 
-	public class FliesSprite
+    public class FliesSprite
 	{
-		private Texture2D texture;
-		private double directionTimer;
-		private double animationTimer;
-		private short animationFrame = 1;
-		private double directionChangeInterval;
-		private Vector2 velocity;
-		private static Random rand = new Random();
+		public event Action<Vector2> OnDestroyed;
 
-		private BoundingCircle bounds;
+		private Texture2D _texture;
+		private double _directionTimer;
+		private double _animationTimer;
+		private short _animationFrame = 1;
+		private double _directionChangeInterval;
+		private Vector2 _velocity;
+		private static Random _rand = new();
+
+		private BoundingCircle _bounds;
 
 		public bool Destroyed { get; set; } = false;
 
-		private Vector2 position;
+		private Vector2 _position;
 		public Vector2 Position
 		{
-			get => position;
+			get => _position;
 			set
 			{
-				position = value;
-				bounds.Center = position + new Vector2(16, 16); // Update the bounds center when position changes
+				_position = value;
+				_bounds.Center = _position + new Vector2(16, 16); 
 			}
 		}
 
-		public BoundingCircle Bounds => bounds;
+		public BoundingCircle Bounds => _bounds;
 
 		public Direction Direction { get; set; }
 
 		public FliesSprite()
 		{
-			directionChangeInterval = rand.NextDouble() * 3.0 + 1.0;
+			_directionChangeInterval = _rand.NextDouble() * 3.0 + 1.0;
 			AssignRandomVelocity();
-			position = Vector2.Zero; // Initialize position
-			bounds = new BoundingCircle(position + new Vector2(16, 16), 16); // Adjust radius as needed
+			_position = Vector2.Zero; // Initialize position
+			_bounds = new BoundingCircle(_position + new Vector2(16, 16), 16); // Adjust radius as needed
 		}
 
 		public void LoadContent(ContentManager content)
 		{
-			texture = content.Load<Texture2D>("flies");
+			_texture = content.Load<Texture2D>("flies");
 		}
 
 		private void AssignRandomVelocity()
 		{
-			double angle = rand.NextDouble() * Math.PI * 2;
-			velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * 100;
+			double angle = _rand.NextDouble() * Math.PI * 2;
+			_velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * 100;
 		}
 
 		public void Update(GameTime gameTime, int screenWidth, int groundHeight)
 		{
 			if (Destroyed) return; // Skip update if destroyed
 
-			directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
+			_directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
-			if (directionTimer > directionChangeInterval)
+			if (_directionTimer > _directionChangeInterval)
 			{
 				AssignRandomVelocity();
-				directionTimer -= directionChangeInterval;
-				directionChangeInterval = rand.NextDouble() * 3.0 + 1.0;
+				_directionTimer -= _directionChangeInterval;
+				_directionChangeInterval = _rand.NextDouble() * 3.0 + 1.0;
 			}
 
-			Position += velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+			Position += _velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 			if (Position.X < 0 || Position.X > screenWidth - 32)
 			{
-				velocity.X = -velocity.X;
+				_velocity.X = -_velocity.X;
 				Position = new Vector2(Math.Clamp(Position.X, 0, screenWidth - 32), Position.Y);
 			}
 
 			if (Position.Y < 0 || Position.Y > groundHeight - 32)
 			{
-				velocity.Y = -velocity.Y;
+				_velocity.Y = -_velocity.Y;
 				Position = new Vector2(Position.X, Math.Clamp(Position.Y, 0, groundHeight - 32));
 			}
 
-			Direction = Math.Abs(velocity.X) > Math.Abs(velocity.Y)
-				? (velocity.X > 0 ? Direction.Right : Direction.Left)
-				: (velocity.Y > 0 ? Direction.Down : Direction.Up);
+			Direction = Math.Abs(_velocity.X) > Math.Abs(_velocity.Y)
+				? _velocity.X > 0 ? Direction.Right : Direction.Left
+				: _velocity.Y > 0 ? Direction.Down : Direction.Up;
 		}
 
 		public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{
 			if (Destroyed) { return; }
 
-			animationTimer += gameTime.ElapsedGameTime.TotalSeconds;
+			_animationTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
-			if (animationTimer > 0.04)
+			if (_animationTimer > 0.04)
 			{
-				animationFrame++;
-				if (animationFrame > 3)
+				_animationFrame++;
+				if (_animationFrame > 3)
 				{
-					animationFrame = 1;
+					_animationFrame = 1;
 				}
-				animationTimer -= 0.04;
+				_animationTimer -= 0.04;
 			}
 
-			int directionIndex = (int)Direction;
-			if (Direction == Direction.Up)
+			float rotation = (float)Math.Atan2(_velocity.Y, _velocity.X);
+			int directionIndex = Direction switch
 			{
-				directionIndex = (int)Direction.Down;
-			}
-			else if (Direction == Direction.Down)
-			{
-				directionIndex = (int)Direction.Up;
-			}
+				Direction.Up => (int)Direction.Down,
+				Direction.Down => (int)Direction.Up,
+				_ => (int)Direction
+			};
 
-			Rectangle source = new Rectangle(animationFrame * 32, directionIndex * 32, 32, 32);
-			spriteBatch.Draw(texture, Position, source, Color.White);
+			Rectangle source = new Rectangle(_animationFrame * 32, directionIndex * 32, 32, 32);
+			Rectangle destination = new Rectangle((int)Position.X, (int)Position.Y, 32, 32);
+			spriteBatch.Draw(_texture, destination, source, Color.White, rotation, new Vector2(16, 16), SpriteEffects.None, 0f);
+
 		}
 
 		public bool CollidesWith(BoundingCircle other)
 		{
-			return bounds.CollidesWith(other);
+			return _bounds.CollidesWith(other);
 		}
 	}
 }

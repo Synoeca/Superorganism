@@ -1,16 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
-using GameArchitectureExample.StateManagement;
 
-namespace GameArchitectureExample.Screens
+namespace Superorganism.Screens
 {
     // The main menu screen is the first thing displayed when the game starts up.
     public class MainMenuScreen : MenuScreen
     {
         public MainMenuScreen() : base("Main Menu")
         {
-            var playGameMenuEntry = new MenuEntry("Play Game");
-            var optionsMenuEntry = new MenuEntry("Options");
-            var exitMenuEntry = new MenuEntry("Exit");
+            MenuEntry playGameMenuEntry = new("Play Game");
+            MenuEntry optionsMenuEntry = new("Options");
+            MenuEntry exitMenuEntry = new("Exit");
 
             playGameMenuEntry.Selected += PlayGameMenuEntrySelected;
             optionsMenuEntry.Selected += OptionsMenuEntrySelected;
@@ -34,7 +33,7 @@ namespace GameArchitectureExample.Screens
         protected override void OnCancel(PlayerIndex playerIndex)
         {
             const string message = "Are you sure you want to exit this sample?";
-            var confirmExitMessageBox = new MessageBoxScreen(message);
+            MessageBoxScreen confirmExitMessageBox = new(message);
 
             confirmExitMessageBox.Accepted += ConfirmExitMessageBoxAccepted;
 

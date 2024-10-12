@@ -1,6 +1,6 @@
 ﻿
 
-namespace GameArchitectureExample.Screens
+namespace Superorganism.Screens
 {
     // The options screen is brought up over the top of the main menu
     // screen, and gives the user a chance to configure the game
@@ -34,7 +34,7 @@ namespace GameArchitectureExample.Screens
 
             SetMenuEntryText();
 
-            var back = new MenuEntry("Back");
+            MenuEntry back = new MenuEntry("Back");
 
             _ungulateMenuEntry.Selected += UngulateMenuEntrySelected;
             _languageMenuEntry.Selected += LanguageMenuEntrySelected;
