@@ -9,36 +9,16 @@ namespace Superorganism
 		/// <summary>
 		/// 
 		/// </summary>
-		Texture2D Texture { get; set; }
+		Texture2D Texture { get; }
 
 		/// <summary>
 		/// 
 		/// </summary>
-		Vector2 Position { get; set; }
-
-		///// <summary>
-		///// 
-		///// </summary>
-		///// <param name="gameTime"></param>
-		//abstract void Update(GameTime gameTime);
-
-		///// <summary>
-		///// 
-		///// </summary>
-		///// <param name="collected"></param>
-		//abstract void Update(bool collected);
+		Vector2 Position { get; }
 
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="content"></param>
-		void LoadContent(ContentManager content);
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="gameTime"></param>
-		/// <param name="spriteBatch"></param>
-		void Draw(GameTime gameTime, SpriteBatch spriteBatch);
+		Color Color { get; }
 	}
 }

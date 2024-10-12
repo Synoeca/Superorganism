@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace Superorganism.Collisions
+namespace Superorganism.Entities
 {
-	public interface ICollisionBounding
-	{
-		Vector2 Center { get; set; }
-
-		bool CollidesWith(ICollisionBounding other);
+    public class Ant : MoveableEntity
+    {
 	}
 }

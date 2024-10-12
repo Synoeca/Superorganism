@@ -5,7 +5,7 @@ using Superorganism.StateManagement;
 
 namespace Superorganism.Screens
 {
-    // Helper class represents a single entry in a MenuScreen. By default this
+    // Helper class represents a single entry in a MenuScreen. By default, this
     // just draws the entry text string, but it can be customized to display menu
     // entries in different ways. This also provides an event that will be raised
     // when the menu entry is selected.
@@ -65,7 +65,7 @@ namespace Superorganism.Screens
             // Modify the alpha to fade text out during transitions.
             color *= screen.TransitionAlpha;
 
-            // Draw text, centered on the middle of each line.
+            // Draw text, centered in the middle of each line.
             ScreenManager screenManager = screen.ScreenManager;
             SpriteBatch spriteBatch = screenManager.SpriteBatch;
             SpriteFont font = screenManager.Font;

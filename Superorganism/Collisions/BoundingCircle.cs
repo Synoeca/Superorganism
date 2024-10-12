@@ -15,7 +15,7 @@ namespace Superorganism.Collisions
 		/// <summary>
 		/// The center of the BoundingCircle
 		/// </summary>
-		public Vector2 Center;
+		public Vector2 Center { get; set; }
 
 		/// <summary>
 		/// The radius of the BoundingCircle

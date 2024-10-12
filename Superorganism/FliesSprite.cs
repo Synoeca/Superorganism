@@ -3,26 +3,22 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using System;
 using Superorganism.Collisions;
+using Superorganism.Enums;
 
 namespace Superorganism
 {
-	public enum Direction
-	{
-		Down = 0,
-		Right = 1,
-		Up = 2,
-		Left = 3
-	}
 
-	public class FliesSprite
+    public class FliesSprite
 	{
+		public event Action<Vector2> OnDestroyed;
+
 		private Texture2D _texture;
 		private double _directionTimer;
 		private double _animationTimer;
 		private short _animationFrame = 1;
 		private double _directionChangeInterval;
 		private Vector2 _velocity;
-		private static Random _rand = new Random();
+		private static Random _rand = new();
 
 		private BoundingCircle _bounds;
 
@@ -35,7 +31,7 @@ namespace Superorganism
 			set
 			{
 				_position = value;
-				_bounds.Center = _position + new Vector2(16, 16); // Update the bounds center when position changes
+				_bounds.Center = _position + new Vector2(16, 16); 
 			}
 		}
 
@@ -110,18 +106,18 @@ namespace Superorganism
 				_animationTimer -= 0.04;
 			}
 
-			int directionIndex = (int)Direction;
-			if (Direction == Direction.Up)
+			float rotation = (float)Math.Atan2(_velocity.Y, _velocity.X);
+			int directionIndex = Direction switch
 			{
-				directionIndex = (int)Direction.Down;
-			}
-			else if (Direction == Direction.Down)
-			{
-				directionIndex = (int)Direction.Up;
-			}
+				Direction.Up => (int)Direction.Down,
+				Direction.Down => (int)Direction.Up,
+				_ => (int)Direction
+			};
 
 			Rectangle source = new Rectangle(_animationFrame * 32, directionIndex * 32, 32, 32);
-			spriteBatch.Draw(_texture, Position, source, Color.White);
+			Rectangle destination = new Rectangle((int)Position.X, (int)Position.Y, 32, 32);
+			spriteBatch.Draw(_texture, destination, source, Color.White, rotation, new Vector2(16, 16), SpriteEffects.None, 0f);
+
 		}
 
 		public bool CollidesWith(BoundingCircle other)
