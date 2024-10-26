@@ -48,6 +48,9 @@ public class GameplayScreen : GameScreen
 
 	private float _pauseAlpha;
 
+	private TileMap _tileMap;
+
+
 	public DecisionMaker Decision;
 
 	public List<Entity> Entities { get; set; } = [];
@@ -92,6 +95,9 @@ public class GameplayScreen : GameScreen
 		MediaPlayer.IsRepeating = true;
 		MediaPlayer.Volume = 0.2f;
 		MediaPlayer.Play(_backgroundMusic);
+
+		_tileMap = new TileMap("map.txt");
+		_tileMap.LoadContent(_content);
 	}
 
 	private void InitializeGame()
@@ -291,9 +297,9 @@ public class GameplayScreen : GameScreen
 			_cameraMatrix
 		);
 
+		_tileMap.Draw(gameTime, spriteBatch);
 
-
-		_groundTexture.Draw(spriteBatch);
+		//_groundTexture.Draw(spriteBatch);
 		foreach (CropSprite crop in _crops)
 			crop.Draw(gameTime, spriteBatch);
 		foreach (FliesSprite fly in _flies)
