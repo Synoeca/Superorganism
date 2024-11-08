@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.Collisions;
+using Superorganism.Enums;
 
 namespace Superorganism;
 
@@ -41,6 +42,7 @@ public class MovableEntity : AnimatedEntity, IMovable
 
 	public Color Color { get; set; }
 	public Vector2 Velocity { get; set; }
+	public Direction Direction { get; }
 
 	public override void LoadContent(ContentManager content)
 	{

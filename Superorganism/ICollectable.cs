@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Superorganism.Entities
+namespace Superorganism
 {
-	public class ControlableEntity : MovableCollidableEntity
+	public interface ICollectable
 	{
+		bool Collected { get; }
 	}
 }

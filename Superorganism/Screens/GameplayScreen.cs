@@ -19,20 +19,21 @@ public class GameplayScreen : GameScreen
 
 	private readonly InputAction _pauseAction;
 	private AntSprite _ant;
-	private AntEnemySprite _antEnemy;
+	//private AntEnemySprite _antEnemy;
 	private Song _backgroundMusic;
 	private ContentManager _content;
 
 	private SoundEffect _cropPickup;
 
-	private CropSprite[] _crops;
+	private Crop[] _newCrops;
 	private int _cropsLeft;
+	private int _newCropsLeft;
 	private readonly int _cropY = 383;
 
 	private double _damageTimer;
 	private double _elapsedTime;
-	private FliesSprite[] _flies;
-	//private Fly[] _flies;
+	//private FliesSprite[] _flies;
+	private Fly[] _newFlies;
 	private SoundEffect _fliesDestroy;
 	private SpriteFont _gameFont;
 	private GroundSprite _groundTexture;
@@ -47,8 +48,6 @@ public class GameplayScreen : GameScreen
 	private bool _isGameWon;
 
 	private float _pauseAlpha;
-
-	public DecisionMaker Decision;
 
 	public List<Entity> Entities { get; set; } = [];
 
@@ -71,19 +70,27 @@ public class GameplayScreen : GameScreen
 
 		_groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
 		_ant = new AntSprite(new Vector2(200, 200));
-		_antEnemy = new AntEnemySprite(new Vector2(550, 400));
+		//_antEnemy = new AntEnemySprite(new Vector2(550, 400));
 
 		_cameraPosition = _ant.Position; 
 
 		_groundTexture.LoadContent(_content);
 		_ant.LoadContent(_content);
-		_antEnemy.LoadContent(_content);
+		//_antEnemy.LoadContent(_content);
 
 		InitializeGame();
 
-		foreach (CropSprite crop in _crops) crop.LoadContent(_content);
+		foreach (Crop crop in _newCrops)
+		{
+			crop.LoadContent(_content, "crops", 8, 1);
+		}
 
-		foreach (FliesSprite fly in _flies) fly.LoadContent(_content);
+		//foreach (FliesSprite fly in _flies) fly.LoadContent(_content);
+
+		foreach (Fly fly in _newFlies)
+		{
+			fly.LoadContent(_content, "flies", 4, 4);
+		}
 
 		_cropPickup = _content.Load<SoundEffect>("Pickup_Coin4");
 		_fliesDestroy = _content.Load<SoundEffect>("damaged");
@@ -99,30 +106,50 @@ public class GameplayScreen : GameScreen
 		Random rand = new();
 		_explosions = new ExplosionParticleSystem(ScreenManager.Game, 20);
 		ScreenManager.Game.Components.Add(_explosions);
-		_crops = new CropSprite[12];
 
-		for (int i = 0; i < _crops.Length; i++)
-			_crops[i] = new CropSprite(new Vector2(
+
+		_newCrops = new Crop[12];
+
+		for (int i = 0; i < _newCrops.Length; i++)
+			_newCrops[i] = new Crop(new Vector2(
 				(float)rand.NextDouble() * ScreenManager.GraphicsDevice.Viewport.Width, _cropY));
 
 
-		_cropsLeft = _crops.Length;
+		_newCropsLeft = _newCrops.Length;
 
 		int numberOfFlies = rand.Next(15, 21);
-		_flies = new FliesSprite[numberOfFlies];
+		//int numberOfFlies = 4;
+		//_flies = new FliesSprite[numberOfFlies];
+
+		//for (int i = 0; i < numberOfFlies; i++)
+		//{
+		//	float xPos = rand.Next(0, 800);
+		//	float yPos = rand.Next(0, 600);
+		//	Direction randomDirection = (Direction)rand.Next(0, 4);
+		//	_flies[i] = new FliesSprite
+		//	{
+		//		Position = new Vector2(xPos, yPos),
+		//		Direction = randomDirection,
+		//	};
+		//	//Entities.Add(_flies[i]);
+		//}
+
+		//numberOfFlies = rand.Next(15, 21);
+		_newFlies = new Fly[numberOfFlies];
 
 		for (int i = 0; i < numberOfFlies; i++)
 		{
 			float xPos = rand.Next(0, 800);
 			float yPos = rand.Next(0, 600);
 			Direction randomDirection = (Direction)rand.Next(0, 4);
-			_flies[i] = new FliesSprite
+			_newFlies[i] = new Fly(new Vector2(xPos, yPos))
 			{
 				Position = new Vector2(xPos, yPos),
-				Direction = randomDirection,
+				Direction = randomDirection
 			};
 			//Entities.Add(_flies[i]);
 		}
+
 
 		_isGameOver = false;
 		_isGameWon = false;
@@ -150,63 +177,91 @@ public class GameplayScreen : GameScreen
 
 
 		_ant.Update(gameTime);
-		_antEnemy.Update(gameTime, ((IEntity)_ant).Position);
+		//_antEnemy.Update(gameTime, ((IEntity)_ant).Position);
 		_ant.Color = Color.White;
-		_antEnemy.Color = Color.White;
+		//_antEnemy.Color = Color.White;
 
-
-		foreach (CropSprite crop in _crops)
+		foreach (Crop crop in _newCrops)
 		{
-			if (crop.Collected || !crop.Bounds.CollidesWith(_ant.Bounds)) continue;
+			if (crop.Collected || !crop.CollisionBounding.CollidesWith(_ant.Bounds)) continue;
 			_ant.Color = Color.Gold;
 			crop.Collected = true;
-			_cropsLeft--;
+			_newCropsLeft--;
 			_cropPickup.Play();
 		}
 
-		if (_cropsLeft <= 0) _isGameWon = true;
+		if (_newCropsLeft <= 0) _isGameWon = true;
 
 
-		foreach (FliesSprite fly in _flies)
+		//foreach (FliesSprite fly in _flies)
+		//{
+		//	if (fly.Destroyed) continue;
+
+		//	fly.Update(gameTime, ScreenManager.GraphicsDevice.Viewport.Width, _cropY + 26);
+
+
+		//	if (!fly.Bounds.CollidesWith(_ant.Bounds)) continue;
+
+		//	if (_elapsedTime > 1.5)
+		//	{
+		//		_ant.Color = Color.Gray;
+		//		fly.Destroyed = true;
+		//		_explosions.PlaceExplosion(_ant.Position); 
+		//		_fliesDestroy.Play();
+		//		_ant.HitPoint = Math.Max(0, _ant.HitPoint - 10);
+		//	}
+		//}
+
+		foreach (Fly fly in _newFlies)
 		{
-			if (fly.Destroyed) continue;
-
-			fly.Update(gameTime, ScreenManager.GraphicsDevice.Viewport.Width, _cropY + 26);
-
-
-			if (!fly.Bounds.CollidesWith(_ant.Bounds)) continue;
-
-			if (_elapsedTime > 1.5)
+			if (fly.Destroyed)
 			{
-
+				continue;
+			}
+			fly.Update(gameTime);
+			if (fly.CollisionBounding.CollidesWith(_ant.Bounds))
+			{
 				_ant.Color = Color.Gray;
 				fly.Destroyed = true;
-
-
-				_explosions.PlaceExplosion(_ant.Position); 
-
-
+				_explosions.PlaceExplosion(_ant.Position);
 				_fliesDestroy.Play();
-
-
 				_ant.HitPoint = Math.Max(0, _ant.HitPoint - 10);
 			}
 		}
 
-		// Handle collision with ant enemy
-		if (_antEnemy.Bounds.CollidesWith(_ant.Bounds))
-		{
-			_ant.Color = Color.Gray;
-			_antEnemy.Color = Color.Gray;
+		//foreach (Fly fly in _newFlies)
+		//{
+		//	if (fly.Destroyed) continue;
 
-			_damageTimer += gameTime.ElapsedGameTime.TotalSeconds;
-			if (_damageTimer >= 0.1)
-			{
-				_ant.HitPoint = Math.Max(0, _ant.HitPoint - 15);
-				_damageTimer = 0;
-				_fliesDestroy.Play();
-			}
-		}
+		//	fly.Update(gameTime);
+
+
+		//	if (!fly.CollisionBounding.CollidesWith(_ant.Bounds)) continue;
+
+		//	if (_elapsedTime > 1.5)
+		//	{
+		//		_ant.Color = Color.Gray;
+		//		fly.Destroyed = true;
+		//		_explosions.PlaceExplosion(_ant.Position);
+		//		_fliesDestroy.Play();
+		//		_ant.HitPoint = Math.Max(0, _ant.HitPoint - 10);
+		//	}
+		//}
+
+		// Handle collision with ant enemy
+		//if (_antEnemy.Bounds.CollidesWith(_ant.Bounds))
+		//{
+		//	_ant.Color = Color.Gray;
+		//	_antEnemy.Color = Color.Gray;
+
+		//	_damageTimer += gameTime.ElapsedGameTime.TotalSeconds;
+		//	if (_damageTimer >= 0.1)
+		//	{
+		//		_ant.HitPoint = Math.Max(0, _ant.HitPoint - 15);
+		//		_damageTimer = 0;
+		//		_fliesDestroy.Play();
+		//	}
+		//}
 
 		if (_ant.HitPoint <= 0) _isGameOver = true;
 		_cameraPosition = _ant.Position;
@@ -252,7 +307,7 @@ public class GameplayScreen : GameScreen
 
 	private void DrawCropsLeft(SpriteBatch spriteBatch)
 	{
-		string cropsLeftText = $"Crops Left: {_cropsLeft}";
+		string cropsLeftText = $"Crops Left: {_newCropsLeft}";
 		Vector2 textSize = _gameFont.MeasureString(cropsLeftText);
 		Vector2 textPosition = new(
 			ScreenManager.GraphicsDevice.Viewport.Width - textSize.X - 20,
@@ -294,13 +349,22 @@ public class GameplayScreen : GameScreen
 
 
 		_groundTexture.Draw(spriteBatch);
-		foreach (CropSprite crop in _crops)
+
+		foreach (Crop crop in _newCrops)
+		{
 			crop.Draw(gameTime, spriteBatch);
-		foreach (FliesSprite fly in _flies)
+		}
+
+		foreach (Fly fly in _newFlies)
+		{
 			fly.Draw(gameTime, spriteBatch);
+		}
+
+		//foreach (FliesSprite fly in _flies)
+		//	fly.Draw(gameTime, spriteBatch);
 
 		_ant.Draw(gameTime, spriteBatch);
-		_antEnemy.Draw(gameTime, spriteBatch);
+		//_antEnemy.Draw(gameTime, spriteBatch);
 
 		DrawHealthBar(spriteBatch);
 		DrawCropsLeft(spriteBatch);

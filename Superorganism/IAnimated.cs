@@ -7,11 +7,12 @@ namespace Superorganism
 	{
 		bool IsSpriteAtlas { get; }
 		bool HasDirection { get; }
-		int NumOfSpriteCols { get; }
-		int NumOfSpriteRows { get; }
+		TextureInfo TextureInfo { get; }
 		int DirectionIndex { get; }
+		double DirectionTimer { get; }
+		double DirectionInterval { get; }
 		double AnimationTimer { get; }
-		float AnimationInterval { get; }
+		float AnimationSpeed { get; }
 		short AnimationFrame { get; }
 		void UpdateAnimation(GameTime gameTime);
 		void DrawAnimation(SpriteBatch spriteBatch);

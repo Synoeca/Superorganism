@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Superorganism.Entities
 {
-    public class Ant : MoveableEntity
+    public class Ant
     {
 	}
 }

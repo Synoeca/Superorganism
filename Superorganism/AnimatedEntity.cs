@@ -7,7 +7,7 @@ namespace Superorganism;
 
 public abstract class AnimatedEntity(Vector2 position) : IEntity, IAnimated
 {
-	private const float AnimationSpeed = 0.1f;
+	
 
 	private int _animationFrame;
 
@@ -26,11 +26,15 @@ public abstract class AnimatedEntity(Vector2 position) : IEntity, IAnimated
 
 	public bool IsSpriteAtlas { get; }
 	public bool HasDirection { get; }
+	public TextureInfo TextureInfo { get; }
 	public int NumOfSpriteCols { get; }
 	public int NumOfSpriteRows { get; }
 	public int DirectionIndex { get; }
+	public double DirectionTimer { get; }
+	public double DirectionInterval { get; }
 	public double AnimationTimer { get; set; }
 
+	public float AnimationSpeed { get; } = 0.1f;
 	short IAnimated.AnimationFrame => _animationFrame1;
 
 	public double AnimationFrame { get; set; }
@@ -61,7 +65,6 @@ public abstract class AnimatedEntity(Vector2 position) : IEntity, IAnimated
 
 	public Color Color { get; }
 
-	float IAnimated.AnimationInterval => throw new System.NotImplementedException();
 
 	public virtual void LoadContent(ContentManager content)
 	{

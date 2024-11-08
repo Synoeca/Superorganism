@@ -8,9 +8,10 @@ namespace Superorganism
 {
 	public enum Strategy
 	{
-		RandomMovement = 0,
-		ChaseEnemy = 1,
-		ChargeEnemy = 2,
-		AvoidEnemy = 3
+		Idle = 0,
+		AvoidEnemy = 1,
+		RandomMovement = 2,
+		ChaseEnemy = 3,
+		ChargeEnemy = 4,
 	}
 }
