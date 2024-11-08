@@ -9,20 +9,20 @@ namespace Superorganism.Particle
     /// </summary>
     public static class RandomHelper
     {
-        static Random random = new Random();
+        static Random _random = new Random();
 
         /// <summary>
         /// Returns a random integer
         /// </summary>
         /// <returns>An int between 0 and infinity</returns>
-        public static int Next() => random.Next();
+        public static int Next() => _random.Next();
 
         /// <summary>
         /// Returns a random integer between 0 and <paramref name="maxValue"/> 
         /// </summary>
         /// <param name="maxValue">The maximum value to return</param>
         /// <returns>A number between 0 and <paramref name="maxValue"/></returns>
-        public static int Next(int maxValue) => random.Next(maxValue);
+        public static int Next(int maxValue) => _random.Next(maxValue);
 
         /// <summary>
         /// Returns a random integer within the specified range
@@ -30,7 +30,7 @@ namespace Superorganism.Particle
         /// <param name="minValue">The minimum integer to return</param>
         /// <param name="maxValue">The maximum integer to return</param>
         /// <returns></returns>
-        public static int Next(int minValue, int maxValue) => random.Next(minValue, maxValue);
+        public static int Next(int minValue, int maxValue) => _random.Next(minValue, maxValue);
 
         /// <summary>
         /// Returns a random 32-bit float
@@ -38,7 +38,7 @@ namespace Superorganism.Particle
         /// <returns>A number between 0.0f and 1.0f</returns>
         public static float NextFloat()
         {
-            return (float)random.NextDouble();
+            return (float)_random.NextDouble();
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Superorganism.Particle
         /// <returns>A radom float between <paramref name="minValue"/> and <paramref name="maxValue"/></returns>
         public static float NextFloat(float minValue, float maxValue)
         {
-            return minValue + (float)random.NextDouble() * (maxValue - minValue);
+            return minValue + (float)_random.NextDouble() * (maxValue - minValue);
         }
 
         /// <summary>

@@ -10,8 +10,9 @@ namespace Superorganism
 	{
 		Idle = 0,
 		AvoidEnemy = 1,
-		RandomMovement = 2,
-		ChaseEnemy = 3,
-		ChargeEnemy = 4,
+		RandomFlyingMovement = 2,
+		Random360FlyingMovement = 3,
+		ChaseEnemy = 4,
+		ChargeEnemy = 5,
 	}
 }

@@ -38,12 +38,12 @@ namespace Superorganism.Particle
         /// <summary>
         /// A SpriteBatch to share amongst the various particle systems
         /// </summary>
-        protected static SpriteBatch spriteBatch;
+        protected static SpriteBatch SpriteBatch;
 
         /// <summary>
         /// A ContentManager to share amongst the various particle systems
         /// </summary>
-        protected static ContentManager contentManager;
+        protected static ContentManager ContentManager;
 
         #endregion
 
@@ -52,38 +52,38 @@ namespace Superorganism.Particle
         /// <summary>
         /// The collection of particles 
         /// </summary>
-        Particle[] particles;
+        Particle[] _particles;
 
         /// <summary>
         /// A Queue containing indices of unused particles in the Particles array
         /// </summary>
-        Queue<int> freeParticles;
+        Queue<int> _freeParticles;
 
         /// <summary>
         /// The texture this particle system uses 
         /// </summary>
-        Texture2D texture;
+        Texture2D _texture;
 
         /// <summary>
         /// The origin when we're drawing textures 
         /// </summary>
-        Vector2 origin;
+        Vector2 _origin;
 
         #endregion
 
         #region protected fields
 
         /// <summary>The BlendState to use with this particle system</summary>
-        protected BlendState blendState = BlendState.AlphaBlend;
+        protected BlendState BlendState = BlendState.AlphaBlend;
 
         /// <summary>The filename of the texture to use for the particles</summary>
-        protected string textureFilename;
+        protected string TextureFilename;
 
         /// <summary>The minimum number of particles to add when AddParticles() is called</summary>
-        protected int minNumParticles;
+        protected int MinNumParticles;
 
         /// <summary>The maximum number of particles to add when AddParticles() is called</summary>
-        protected int maxNumParticles;
+        protected int MaxNumParticles;
 
         #endregion
 
@@ -92,7 +92,7 @@ namespace Superorganism.Particle
         /// <summary>
         /// The available particles in the system 
         /// </summary>
-        public int FreeParticleCount => freeParticles.Count;
+        public int FreeParticleCount => _freeParticles.Count;
 
         #endregion
 
@@ -103,12 +103,12 @@ namespace Superorganism.Particle
         public ParticleSystem(Game game, int maxParticles) : base(game) 
         {
             // Create our particles
-            particles = new Particle[maxParticles];
-            freeParticles = new Queue<int>(maxParticles);
-            for (int i = 0; i < particles.Length; i++)
+            _particles = new Particle[maxParticles];
+            _freeParticles = new Queue<int>(maxParticles);
+            for (int i = 0; i < _particles.Length; i++)
             {
-                particles[i].Initialize(Vector2.Zero);
-                freeParticles.Enqueue(i);
+                _particles[i].Initialize(Vector2.Zero);
+                _freeParticles.Enqueue(i);
             }
             // Run the InitializeConstants hook
             InitializeConstants();
@@ -169,11 +169,11 @@ namespace Superorganism.Particle
         {
             // create the shared static ContentManager and SpriteBatch,
             // if this hasn't already been done by another particle engine
-            if (contentManager == null) contentManager = new ContentManager(Game.Services, "Content");
-            if (spriteBatch == null) spriteBatch = new SpriteBatch(Game.GraphicsDevice);
+            if (ContentManager == null) ContentManager = new ContentManager(Game.Services, "Content");
+            if (SpriteBatch == null) SpriteBatch = new SpriteBatch(Game.GraphicsDevice);
 
             // make sure sub classes properly set textureFilename.
-            if (string.IsNullOrEmpty(textureFilename))
+            if (string.IsNullOrEmpty(TextureFilename))
             {
                 string message = "textureFilename wasn't set properly, so the " +
                     "particle system doesn't know what texture to load. Make " +
@@ -182,12 +182,12 @@ namespace Superorganism.Particle
                 throw new InvalidOperationException(message);
             }
             // load the texture....
-            texture = contentManager.Load<Texture2D>(textureFilename);
+            _texture = ContentManager.Load<Texture2D>(TextureFilename);
 
             // ... and calculate the center. this'll be used in the draw call, we
             // always want to rotate and scale around this point.
-            origin.X = texture.Width / 2;
-            origin.Y = texture.Height / 2;
+            _origin.X = _texture.Width / 2;
+            _origin.Y = _texture.Height / 2;
 
             base.LoadContent();
         }
@@ -203,18 +203,18 @@ namespace Superorganism.Particle
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             // go through all of the particles...
-            for(int i = 0; i < particles.Length; i++)
+            for(int i = 0; i < _particles.Length; i++)
             {
 
-                if (particles[i].Active)
+                if (_particles[i].Active)
                 {
                     // ... and if they're active, update them.
-                    UpdateParticle(ref particles[i], dt);
+                    UpdateParticle(ref _particles[i], dt);
                     // if that update finishes them, put them onto the free particles
                     // queue.
-                    if (!particles[i].Active)
+                    if (!_particles[i].Active)
                     {
-                        freeParticles.Enqueue(i);
+                        _freeParticles.Enqueue(i);
                     }
                 }
             }
@@ -230,19 +230,19 @@ namespace Superorganism.Particle
         {
             // tell sprite batch to begin, using the spriteBlendMode specified in
             // initializeConstants
-            spriteBatch.Begin(blendState: blendState);
+            SpriteBatch.Begin(blendState: BlendState);
 
-            foreach (Particle p in particles)
+            foreach (Particle p in _particles)
             {
                 // skip inactive particles
                 if (!p.Active)
                     continue;
                 
-                spriteBatch.Draw(texture, p.Position, null, p.Color,
-                    p.Rotation, origin, p.Scale, SpriteEffects.None, 0.0f);
+                SpriteBatch.Draw(_texture, p.Position, null, p.Color,
+                    p.Rotation, _origin, p.Scale, SpriteEffects.None, 0.0f);
             }
 
-            spriteBatch.End();
+            SpriteBatch.End();
 
             base.Draw(gameTime);
         }
@@ -263,14 +263,14 @@ namespace Superorganism.Particle
             // the number of particles we want for this effect is a random number
             // somewhere between the two constants specified by the subclasses.
             int numParticles =
-                RandomHelper.Next(minNumParticles, maxNumParticles);
+                RandomHelper.Next(MinNumParticles, MaxNumParticles);
 
             // create that many particles, if you can.
-            for (int i = 0; i < numParticles && freeParticles.Count > 0; i++)
+            for (int i = 0; i < numParticles && _freeParticles.Count > 0; i++)
             {
                 // grab a particle from the freeParticles queue, and Initialize it.
-                int index = freeParticles.Dequeue();
-                InitializeParticle(ref particles[index], where);
+                int index = _freeParticles.Dequeue();
+                InitializeParticle(ref _particles[index], where);
             }
         }
 
@@ -286,14 +286,14 @@ namespace Superorganism.Particle
             // the number of particles we want for this effect is a random number
             // somewhere between the two constants specified by the subclasses.
             int numParticles =
-                RandomHelper.Next(minNumParticles, maxNumParticles);
+                RandomHelper.Next(MinNumParticles, MaxNumParticles);
 
             // create that many particles, if you can.
-            for (int i = 0; i < numParticles && freeParticles.Count > 0; i++)
+            for (int i = 0; i < numParticles && _freeParticles.Count > 0; i++)
             {
                 // grab a particle from the freeParticles queue, and Initialize it.
-                int index = freeParticles.Dequeue();
-                InitializeParticle(ref particles[index], RandomHelper.RandomPosition(where));
+                int index = _freeParticles.Dequeue();
+                InitializeParticle(ref _particles[index], RandomHelper.RandomPosition(where));
             }
         }
 

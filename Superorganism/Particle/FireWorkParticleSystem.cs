@@ -16,18 +16,18 @@ namespace Superorganism.Particle
 			Color.LimeGreen
 		};
 
-		private Color color;
+		private Color _color;
 
 		public FireWorkParticleSystem(Game game, int maxExplosions) : base(game, maxExplosions * 25) { }
 
 		protected override void InitializeConstants()
 		{
-			textureFilename = "circle";
+			TextureFilename = "circle";
 
-			minNumParticles = 20;
-			maxNumParticles = 25;
+			MinNumParticles = 20;
+			MaxNumParticles = 25;
 
-			blendState = BlendState.Additive;
+			BlendState = BlendState.Additive;
 			DrawOrder = AdditiveBlendDrawOrder;
 		}
 
@@ -45,7 +45,7 @@ namespace Superorganism.Particle
 
 			var scale = RandomHelper.NextFloat(14, 26);
 
-			p.Initialize(where, velocity, acceleration, color, lifetime: lifetime, rotation: rotation, angularVelocity: angularVelocity, scale: scale);
+			p.Initialize(where, velocity, acceleration, _color, lifetime: lifetime, rotation: rotation, angularVelocity: angularVelocity, scale: scale);
 		}
 
 		protected override void UpdateParticle(ref Particle particle, float dt)
@@ -59,7 +59,7 @@ namespace Superorganism.Particle
 
 		public void PlaceFireWork(Vector2 where)
 		{
-			color = _colors[RandomHelper.Next(_colors.Length)];
+			_color = _colors[RandomHelper.Next(_colors.Length)];
 			AddParticles(where);
 		}
 	}

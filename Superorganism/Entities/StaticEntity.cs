@@ -12,6 +12,7 @@ namespace Superorganism.Entities
 	public class StaticEntity(Vector2 position) : Entity
 	{
 		public override Texture2D Texture { get; set; }
+		public override EntityStatus EntityStatus { get; set; }
 		public override Vector2 Position { get; set; } = position;
 		public override Color Color { get; set; } = Color.White;
 

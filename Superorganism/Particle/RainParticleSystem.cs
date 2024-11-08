@@ -15,9 +15,9 @@ namespace Superorganism.Particle
 
 		protected override void InitializeConstants()
 		{
-			textureFilename = "drop";
-			minNumParticles = 10;
-			maxNumParticles = 20;
+			TextureFilename = "drop";
+			MinNumParticles = 10;
+			MaxNumParticles = 20;
 		}
 
 		protected override void InitializeParticle(ref Particle p, Vector2 where)

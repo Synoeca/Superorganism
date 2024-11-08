@@ -14,11 +14,6 @@ namespace Superorganism.Entities
 	{
 		public bool Destroyed { get; set; } = false;
 
-		//public override void Update(GameTime gameTime)
-		//{
-			
-		//}
-
 		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{
 			if (Destroyed)

@@ -14,6 +14,7 @@ namespace Superorganism.Entities
     {
         public abstract Texture2D Texture { get; set; }
         public TextureInfo TextureInfo { get; set; }
+        public abstract EntityStatus EntityStatus { get; set; }
         public abstract Vector2 Position { get; set; }
         public abstract Color Color { get; set; }
 		public virtual void LoadContent(ContentManager content, string assetName, int numOfSpriteCols, int numOfSpriteRows)
@@ -25,7 +26,7 @@ namespace Superorganism.Entities
 				TextureHeight = Texture.Height,
 				NumOfSpriteCols = numOfSpriteCols,
 				NumOfSpriteRows = numOfSpriteRows,
-				Center = new Vector2(Texture.Width / 2, Texture.Height / 2)
+				Center = new Vector2((Texture.Width / numOfSpriteCols) / 2, (Texture.Height / numOfSpriteRows) / 2)
 			};
 		}
 		public abstract void Draw(GameTime gameTime, SpriteBatch spriteBatch);

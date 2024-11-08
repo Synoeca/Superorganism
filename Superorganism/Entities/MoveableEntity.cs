@@ -14,23 +14,9 @@ namespace Superorganism.Entities
 	public class MoveableEntity(Vector2 position) : Entity, IMovable
 	{
 		public override Texture2D Texture { get; set; }
+		public override EntityStatus EntityStatus { get; set; }
 		public override Color Color { get; set; }
-		public virtual Vector2 Velocity { get; set; }
 		public virtual Strategy Strategy { get; set; } = Strategy.Idle;
-
-		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
-		{
-			spriteBatch.Draw(Texture, Position, Color);
-		}
-
-
-		public void Move(Vector2 direction)
-		{
-			Position += Velocity * direction;
-			Direction = Math.Abs(direction.X) > Math.Abs(direction.Y)
-				? direction.X > 0 ? Direction.Right : Direction.Left
-				: direction.Y > 0 ? Direction.Down : Direction.Up;
-		}
 
 		public void ApplyGravity(float gravity)
 		{
@@ -42,6 +28,13 @@ namespace Superorganism.Entities
 		{
 			get => _direction;
 			set => _direction = value;
+		}
+
+		private Vector2 _velocity;
+		public Vector2 Velocity
+		{
+			get => _velocity;
+			set => _velocity = value;
 		}
 
 		private Vector2 _position = position;
@@ -58,6 +51,13 @@ namespace Superorganism.Entities
 			set => _directionTimer = value;
 		}
 
+		private double _directionInterval;
+		public virtual double DirectionInterval
+		{
+			get => _directionInterval;
+			set => _directionInterval = value;
+		}
+
 		private ICollisionBounding _collisionBounding = new BoundingCircle(position + new Vector2(16, 16), 16);
 		public virtual ICollisionBounding CollisionBounding
 		{
@@ -65,16 +65,24 @@ namespace Superorganism.Entities
 			set => _collisionBounding = value;
 		}
 
-		//public virtual bool IsSpriteAtlas { get; set; } = true;
-		//public virtual bool HasDirection { get; set; } = true;
-		public virtual double DirectionInterval { get; set; }
-		//public virtual int NumOfSpriteCols { get; set; } = 4;
-		//public virtual int NumOfSpriteRows { get; set; } = 4;
-		//public virtual float AnimationSpeed { get; set; } = 0.1f;
+		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+		{
+			spriteBatch.Draw(Texture, Position, Color);
+		}
+
+
+		public void Move(Vector2 direction)
+		{
+			Position += Velocity * direction;
+			Direction = Math.Abs(direction.X) > Math.Abs(direction.Y)
+				? direction.X > 0 ? Direction.Right : Direction.Left
+				: direction.Y > 0 ? Direction.Down : Direction.Up;
+		}
 
 		public override void Update(GameTime gameTime)
 		{
-			DecisionMaker.Action(Strategy, gameTime, ref _direction, ref _position, ref _directionTimer, DirectionInterval, ref _collisionBounding);
+			DecisionMaker.Action(Strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
+				ref _velocity, 800, 600, TextureInfo, EntityStatus);
 		}
 	}
 }

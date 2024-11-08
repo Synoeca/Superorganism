@@ -9,12 +9,12 @@ namespace Superorganism.Particle
 
 		protected override void InitializeConstants()
 		{
-			textureFilename = "explosion";
+			TextureFilename = "explosion";
 
-			minNumParticles = 20;
-			maxNumParticles = 25;
+			MinNumParticles = 20;
+			MaxNumParticles = 25;
 
-			blendState = BlendState.Additive;
+			BlendState = BlendState.Additive;
 			DrawOrder = AdditiveBlendDrawOrder;
 		}
 

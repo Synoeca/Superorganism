@@ -8,9 +8,9 @@ namespace Superorganism.Enums
 {
     public enum Direction
     {
-        Down = 0,
+        Up = 0,
         Right = 1,
-        Up = 2,
+        Down = 2,
         Left = 3
     }
 }
