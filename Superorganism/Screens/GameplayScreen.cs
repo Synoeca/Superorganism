@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using Superorganism.Collisions;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Particle;
@@ -24,6 +25,7 @@ public class GameplayScreen : GameScreen
 	private AntSprite _ant;
 
 	//private AntEnemySprite _antEnemy;
+	private AntEnemy _antEnemy;
 	private Song _backgroundMusic;
 
 	private Matrix _cameraMatrix;
@@ -74,21 +76,25 @@ public class GameplayScreen : GameScreen
 
 		_groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
 		_ant = new AntSprite(new Vector2(200, 200));
+		_antEnemy = new AntEnemy
+		{
+			Position = new Vector2(200, 200)
+		};
 		//_antEnemy = new AntEnemySprite(new Vector2(550, 400));
 
 		_cameraPosition = _ant.Position;
 
 		_groundTexture.LoadContent(_content);
 		_ant.LoadContent(_content);
-		//_antEnemy.LoadContent(_content);
+		_antEnemy.LoadContent(_content, "antEnemy-side", 3, 1, new BoundingRectangle(), 0.3f);
 
 		InitializeGame();
 
-		foreach (Crop crop in _newCrops) crop.LoadContent(_content, "crops", 8, 1);
+		foreach (Crop crop in _newCrops) crop.LoadContent(_content, "crops", 8, 1, new BoundingCircle(), 1.0f);
 
 		//foreach (FliesSprite fly in _flies) fly.LoadContent(_content);
 
-		foreach (Fly fly in _newFlies) fly.LoadContent(_content, "flies", 4, 4);
+		foreach (Fly fly in _newFlies) fly.LoadContent(_content, "flies", 4, 4, new BoundingCircle(), 1.0f);
 
 		_cropPickup = _content.Load<SoundEffect>("Pickup_Coin4");
 		_fliesDestroy = _content.Load<SoundEffect>("damaged");
@@ -123,10 +129,11 @@ public class GameplayScreen : GameScreen
 			float xPos = rand.Next(0, 800);
 			float yPos = rand.Next(0, 600);
 			Direction randomDirection = (Direction)rand.Next(0, 4);
-			_newFlies[i] = new Fly(new Vector2(xPos, yPos))
+			_newFlies[i] = new Fly()
 			{
 				Position = new Vector2(xPos, yPos),
 				Direction = randomDirection
+				//CollisionBounding = new BoundingCircle(Vector2)
 			};
 			//Entities.Add(_flies[i]);
 		}
@@ -158,6 +165,7 @@ public class GameplayScreen : GameScreen
 
 
 		_ant.Update(gameTime);
+		_antEnemy.Update(gameTime);
 		//_antEnemy.Update(gameTime, ((IEntity)_ant).Position);
 		_ant.Color = Color.White;
 		//_antEnemy.Color = Color.White;
@@ -281,6 +289,7 @@ public class GameplayScreen : GameScreen
 		//	fly.Draw(gameTime, spriteBatch);
 
 		_ant.Draw(gameTime, spriteBatch);
+		_antEnemy.Draw(gameTime, spriteBatch);
 		//_antEnemy.Draw(gameTime, spriteBatch);
 
 		DrawHealthBar(spriteBatch);

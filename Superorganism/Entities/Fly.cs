@@ -9,7 +9,7 @@ using Superorganism.Enums;
 
 namespace Superorganism.Entities
 {
-	public class Fly(Vector2 position) : MovableAnimatedDestroyableEntity(position)
+	public class Fly : MovableAnimatedDestroyableEntity
 	{
 		public override EntityStatus EntityStatus { get; set; } = new ()
 		{

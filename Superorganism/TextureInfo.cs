@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Superorganism.Collisions;
 
 namespace Superorganism
 {
@@ -22,5 +23,9 @@ namespace Superorganism
 		public int UnitTextureHeight => TextureHeight / NumOfSpriteRows;
 
 		public Vector2 Center { get; set; }
+
+		public float SizeScale { get; set; } = 1;
+
+		public ICollisionBounding CollisionType { get; set; }
 	}
 }

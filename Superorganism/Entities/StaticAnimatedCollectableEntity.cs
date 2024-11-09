@@ -20,10 +20,5 @@ namespace Superorganism.Entities
 			UpdateAnimation(gameTime);
 			DrawAnimation(spriteBatch);
 		}
-
-		public void Update(bool collected)
-		{
-			Collected = collected;
-		}
 	}
 }

@@ -8,7 +8,6 @@ namespace Superorganism
 		bool IsSpriteAtlas { get; }
 		bool HasDirection { get; }
 		TextureInfo TextureInfo { get; }
-		int DirectionIndex { get; }
 		double DirectionTimer { get; }
 		double DirectionInterval { get; }
 		double AnimationTimer { get; }

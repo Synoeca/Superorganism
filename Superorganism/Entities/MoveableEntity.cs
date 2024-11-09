@@ -11,7 +11,7 @@ using Superorganism.Enums;
 
 namespace Superorganism.Entities
 {
-	public class MoveableEntity(Vector2 position) : Entity, IMovable
+	public class MoveableEntity : Entity, IMovable
 	{
 		public override Texture2D Texture { get; set; }
 		public override EntityStatus EntityStatus { get; set; }
@@ -23,47 +23,42 @@ namespace Superorganism.Entities
 			Velocity += new Vector2(0, gravity);
 		}
 
-		private Direction _direction;
+		protected Direction _direction;
 		public virtual Direction Direction
 		{
 			get => _direction;
 			set => _direction = value;
 		}
 
-		private Vector2 _velocity;
+		protected Vector2 _velocity;
 		public Vector2 Velocity
 		{
 			get => _velocity;
 			set => _velocity = value;
 		}
 
-		private Vector2 _position = position;
+		protected Vector2 _position;
 		public override Vector2 Position
 		{
 			get => _position;
 			set => _position = value;
 		}
 
-		private double _directionTimer = 0;
+		protected double _directionTimer = 0;
 		public virtual double DirectionTimer
 		{
 			get => _directionTimer;
 			set => _directionTimer = value;
 		}
 
-		private double _directionInterval;
+		protected double _directionInterval;
 		public virtual double DirectionInterval
 		{
 			get => _directionInterval;
 			set => _directionInterval = value;
 		}
 
-		private ICollisionBounding _collisionBounding = new BoundingCircle(position + new Vector2(16, 16), 16);
-		public virtual ICollisionBounding CollisionBounding
-		{
-			get => _collisionBounding;
-			set => _collisionBounding = value;
-		}
+
 
 		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{
@@ -81,8 +76,8 @@ namespace Superorganism.Entities
 
 		public override void Update(GameTime gameTime)
 		{
-			DecisionMaker.Action(Strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
-				ref _velocity, 800, 600, TextureInfo, EntityStatus);
+			DecisionMaker.Action(Strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval,
+				ref _velocity, 800, 600, TextureInfo, EntityStatus); 
 		}
 	}
 }

@@ -12,7 +12,8 @@ namespace Superorganism
 		AvoidEnemy = 1,
 		RandomFlyingMovement = 2,
 		Random360FlyingMovement = 3,
-		ChaseEnemy = 4,
-		ChargeEnemy = 5,
+		Patrol,
+		ChaseEnemy = 5,
+		ChargeEnemy = 6,
 	}
 }

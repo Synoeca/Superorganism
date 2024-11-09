@@ -8,20 +8,20 @@ namespace Superorganism
 {
 	public class EntityStatus
 	{
-		public int Strength { get; set; } = 1;
+		public float Strength { get; set; } = 1;
 
-		public int Perception { get; set; } = 1;
+		public float Perception { get; set; } = 1;
+		
+		public float Endurance { get; set; } = 1;
 
-		public int Endurance { get; set; } = 1;
+		public float Charisma { get; set; } = 1;
 
-		public int Charisma { get; set; } = 1;
+		public float Intelligence { get; set; } = 1;
 
-		public int Intelligence { get; set; } = 1;
+		public float Agility { get; set; } = 1;
 
-		public int Agility { get; set; } = 1;
+		public float Luck { get; set; } = 1;
 
-		public int Luck { get; set; } = 1;
-
-		public int HitPoints { get; set; }
+		public float HitPoints { get; set; } = 1;
 	}
 }

@@ -10,7 +10,7 @@ using Superorganism.Enums;
 
 namespace Superorganism.Entities
 {
-	public class MovableAnimatedDestroyableEntity(Vector2 position) : MovableAnimatedEntity(position), ICollidable
+	public class MovableAnimatedDestroyableEntity : MovableAnimatedEntity, ICollidable
 	{
 		public bool Destroyed { get; set; } = false;
 
