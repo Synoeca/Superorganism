@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.Collisions;
 using Superorganism.Interfaces;
@@ -33,6 +36,29 @@ namespace Superorganism.Entities
 		public float GroundLevel { get; set; } = 400f;
 
 		public float? EntityGroundY { get; set; }
+
+		public SoundEffect MoveSound { get; set; }
+		public SoundEffect JumpSound { get; set; }
+		private float _soundTimer = 0f;
+		private const float MOVE_SOUND_INTERVAL = 0.25f;
+		private const float SHIFT_MOVE_SOUND_INTERVAL = 0.15f;
+
+		private float GetMoveSoundInterval()
+		{
+			return (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
+				? SHIFT_MOVE_SOUND_INTERVAL
+				: MOVE_SOUND_INTERVAL;
+		}
+
+		private void PlayMoveSound(GameTime gameTime)
+		{
+			_soundTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+			if (_soundTimer >= GetMoveSoundInterval())
+			{
+				MoveSound?.Play();
+				_soundTimer = 0f;
+			}
+		}
 
 		public override void UpdateAnimation(GameTime gameTime)
 		{
@@ -81,9 +107,6 @@ namespace Superorganism.Entities
 		{
 			GamePadState = GamePad.GetState(0);
 			KeyboardState = Keyboard.GetState();
-			//MovementSpeed = KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift)
-			//	? 2.5f
-			//	: 1f;
 
 			if (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
 			{
@@ -101,34 +124,35 @@ namespace Superorganism.Entities
 				_velocity.Y = JumpStrength;
 				IsOnGround = false;
 				IsJumping = true;
-				//JumpSound.Play();
+				JumpSound?.Play(); // Play jump sound
 			}
 
 			if (KeyboardState.IsKeyDown(Keys.Left) || KeyboardState.IsKeyDown(Keys.A))
 			{
 				_velocity.X = -MovementSpeed;
 				_flipped = true;
-				//if (!IsJumping) PlayMoveSound(gameTime, GetMoveSoundInterval());
+				if (!IsJumping) PlayMoveSound(gameTime); // Play move sound when walking
 			}
 			else if (KeyboardState.IsKeyDown(Keys.Right) || KeyboardState.IsKeyDown(Keys.D))
 			{
 				_velocity.X = MovementSpeed;
 				_flipped = false;
-				//if (!IsJumping) PlayMoveSound(gameTime, GetMoveSoundInterval());
+				if (!IsJumping) PlayMoveSound(gameTime); // Play move sound when walking
 			}
 			else
 			{
 				if (IsOnGround)
 				{
 					_velocity.X *= Friction;
-					if (Math.Abs(_velocity.X) < 0.1f) _velocity.X = 0;
+					if (Math.Abs(_velocity.X) < 0.1f)
+					{
+						_velocity.X = 0;
+						_soundTimer = 0f; // Reset sound timer when stopped
+					}
 				}
-
-				//if (SoundTimer > 0 && _velocity.X == 0) SoundTimer = 0.0f;
 			}
 
 			_velocity.Y += Gravity;
-
 			_position += _velocity;
 
 			if (_position.Y >= EntityGroundY)
@@ -147,6 +171,12 @@ namespace Superorganism.Entities
 				CollisionBounding = boundingRectangle;
 			}
 			_velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
+		}
+
+		public void LoadSound(ContentManager content)
+		{
+			MoveSound = content.Load<SoundEffect>("move");
+			JumpSound = content.Load<SoundEffect>("Jump");
 		}
 
 		public override void Update(GameTime gameTime)

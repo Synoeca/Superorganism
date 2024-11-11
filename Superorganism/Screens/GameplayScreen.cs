@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
@@ -33,7 +34,7 @@ public class GameplayScreen : GameScreen
 	private SoundEffect _cropPickup;
 
 	private double _enemyCollisionTimer = 0; // Add this with other timer variables
-	private const double ENEMY_COLLISION_INTERVAL = 0.2; // 0.2 seconds interval
+	private const double EnemyCollisionInterval = 0.2; // 0.2 seconds interval
 	private double _damageTimer;
 	private double _elapsedTime;
 	private ExplosionParticleSystem _explosions;
@@ -87,6 +88,7 @@ public class GameplayScreen : GameScreen
 
 		_groundTexture.LoadContent(_content);
 		_ant.LoadContent(_content, "ant-side_Rev2", 3, 1, new BoundingRectangle(), 0.25f);
+		_ant.LoadSound(_content);
 		_antEnemy.LoadContent(_content, "antEnemy-side_Rev3", 3, 1, new BoundingRectangle(), 0.3f);
 
 		InitializeGame();
@@ -205,7 +207,7 @@ public class GameplayScreen : GameScreen
 				_fliesDestroy.Play();
 				_ant.Color = Color.Gray;
 				_antEnemy.Color = Color.Gray;
-				_enemyCollisionTimer = ENEMY_COLLISION_INTERVAL;
+				_enemyCollisionTimer = EnemyCollisionInterval;
 			}
 		}
 

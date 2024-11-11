@@ -287,12 +287,12 @@ namespace Superorganism
 				// Handle screen bounds
 				if (position.X <= 50)
 				{
-					velocity.X = Math.Abs(velocity.X); // Force right movement
+					//velocity.X = Math.Abs(velocity.X); // Force right movement
 					//position.X = 50;
 				}
 				else if (position.X >= 800)
 				{
-					velocity.X = -Math.Abs(velocity.X); // Force left movement
+					//velocity.X = -Math.Abs(velocity.X); // Force left movement
 					//position.X = 800;
 				}
 
