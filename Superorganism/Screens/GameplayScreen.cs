@@ -22,7 +22,8 @@ public class GameplayScreen : GameScreen
 
 	private readonly InputAction _pauseAction;
 
-	private AntSprite _ant;
+	//private AntSprite _ant;
+	private Ant _newAnt;
 
 	//private AntEnemySprite _antEnemy;
 	private AntEnemy _antEnemy;
@@ -71,22 +72,31 @@ public class GameplayScreen : GameScreen
 	{
 		if (_content == null)
 			_content = new ContentManager(ScreenManager.Game.Services, "Content");
+		DecisionMaker.GroundY = _groundY;
 
 		_gameFont = _content.Load<SpriteFont>("gamefont");
 
 		_groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
-		_ant = new AntSprite(new Vector2(200, 200));
-		_antEnemy = new AntEnemy
+		//_ant = new AntSprite(new Vector2(200, 200));
+		_newAnt = new Ant()
 		{
 			Position = new Vector2(200, 200)
 		};
+		_antEnemy = new AntEnemy
+		{
+			Position = new Vector2(500, 200)
+		};
 		//_antEnemy = new AntEnemySprite(new Vector2(550, 400));
 
-		_cameraPosition = _ant.Position;
+		//_cameraPosition = _ant.Position;
+		_newAnt.IsControlled = true;
+		_cameraPosition = _newAnt.Position;
+		DecisionMaker.Entities.Add(_newAnt);
 
 		_groundTexture.LoadContent(_content);
-		_ant.LoadContent(_content);
-		_antEnemy.LoadContent(_content, "antEnemy-side", 3, 1, new BoundingRectangle(), 0.3f);
+		//_ant.LoadContent(_content);
+		_newAnt.LoadContent(_content, "ant-side_Rev2", 3, 1, new BoundingRectangle(), 0.25f);
+		_antEnemy.LoadContent(_content, "antEnemy-side_Rev3", 3, 1, new BoundingRectangle(), 0.3f);
 
 		InitializeGame();
 
@@ -164,16 +174,18 @@ public class GameplayScreen : GameScreen
 		_elapsedTime += gameTime.ElapsedGameTime.TotalSeconds;
 
 
-		_ant.Update(gameTime);
+		//_ant.Update(gameTime);
+		_newAnt.Update(gameTime);
 		_antEnemy.Update(gameTime);
 		//_antEnemy.Update(gameTime, ((IEntity)_ant).Position);
-		_ant.Color = Color.White;
+		//_ant.Color = Color.White;
+		_newAnt.Color = Color.White;
 		//_antEnemy.Color = Color.White;
 
 		foreach (Crop crop in _newCrops)
 		{
-			if (crop.Collected || !crop.CollisionBounding.CollidesWith(_ant.Bounds)) continue;
-			_ant.Color = Color.Gold;
+			if (crop.Collected || !crop.CollisionBounding.CollidesWith(_newAnt.CollisionBounding)) continue;
+			_newAnt.Color = Color.Gold;
 			crop.Collected = true;
 			_newCropsLeft--;
 			_cropPickup.Play();
@@ -185,18 +197,19 @@ public class GameplayScreen : GameScreen
 		{
 			if (fly.Destroyed) continue;
 			fly.Update(gameTime);
-			if (fly.CollisionBounding.CollidesWith(_ant.Bounds))
+			if (fly.CollisionBounding.CollidesWith(_newAnt.CollisionBounding))
 			{
-				_ant.Color = Color.Gray;
+				_newAnt.Color = Color.Gray;
 				fly.Destroyed = true;
 				_explosions.PlaceExplosion(fly.Position);
 				_fliesDestroy.Play();
-				_ant.HitPoint = Math.Max(0, _ant.HitPoint - 10);
+				_newAnt.HitPoints = Math.Max(0, _newAnt.HitPoints - 10);
 			}
 		}
 
-		if (_ant.HitPoint <= 0) _isGameOver = true;
-		_cameraPosition = _ant.Position;
+		if (_newAnt.HitPoints <= 0) _isGameOver = true;
+		//_cameraPosition = _ant.Position;
+		_cameraPosition = _newAnt.Position;
 	}
 
 
@@ -232,7 +245,7 @@ public class GameplayScreen : GameScreen
 
 		spriteBatch.Draw(grayTexture, new Rectangle(barX, barY, barWidth, barHeight), Color.White);
 
-		float healthPercentage = (float)_ant.HitPoint / _ant.MaxHitPoint;
+		float healthPercentage = (float)_newAnt.HitPoints / _newAnt.MaxHitPoint;
 		spriteBatch.Draw(redTexture, new Rectangle(barX, barY, (int)(barWidth * healthPercentage), barHeight),
 			Color.White);
 	}
@@ -268,6 +281,8 @@ public class GameplayScreen : GameScreen
 		ScreenManager.GraphicsDevice.Clear(Color.CornflowerBlue);
 		UpdateCameraMatrix();
 		SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
+
+		// Draw game world elements with camera transform
 		spriteBatch.Begin(
 			SpriteSortMode.Deferred,
 			BlendState.AlphaBlend,
@@ -278,19 +293,22 @@ public class GameplayScreen : GameScreen
 			_cameraMatrix
 		);
 
-
+		// Draw all game world elements
 		_groundTexture.Draw(spriteBatch);
-
 		foreach (Crop crop in _newCrops) crop.Draw(gameTime, spriteBatch);
-
 		foreach (Fly fly in _newFlies) fly.Draw(gameTime, spriteBatch);
-
-		//foreach (FliesSprite fly in _flies)
-		//	fly.Draw(gameTime, spriteBatch);
-
-		_ant.Draw(gameTime, spriteBatch);
+		_newAnt.Draw(gameTime, spriteBatch);
 		_antEnemy.Draw(gameTime, spriteBatch);
-		//_antEnemy.Draw(gameTime, spriteBatch);
+
+		spriteBatch.End();
+
+		spriteBatch.Begin(
+			SpriteSortMode.Deferred,
+			BlendState.AlphaBlend,
+			SamplerState.PointClamp,
+			DepthStencilState.None,
+			RasterizerState.CullNone
+		);
 
 		DrawHealthBar(spriteBatch);
 		DrawCropsLeft(spriteBatch);

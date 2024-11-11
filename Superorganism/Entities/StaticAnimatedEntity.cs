@@ -5,10 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Superorganism.Interfaces;
 
 namespace Superorganism.Entities
 {
-	public class StaticAnimatedEntity(Vector2 position) : StaticEntity(position), IAnimated
+    public class StaticAnimatedEntity(Vector2 position) : StaticEntity(position), IAnimated
 	{
 		public virtual bool IsSpriteAtlas { get; set; }
 		public virtual bool HasDirection { get; set; }

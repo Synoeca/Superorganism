@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Superorganism
+namespace Superorganism.Interfaces
 {
-	public interface ICollectable
-	{
-		bool Collected { get; }
-	}
+    public interface ICollectable
+    {
+        bool Collected { get; }
+    }
 }

@@ -7,10 +7,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.Collisions;
 using Superorganism.Enums;
+using Superorganism.Interfaces;
 
 namespace Superorganism.Entities
 {
-	public class MovableAnimatedDestroyableEntity : MovableAnimatedEntity, ICollidable
+    public class MovableAnimatedDestroyableEntity : MovableAnimatedEntity, ICollidable
 	{
 		public bool Destroyed { get; set; } = false;
 

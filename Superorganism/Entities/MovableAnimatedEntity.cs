@@ -7,10 +7,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.Collisions;
 using Superorganism.Enums;
+using Superorganism.Interfaces;
 
 namespace Superorganism.Entities
 {
-	public class MovableAnimatedEntity : MoveableEntity, IAnimated
+    public class MovableAnimatedEntity : MoveableEntity, IAnimated
 	{
 		protected bool _flipped;
 		public virtual bool IsSpriteAtlas { get; set; }
@@ -26,7 +27,7 @@ namespace Superorganism.Entities
 			set => _collisionBounding = value;
 		}
 
-		public void UpdateAnimation(GameTime gameTime)
+		public virtual void UpdateAnimation(GameTime gameTime)
 		{
 			if (!IsSpriteAtlas) return;
 
@@ -44,7 +45,7 @@ namespace Superorganism.Entities
 				}
 				else
 				{
-					// For walking animation: use frames 1 and 2 when moving
+					// For walking animation: use frames 1 and 2 when movings
 					if (Math.Abs(_velocity.X) > 0.1f)
 					{
 						AnimationFrame++;
@@ -64,7 +65,7 @@ namespace Superorganism.Entities
 
 		public void DrawAnimation(SpriteBatch spriteBatch)
 		{
-			if (!IsSpriteAtlas) return;
+			//if (!IsSpriteAtlas) return;
 
 			if (HasDirection)
 			{
@@ -110,8 +111,8 @@ namespace Superorganism.Entities
 		public override void Update(GameTime gameTime)
 		{
 			CollisionBounding ??= TextureInfo.CollisionType;
-			DecisionMaker.Action(Strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
-				ref _velocity, 800, 365, TextureInfo, EntityStatus);
+			DecisionMaker.Action(ref _strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
+				ref _velocity, 800, 420, TextureInfo, EntityStatus);
 		}
 	}
 }

@@ -6,13 +6,18 @@ using System.Threading.Tasks;
 
 namespace Superorganism.Entities
 {
-	public class AntEnemy : MovableAnimatedDestroyableEntity
+	public sealed class AntEnemy : MovableAnimatedDestroyableEntity
 	{
+		public AntEnemy()
+		{
+			Strategy = Strategy.Patrol;
+		}
+
 		public override EntityStatus EntityStatus { get; set; } = new()
 		{
 			Agility = 1
 		};
-		public override Strategy Strategy { get; set; } = Strategy.Patrol;
+		
 
 		public override bool IsSpriteAtlas { get; set; } = true;
 		public override bool HasDirection { get; set; } = false;

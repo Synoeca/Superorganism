@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Superorganism
+namespace Superorganism.Interfaces
 {
-	public interface ICollidable : IEntity
-	{
-		ICollisionBounding CollisionBounding { get; }
-	}
+    public interface ICollidable : IEntity
+    {
+        ICollisionBounding CollisionBounding { get; }
+    }
 }

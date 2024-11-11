@@ -8,15 +8,24 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.Collisions;
 using Superorganism.Enums;
+using Superorganism.Interfaces;
 
 namespace Superorganism.Entities
 {
-	public class MoveableEntity : Entity, IMovable
+    public class MoveableEntity : Entity, IMovable
 	{
 		public override Texture2D Texture { get; set; }
 		public override EntityStatus EntityStatus { get; set; }
 		public override Color Color { get; set; }
-		public virtual Strategy Strategy { get; set; } = Strategy.Idle;
+		//public virtual Strategy Strategy { get; set; } = Strategy.Idle;
+
+		protected Strategy _strategy;
+
+		public virtual Strategy Strategy
+		{
+			get => _strategy;
+			set => _strategy = value;
+		}
 
 		public void ApplyGravity(float gravity)
 		{
@@ -76,7 +85,7 @@ namespace Superorganism.Entities
 
 		public override void Update(GameTime gameTime)
 		{
-			DecisionMaker.Action(Strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval,
+			DecisionMaker.Action(ref _strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval,
 				ref _velocity, 800, 600, TextureInfo, EntityStatus); 
 		}
 	}

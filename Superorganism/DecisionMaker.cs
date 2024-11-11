@@ -12,15 +12,16 @@ namespace Superorganism
 	{
 		private static readonly Random Rand = new();
 		public static GameTime GameTime { get; set; }
-		public static List<Entity> Entities { get; set; }
+		public static List<Entity> Entities { get; set; } = [];
 		public static Strategy Strategy { get; set; }
+		public static int GroundY { get; set; }
 
 		private static double GetNewDirectionInterval()
 		{
 			return Rand.NextDouble() * 3.0 + 1.0;
 		}
 
-		public static void Action(Strategy strategy, GameTime gameTime, ref Direction direction, ref Vector2 position,
+		public static void Action(ref Strategy strategy, GameTime gameTime, ref Direction direction, ref Vector2 position,
 			ref double directionTimer, ref double directionInterval, ref Vector2 velocity, int screenWidth,
 			int groundHeight,
 			TextureInfo textureInfo, EntityStatus entityStatus)
@@ -114,10 +115,12 @@ namespace Superorganism
 			}
 		}
 
-		public static void Action(Strategy strategy, GameTime gameTime, ref Direction direction, ref Vector2 position,
+		public static void Action(ref Strategy strategy, GameTime gameTime, ref Direction direction, ref Vector2 position,
 			ref double directionTimer, ref double directionInterval, ref ICollisionBounding collisionBounding,
 			ref Vector2 velocity, int screenWidth, int groundHeight, TextureInfo textureInfo, EntityStatus entityStatus)
 		{
+			float entityGroundY;
+			GameTime = gameTime;
 			if (strategy == Strategy.RandomFlyingMovement)
 			{
 				// Original 4-direction movement logic
@@ -166,68 +169,143 @@ namespace Superorganism
 			}
 			else if (strategy == Strategy.Patrol)
 			{
-				const float ACCELERATION = 0.12f;
-				const float MOVEMENT_SPEED = 2.5f;
-				const float FRICTION = 0.8f;
-				const float GRAVITY = 0.5f;
+				const float MOVEMENT_SPEED = 1.0f;
+				const float DIRECTION_CHANGE_TIME = 3.0f;
+				const float GRAVITY = 0.5f; // Match the gravity from ControllableEntity
+				
 
-				// Initialize direction interval and initial movement
-				if (directionInterval == 0)
+				// Initialize movement if it hasn't started yet
+				if (directionTimer == 0)
 				{
-					directionInterval = Rand.NextDouble() * 6.0 + 5.0; // Random interval between 5 and 11 seconds (increased)
-					velocity.X = MOVEMENT_SPEED; // Start moving right
+					velocity.X = MOVEMENT_SPEED;
+					directionTimer = gameTime.TotalGameTime.TotalSeconds;
 				}
 
-				// Add gravity
+				double currentGameTime = gameTime.TotalGameTime.TotalSeconds;
+				double elapsedTime = currentGameTime - directionTimer;
+
+				// Change direction every 3 seconds
+				if (elapsedTime >= DIRECTION_CHANGE_TIME)
+				{
+					velocity.X = -velocity.X; // Reverse direction
+					directionTimer = currentGameTime;
+				}
+
+				// Apply gravity
 				velocity.Y += GRAVITY;
-
-				// Handle ground collision using passed in groundHeight
-				bool isOnGround = position.Y >= groundHeight;
-				if (isOnGround)
-				{
-					position.Y = groundHeight;
-					velocity.Y = 0;
-				}
-
-				// Update direction timer
-				directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
-				if (directionTimer > directionInterval)
-				{
-					// 5% chance to stop, 95% chance to change direction (increased movement probability)
-					if (Rand.NextDouble() < 0.05) // Reduced from 0.1 to 0.05 to increase movement time
-					{
-						velocity.X = 0; // Stop
-					}
-					else
-					{
-						// Randomly choose direction: -1 for left, 1 for right
-						velocity.X = (Rand.Next(2) * 2 - 1) * MOVEMENT_SPEED;
-					}
-
-					directionTimer = 0;
-					directionInterval = Rand.NextDouble() * 1.0 + 2.0; // Longer intervals for movement
-				}
-
-				// Apply movement based on current direction
-				float targetVelocityX = velocity.X;
-				velocity.X = MathHelper.Lerp(velocity.X, targetVelocityX, ACCELERATION);
 
 				// Update position
 				position += velocity;
 
-				// Update collision bounds
-				collisionBounding.Center = position + new Vector2(16, 16);
+				entityGroundY = GroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale) + 6.0f;
 
-				// Apply friction when on ground
-				if (isOnGround)
+				if (position.Y >= entityGroundY)
 				{
-					velocity.X *= FRICTION;
-					if (Math.Abs(velocity.X) < 0.1f)
+					position.Y = entityGroundY;
+					velocity.Y = 0;
+				}
+
+				Console.WriteLine("("+position.X+","+position.Y+")");
+
+				// Handle screen bounds
+				if (position.X <= 100)
+				{
+					velocity.X = Math.Abs(velocity.X); // Force right movement
+					position.X = 100;
+				}
+				else if (position.X >= 700)
+				{
+					velocity.X = -Math.Abs(velocity.X); // Force left movement
+					position.X = 700;
+				}
+
+				foreach (Entity entity in Entities)
+				{
+					if (entity is ControlableEntity controlableEntity)
 					{
-						velocity.X = 0;
+						if (controlableEntity.IsControlled)
+						{
+							float distance = Vector2.Distance(position, controlableEntity.Position);
+							if (distance < 100)
+							{
+								strategy = Strategy.ChaseEnemy;
+							}
+						}
 					}
 				}
+
 			}
+
+			else if (strategy == Strategy.ChaseEnemy)
+			{
+				const float CHASE_SPEED = 1.5f; // Slightly faster than patrol speed
+				const float GRAVITY = 0.5f;
+				const float MIN_DIRECTION_CHANGE_TIME = 1.0f;
+
+				double currentGameTime = gameTime.TotalGameTime.TotalSeconds;
+				double elapsedTime = currentGameTime - directionTimer;
+
+				// Apply gravity
+				velocity.Y += GRAVITY;
+
+				Vector2? targetPosition = null;
+				float closestDistance = float.MaxValue;
+
+				// Find the closest controlled entity
+				foreach (Entity entity in Entities)
+				{
+					if (entity is ControlableEntity controlableEntity && controlableEntity.IsControlled)
+					{
+						float distance = Vector2.Distance(position, controlableEntity.Position);
+						if (distance < closestDistance)
+						{
+							closestDistance = distance;
+							targetPosition = controlableEntity.Position;
+						}
+					}
+				}
+
+				// Chase logic
+				if (targetPosition.HasValue && elapsedTime >= MIN_DIRECTION_CHANGE_TIME)
+				{
+					Vector2 chaseDirection = Vector2.Normalize(targetPosition.Value - position);
+					velocity.X = chaseDirection.X * CHASE_SPEED;
+					directionTimer = currentGameTime;
+				}
+
+				// Update position
+				position += velocity;
+
+				entityGroundY = GroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale) + 6.0f;
+
+				if (position.Y >= entityGroundY)
+				{
+					position.Y = entityGroundY;
+					velocity.Y = 0;
+				}
+
+				// Handle screen bounds
+				if (position.X <= 50)
+				{
+					velocity.X = Math.Abs(velocity.X); // Force right movement
+					position.X = 50;
+				}
+				else if (position.X >= 800)
+				{
+					velocity.X = -Math.Abs(velocity.X); // Force left movement
+					position.X = 800;
+				}
+
+				// Check if we should switch back to patrol
+				if (!targetPosition.HasValue || closestDistance > 400) // Adjust this threshold as needed
+				{
+					strategy = Strategy.Patrol;
+					directionTimer = currentGameTime;
+				}
+
+				Console.WriteLine($"Chase: ({position.X},{position.Y})");
+			}
+
 
 
 

@@ -9,13 +9,16 @@ using Superorganism.Enums;
 
 namespace Superorganism.Entities
 {
-	public class Fly : MovableAnimatedDestroyableEntity
+	public sealed class Fly : MovableAnimatedDestroyableEntity
 	{
+		public Fly()
+		{
+			Strategy = Strategy.RandomFlyingMovement;
+		}
 		public override EntityStatus EntityStatus { get; set; } = new ()
 		{
 			Agility = 1
 		};
-		public override Strategy Strategy { get; set; } = Strategy.RandomFlyingMovement;
 
 		public override bool IsSpriteAtlas { get; set; } = true;
 		public override bool HasDirection { get; set; } = true;
