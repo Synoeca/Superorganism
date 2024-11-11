@@ -146,38 +146,13 @@ namespace Superorganism.Entities
 				boundingRectangle.Y = _position.Y - 16;
 				CollisionBounding = boundingRectangle;
 			}
-
-
-
 			_velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
-
-			//switch (IsOnGround)
-			//{
-			//	case true when Math.Abs(_velocity.X) > 0:
-			//	{
-			//		AnimationTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-			//		AnimationSpeed = 0.15f / Math.Abs(_velocity.X);
-
-			//		if (AnimationTimer >= AnimationSpeed)
-			//		{
-			//			//CurrentTexture = CurrentTexture == Texture1 ? Texture2 : Texture1;
-			//			AnimationTimer = 0f;
-			//		}
-
-			//		break;
-			//	}
-			//	case false:
-			//		//CurrentTexture = Texture1;
-			//		break;
-			//}
 		}
 
 		public override void Update(GameTime gameTime)
 		{
 			CollisionBounding ??= TextureInfo.CollisionType;
 			EntityGroundY ??= GroundLevel - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale) + 6.0f;
-			//DecisionMaker.Action(Strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
-			// ref _velocity, 800, 420, TextureInfo, EntityStatus);
 			HandleInput(KeyboardState, GamePadState, gameTime);
 		}
 	}

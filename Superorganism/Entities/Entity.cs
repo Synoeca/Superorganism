@@ -34,12 +34,12 @@ namespace Superorganism.Entities
 			};
 			if (collisionType.GetType() == typeof(BoundingCircle))
 			{
-				TextureInfo.CollisionType = new BoundingCircle(TextureInfo.Center * sizeScale,
+				TextureInfo.CollisionType = new BoundingCircle(TextureInfo.Center,
 					(float)(TextureInfo.UnitTextureWidth / 2.0f) * sizeScale);
 			}
 			else if (collisionType.GetType() == typeof(BoundingRectangle))
 			{
-				TextureInfo.CollisionType = new BoundingRectangle(TextureInfo.Center * sizeScale,
+				TextureInfo.CollisionType = new BoundingRectangle(TextureInfo.Center,
 					TextureInfo.UnitTextureWidth * sizeScale, TextureInfo.UnitTextureHeight * sizeScale);
 			}
 		}

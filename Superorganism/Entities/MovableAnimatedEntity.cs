@@ -113,6 +113,12 @@ namespace Superorganism.Entities
 			CollisionBounding ??= TextureInfo.CollisionType;
 			DecisionMaker.Action(ref _strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
 				ref _velocity, 800, 420, TextureInfo, EntityStatus);
+			if (CollisionBounding is BoundingRectangle br)
+			{
+				br.X = Position.X - ((TextureInfo.UnitTextureWidth) * TextureInfo.SizeScale / 2.0f);
+				br.Y = Position.Y - ((TextureInfo.UnitTextureHeight) * TextureInfo.SizeScale / 2.0f);
+				CollisionBounding = br;
+			}
 		}
 	}
 }

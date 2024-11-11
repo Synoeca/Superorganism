@@ -238,9 +238,9 @@ namespace Superorganism
 
 			else if (strategy == Strategy.ChaseEnemy)
 			{
-				const float CHASE_SPEED = 1.5f; // Slightly faster than patrol speed
+				const float CHASE_SPEED = 3.0f; // Slightly faster than patrol speed
 				const float GRAVITY = 0.5f;
-				const float MIN_DIRECTION_CHANGE_TIME = 1.0f;
+				const float MIN_DIRECTION_CHANGE_TIME = 0.8f;
 
 				double currentGameTime = gameTime.TotalGameTime.TotalSeconds;
 				double elapsedTime = currentGameTime - directionTimer;
@@ -288,19 +288,20 @@ namespace Superorganism
 				if (position.X <= 50)
 				{
 					velocity.X = Math.Abs(velocity.X); // Force right movement
-					position.X = 50;
+					//position.X = 50;
 				}
 				else if (position.X >= 800)
 				{
 					velocity.X = -Math.Abs(velocity.X); // Force left movement
-					position.X = 800;
+					//position.X = 800;
 				}
 
 				// Check if we should switch back to patrol
 				if (!targetPosition.HasValue || closestDistance > 400) // Adjust this threshold as needed
 				{
 					strategy = Strategy.Patrol;
-					directionTimer = currentGameTime;
+					//directionTimer = currentGameTime;
+					directionTimer = 0;
 				}
 
 				Console.WriteLine($"Chase: ({position.X},{position.Y})");
