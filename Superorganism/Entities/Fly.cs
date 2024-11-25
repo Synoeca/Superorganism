@@ -13,7 +13,7 @@ namespace Superorganism.Entities
 	{
 		public Fly()
 		{
-			Strategy = Strategy.RandomFlyingMovement;
+			((MovableEntity)this).Strategy = global::Superorganism.Strategy.RandomFlyingMovement;
 		}
 		public override EntityStatus EntityStatus { get; set; } = new ()
 		{

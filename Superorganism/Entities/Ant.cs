@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Superorganism.Entities
 {
-    public sealed class Ant : ControlableEntity
+    public sealed class Ant : ControllableEntity
     {
 	    public Ant()
 	    {

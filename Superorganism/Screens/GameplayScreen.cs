@@ -194,7 +194,7 @@ public class GameplayScreen : GameScreen
 				fly.Destroyed = true;
 				_explosions.PlaceExplosion(fly.Position);
 				_fliesDestroy.Play();
-				_ant.HitPoints = Math.Max(0, _ant.HitPoints - 10);
+				_ant.HitPoints = Math.Max(0, _ant.HitPoints - 1);
 			}
 		}
 
@@ -316,8 +316,116 @@ public class GameplayScreen : GameScreen
 		DrawHealthBar(spriteBatch);
 		DrawCropsLeft(spriteBatch);
 
+        if (_antEnemy != null)
+        {
+            // Transform AntEnemy's world position into screen position
+            Vector2 enemyScreenPosition = Vector2.Transform(
+                _antEnemy.Position,   // World position of the AntEnemy
+                _cameraMatrix         // Camera transformation matrix
+            );
 
-		Vector2 shadowOffset = new(2, 2);
+            // Offset to avoid overlapping the AntEnemy sprite
+            Vector2 textOffset = new Vector2(0, -40); // 20 pixels above the enemy
+            Vector2 textPosition = enemyScreenPosition + textOffset;
+
+            // Prepare strategy and position text
+            string strategyText = $"{_antEnemy.Strategy}";
+            // Format position to one decimal place
+            string positionText = $"{Math.Round(_antEnemy.Position.X, 1):0.0}, {Math.Round(_antEnemy.Position.Y, 1):0.0}";
+
+            // Calculate and prepare distance text
+            float distance = Vector2.Distance(_ant.Position, _antEnemy.Position);
+            string distanceText = $"Distance: {Math.Round(distance, 1):0.0}";
+
+            // Text scaling factor for reduced size
+            const float textScale = 0.4f;
+
+            // Measure strategy text size to position the position text
+            Vector2 strategyTextSize = _gameFont.MeasureString(strategyText) * textScale;
+            Vector2 positionTextSize = _gameFont.MeasureString(positionText) * textScale;
+
+            // Draw the strategy text with reduced size
+            spriteBatch.DrawString(
+                _gameFont,
+                strategyText,
+                textPosition + new Vector2(2, 2),
+                Color.Black * 0.5f,
+                0,
+                Vector2.Zero,
+                textScale,
+                SpriteEffects.None,
+                0
+            );
+            spriteBatch.DrawString(
+                _gameFont,
+                strategyText,
+                textPosition,
+                Color.White,
+                0,
+                Vector2.Zero,
+                textScale,
+                SpriteEffects.None,
+                0
+            );
+
+            // Position for the next line (below the strategy text)
+            Vector2 positionTextOffset = new Vector2(0, strategyTextSize.Y);
+
+            // Draw the position text with reduced size
+            spriteBatch.DrawString(
+                _gameFont,
+                positionText,
+                textPosition + positionTextOffset + new Vector2(2, 2),
+                Color.Black * 0.5f,
+                0,
+                Vector2.Zero,
+                textScale,
+                SpriteEffects.None,
+                0
+            );
+            spriteBatch.DrawString(
+                _gameFont,
+                positionText,
+                textPosition + positionTextOffset,
+                Color.White,
+                0,
+                Vector2.Zero,
+                textScale,
+                SpriteEffects.None,
+                0
+            );
+
+            // Position for the distance line (below the position text)
+            Vector2 distanceTextOffset = new Vector2(0, strategyTextSize.Y + positionTextSize.Y);
+
+            // Draw the distance text with reduced size
+            spriteBatch.DrawString(
+                _gameFont,
+                distanceText,
+                textPosition + distanceTextOffset + new Vector2(2, 2),
+                Color.Black * 0.5f,
+                0,
+                Vector2.Zero,
+                textScale,
+                SpriteEffects.None,
+                0
+            );
+            spriteBatch.DrawString(
+                _gameFont,
+                distanceText,
+                textPosition + distanceTextOffset,
+                Color.White,
+                0,
+                Vector2.Zero,
+                textScale,
+                SpriteEffects.None,
+                0
+            );
+        }
+
+
+
+        Vector2 shadowOffset = new(2, 2);
 
 		if (_isGameOver)
 		{
@@ -335,7 +443,7 @@ public class GameplayScreen : GameScreen
 			spriteBatch.DrawString(_gameFont, message, textPosition, Color.Red);
 
 
-			string restartMessage = "Press R to Restart";
+			const string restartMessage = "Press R to Restart";
 			Vector2 restartTextSize = _gameFont.MeasureString(restartMessage);
 			Vector2 restartTextPosition = new(
 				(ScreenManager.GraphicsDevice.Viewport.Width - restartTextSize.X) / 2,

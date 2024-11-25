@@ -12,15 +12,13 @@ using Superorganism.Interfaces;
 
 namespace Superorganism.Entities
 {
-    public class MoveableEntity : Entity, IMovable
+    public class MovableEntity : Entity, IMovable
 	{
 		public override Texture2D Texture { get; set; }
 		public override EntityStatus EntityStatus { get; set; }
 		public override Color Color { get; set; }
-		//public virtual Strategy Strategy { get; set; } = Strategy.Idle;
 
 		protected Strategy _strategy;
-
 		public virtual Strategy Strategy
 		{
 			get => _strategy;
@@ -79,8 +77,8 @@ namespace Superorganism.Entities
 		{
 			Position += Velocity * direction;
 			Direction = Math.Abs(direction.X) > Math.Abs(direction.Y)
-				? direction.X > 0 ? Direction.Right : Direction.Left
-				: direction.Y > 0 ? Direction.Down : Direction.Up;
+				? direction.X > 0 ? Enums.Direction.Right : Enums.Direction.Left
+				: direction.Y > 0 ? Enums.Direction.Down : Enums.Direction.Up;
 		}
 
 		public override void Update(GameTime gameTime)

@@ -13,7 +13,7 @@ using Superorganism.Interfaces;
 
 namespace Superorganism.Entities
 {
-    public class ControlableEntity : MovableAnimatedDestroyableEntity, IControllable
+    public class ControllableEntity : MovableAnimatedDestroyableEntity, IControllable
 	{
 		public GamePadState GamePadState { get; set; }
 
@@ -110,7 +110,7 @@ namespace Superorganism.Entities
 
 			if (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
 			{
-				MovementSpeed = 2.5f;
+				MovementSpeed = 4.5f;
 				AnimationSpeed = 0.1f;
 			}
 			else

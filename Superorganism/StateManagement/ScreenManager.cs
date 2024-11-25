@@ -139,6 +139,7 @@ namespace Superorganism.StateManagement
         /// Adds a screen to the ScreenManager
         /// </summary>
         /// <param name="screen">The screen to add</param>
+        /// <param name="controllingPlayer"></param>
         public void AddScreen(GameScreen screen, PlayerIndex? controllingPlayer)
         {
             screen.ControllingPlayer = controllingPlayer;

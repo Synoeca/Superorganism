@@ -169,15 +169,15 @@ namespace Superorganism
 			}
 			else if (strategy == Strategy.Patrol)
 			{
-				const float MOVEMENT_SPEED = 1.0f;
-				const float DIRECTION_CHANGE_TIME = 3.0f;
-				const float GRAVITY = 0.5f; // Match the gravity from ControllableEntity
+				const float movementSpeed = 1.0f;
+				const float directionChangeTime = 3.0f;
+				const float gravity = 0.5f; // Match the gravity from ControllableEntity
 				
 
 				// Initialize movement if it hasn't started yet
 				if (directionTimer == 0)
 				{
-					velocity.X = MOVEMENT_SPEED;
+					velocity.X = movementSpeed;
 					directionTimer = gameTime.TotalGameTime.TotalSeconds;
 				}
 
@@ -185,14 +185,14 @@ namespace Superorganism
 				double elapsedTime = currentGameTime - directionTimer;
 
 				// Change direction every 3 seconds
-				if (elapsedTime >= DIRECTION_CHANGE_TIME)
+				if (elapsedTime >= directionChangeTime)
 				{
 					velocity.X = -velocity.X; // Reverse direction
 					directionTimer = currentGameTime;
 				}
 
 				// Apply gravity
-				velocity.Y += GRAVITY;
+				velocity.Y += gravity;
 
 				// Update position
 				position += velocity;
@@ -221,32 +221,29 @@ namespace Superorganism
 
 				foreach (Entity entity in Entities)
 				{
-					if (entity is ControlableEntity controlableEntity)
+					if (entity is ControllableEntity { IsControlled: true } controllableEntity)
 					{
-						if (controlableEntity.IsControlled)
-						{
-							float distance = Vector2.Distance(position, controlableEntity.Position);
-							if (distance < 100)
-							{
-								strategy = Strategy.ChaseEnemy;
-							}
-						}
-					}
+                        float distance = Vector2.Distance(position, controllableEntity.Position);
+                        if (distance < 100)
+                        {
+                            strategy = Strategy.ChaseEnemy;
+                        }
+                    }
 				}
 
 			}
 
 			else if (strategy == Strategy.ChaseEnemy)
 			{
-				const float CHASE_SPEED = 3.0f; // Slightly faster than patrol speed
-				const float GRAVITY = 0.5f;
-				const float MIN_DIRECTION_CHANGE_TIME = 0.8f;
+				const float chaseSpeed = 3.0f; // Slightly faster than patrol speed
+				const float gravity = 0.5f;
+				const float minDirectionChangeTime = 0.8f;
 
 				double currentGameTime = gameTime.TotalGameTime.TotalSeconds;
 				double elapsedTime = currentGameTime - directionTimer;
 
 				// Apply gravity
-				velocity.Y += GRAVITY;
+				velocity.Y += gravity;
 
 				Vector2? targetPosition = null;
 				float closestDistance = float.MaxValue;
@@ -254,7 +251,7 @@ namespace Superorganism
 				// Find the closest controlled entity
 				foreach (Entity entity in Entities)
 				{
-					if (entity is ControlableEntity controlableEntity && controlableEntity.IsControlled)
+					if (entity is ControllableEntity controlableEntity && controlableEntity.IsControlled)
 					{
 						float distance = Vector2.Distance(position, controlableEntity.Position);
 						if (distance < closestDistance)
@@ -266,10 +263,10 @@ namespace Superorganism
 				}
 
 				// Chase logic
-				if (targetPosition.HasValue && elapsedTime >= MIN_DIRECTION_CHANGE_TIME)
+				if (targetPosition.HasValue && elapsedTime >= minDirectionChangeTime)
 				{
 					Vector2 chaseDirection = Vector2.Normalize(targetPosition.Value - position);
-					velocity.X = chaseDirection.X * CHASE_SPEED;
+					velocity.X = chaseDirection.X * chaseSpeed;
 					directionTimer = currentGameTime;
 				}
 
@@ -297,7 +294,7 @@ namespace Superorganism
 				}
 
 				// Check if we should switch back to patrol
-				if (!targetPosition.HasValue || closestDistance > 400) // Adjust this threshold as needed
+				if (!targetPosition.HasValue || closestDistance > 200) // Adjust this threshold as needed
 				{
 					strategy = Strategy.Patrol;
 					//directionTimer = currentGameTime;

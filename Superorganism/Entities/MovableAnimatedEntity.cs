@@ -11,7 +11,7 @@ using Superorganism.Interfaces;
 
 namespace Superorganism.Entities
 {
-    public class MovableAnimatedEntity : MoveableEntity, IAnimated
+    public class MovableAnimatedEntity : MovableEntity, IAnimated
 	{
 		protected bool _flipped;
 		public virtual bool IsSpriteAtlas { get; set; }
