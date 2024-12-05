@@ -41,7 +41,7 @@ namespace Superorganism
         private static double GetStrategyDuration(List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, GameTime gameTime)
         {
             if (!strategyHistory.Any()) return 0;
-            var lastEntry = strategyHistory[^1];
+            (Strategy Strategy, double StartTime, double LastActionTime) lastEntry = strategyHistory[^1];
             return gameTime.TotalGameTime.TotalSeconds - lastEntry.LastActionTime;
         }
 
@@ -234,7 +234,7 @@ namespace Superorganism
                 if (currentStrategyDuration >= 3.0)
                 {
                     velocity.X = -velocity.X; // Reverse direction
-                    var current = strategyHistory[^1];
+                    (Strategy Strategy, double StartTime, double LastActionTime) current = strategyHistory[^1];
                     strategyHistory[^1] = (current.Strategy, current.StartTime, gameTime.TotalGameTime.TotalSeconds);
                 }
 

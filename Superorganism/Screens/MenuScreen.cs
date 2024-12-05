@@ -11,12 +11,14 @@ namespace Superorganism.Screens
     // move up and down to select an entry, or cancel to back out of the screen.
     public abstract class MenuScreen : GameScreen
     {
-        private readonly List<MenuEntry> _menuEntries = new List<MenuEntry>();
+        private readonly List<MenuEntry> _menuEntries = [];
         private int _selectedEntry;
         private readonly string _menuTitle;
 
         private readonly InputAction _menuUp;
         private readonly InputAction _menuDown;
+        private readonly InputAction _menuLeft;
+        private readonly InputAction _menuRight;
         private readonly InputAction _menuSelect;
         private readonly InputAction _menuCancel;
 
@@ -42,38 +44,43 @@ namespace Superorganism.Screens
             _menuCancel = new InputAction(
                 new[] { Buttons.B, Buttons.Back },
                 new[] { Keys.Back }, true);
+            _menuLeft = new InputAction(
+                new[] { Buttons.DPadLeft, Buttons.LeftThumbstickLeft },
+                new[] { Keys.Left }, true);
+            _menuRight = new InputAction(
+                new[] { Buttons.DPadRight, Buttons.LeftThumbstickRight },
+                new[] { Keys.Right }, true);
         }
 
-        // Responds to user input, changing the selected entry and accepting or cancelling the menu.
         public override void HandleInput(GameTime gameTime, InputState input)
         {
-            // For input tests we pass in our ControllingPlayer, which may
-            // either be null (to accept input from any player) or a specific index.
-            // If we pass a null controlling player, the InputState helper returns to
-            // us which player actually provided the input. We pass that through to
-            // OnSelectEntry and OnCancel, so they can tell which player triggered them.
             PlayerIndex playerIndex;
 
             if (_menuUp.Occurred(input, ControllingPlayer, out playerIndex))
             {
                 _selectedEntry--;
-
                 if (_selectedEntry < 0)
                     _selectedEntry = _menuEntries.Count - 1;
             }
-
             if (_menuDown.Occurred(input, ControllingPlayer, out playerIndex))
             {
                 _selectedEntry++;
-
                 if (_selectedEntry >= _menuEntries.Count)
                     _selectedEntry = 0;
             }
-
             if (_menuSelect.Occurred(input, ControllingPlayer, out playerIndex))
                 OnSelectEntry(_selectedEntry, playerIndex);
-            else if (_menuCancel.Occurred(input, ControllingPlayer, out playerIndex))
+            if (_menuCancel.Occurred(input, ControllingPlayer, out playerIndex))
                 OnCancel(playerIndex);
+            if (_menuLeft.Occurred(input, ControllingPlayer, out playerIndex))
+                OnAdjustValue(_selectedEntry, -1, playerIndex);
+            if (_menuRight.Occurred(input, ControllingPlayer, out playerIndex))
+                OnAdjustValue(_selectedEntry, 1, playerIndex);
+        }
+
+        protected virtual void OnAdjustValue(int entryIndex, int direction, PlayerIndex playerIndex)
+        {
+            _menuEntries[entryIndex].OnAdjustValue(direction, playerIndex);
         }
 
         protected virtual void OnSelectEntry(int entryIndex, PlayerIndex playerIndex)
@@ -108,7 +115,7 @@ namespace Superorganism.Screens
             foreach (MenuEntry menuEntry in _menuEntries)
             {
                 // each entry is to be centered horizontally
-                position.X = ScreenManager.GraphicsDevice.Viewport.Width / 2 - menuEntry.GetWidth(this) / 2;
+                position.X = ScreenManager.GraphicsDevice.Viewport.Width / 2f - menuEntry.GetWidth(this) / 2f;
 
                 if (ScreenState == ScreenState.TransitionOn)
                     position.X -= transitionOffset * 256;
@@ -159,14 +166,23 @@ namespace Superorganism.Screens
             float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
 
             // Draw the menu title centered on the screen
-            Vector2 titlePosition = new Vector2(graphics.Viewport.Width / 2, 80);
+            Vector2 titlePosition = new Vector2(graphics.Viewport.Width / 2f, 100);
             Vector2 titleOrigin = font.MeasureString(_menuTitle) / 2;
             Color titleColor = new Color(192, 192, 192) * TransitionAlpha;
-            const float titleScale = 1.25f;
+            Color shadowColor = new Color(0, 0, 0);
+            float shadowOffset = 3f;
+            const float titleScale = 1.5f; // Increased from 1.25f
 
             titlePosition.Y -= transitionOffset * 100;
 
-            spriteBatch.DrawString(font, _menuTitle, titlePosition, titleColor,
+            spriteBatch.DrawString(font, _menuTitle,
+                titlePosition + new Vector2(shadowOffset),
+                shadowColor * TransitionAlpha,
+                0, titleOrigin, titleScale, SpriteEffects.None, 0);
+
+            spriteBatch.DrawString(font, _menuTitle,
+                titlePosition,
+                new Color(220, 220, 220) * TransitionAlpha, // Brighter white
                 0, titleOrigin, titleScale, SpriteEffects.None, 0);
 
             spriteBatch.End();

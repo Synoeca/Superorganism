@@ -27,6 +27,12 @@ namespace Superorganism.Screens
             set => _position = value;
         }
 
+        public event EventHandler<PlayerIndexEventArgs> AdjustValue;
+        protected internal virtual void OnAdjustValue(int direction, PlayerIndex playerIndex)
+        {
+            AdjustValue?.Invoke(this, new PlayerIndexEventArgs(direction, playerIndex));
+        }
+
         public event EventHandler<PlayerIndexEventArgs> Selected;
         protected internal virtual void OnSelectEntry(PlayerIndex playerIndex)
         {
@@ -52,28 +58,31 @@ namespace Superorganism.Screens
         }
 
 
-        // This can be overridden to customize the appearance.
         public virtual void Draw(MenuScreen screen, bool isSelected, GameTime gameTime)
         {
-            Color color = isSelected ? Color.Yellow : Color.White;
+            Color textColor = isSelected ? Color.Yellow : Color.White;
+            Color shadowColor = new Color(0, 0, 0);
+            float shadowOffset = 2f;
 
-            // Pulsate the size of the selected menu entry.
             double time = gameTime.TotalGameTime.TotalSeconds;
             float pulsate = (float)Math.Sin(time * 6) + 1;
-            float scale = 1 + pulsate * 0.05f * _selectionFade;
+            float scale = 1.2f + pulsate * 0.05f * _selectionFade;
 
-            // Modify the alpha to fade text out during transitions.
-            color *= screen.TransitionAlpha;
+            textColor *= screen.TransitionAlpha;
+            shadowColor *= screen.TransitionAlpha;
 
-            // Draw text, centered in the middle of each line.
             ScreenManager screenManager = screen.ScreenManager;
             SpriteBatch spriteBatch = screenManager.SpriteBatch;
             SpriteFont font = screenManager.Font;
+            Vector2 origin = new Vector2(0, font.LineSpacing / 2f);
 
-            Vector2 origin = new Vector2(0, font.LineSpacing / 2);
+            // Draw shadow
+            spriteBatch.DrawString(font, _text, _position + new Vector2(shadowOffset),
+                shadowColor, 0, origin, scale, SpriteEffects.None, 0);
 
-            spriteBatch.DrawString(font, _text, _position, color, 0,
-                origin, scale, SpriteEffects.None, 0);
+            // Draw main text
+            spriteBatch.DrawString(font, _text, _position,
+                textColor, 0, origin, scale, SpriteEffects.None, 0);
         }
 
         public virtual int GetHeight(MenuScreen screen)

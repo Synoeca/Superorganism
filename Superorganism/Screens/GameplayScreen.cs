@@ -69,10 +69,9 @@ public class GameplayScreen : GameScreen
     {
         if (_content == null)
             _content = new ContentManager(ScreenManager.Game.Services, "Content");
+
         DecisionMaker.GroundY = _groundY;
-
         _gameFont = _content.Load<SpriteFont>("gamefont");
-
         _groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
 
         _ant = new Ant()
@@ -80,10 +79,12 @@ public class GameplayScreen : GameScreen
             Position = new Vector2(200, 200),
             IsControlled = true
         };
+
         _antEnemy = new AntEnemy
         {
             Position = new Vector2(500, 200)
         };
+
         _cameraPosition = _ant.Position;
         DecisionMaker.Entities.Add(_ant);
 
@@ -104,11 +105,18 @@ public class GameplayScreen : GameScreen
             fly.LoadContent(_content, "flies", 4, 4, new BoundingCircle(), 1.0f);
         }
 
+        // Load sound effects and music
         _cropPickup = _content.Load<SoundEffect>("Pickup_Coin4");
         _fliesDestroy = _content.Load<SoundEffect>("damaged");
         _backgroundMusic = _content.Load<Song>("MaxBrhon_Cyberpunk");
+        // When playing sound effects
+        _cropPickup.Play();
+        _fliesDestroy.Play();
+
+        // Setup background music with volume from OptionsMenuScreen
+        SoundEffect.MasterVolume = OptionsMenuScreen.SoundEffectVolume;
         MediaPlayer.IsRepeating = true;
-        MediaPlayer.Volume = 0.2f;
+        MediaPlayer.Volume = OptionsMenuScreen.BackgroundMusicVolume; // Use the volume setting from options
         MediaPlayer.Play(_backgroundMusic);
     }
 
