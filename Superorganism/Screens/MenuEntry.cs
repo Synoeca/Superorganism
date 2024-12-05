@@ -27,6 +27,12 @@ namespace Superorganism.Screens
             set => _position = value;
         }
 
+        public event EventHandler<PlayerIndexEventArgs> AdjustValue;
+        protected internal virtual void OnAdjustValue(int direction, PlayerIndex playerIndex)
+        {
+            AdjustValue?.Invoke(this, new PlayerIndexEventArgs(direction, playerIndex));
+        }
+
         public event EventHandler<PlayerIndexEventArgs> Selected;
         protected internal virtual void OnSelectEntry(PlayerIndex playerIndex)
         {

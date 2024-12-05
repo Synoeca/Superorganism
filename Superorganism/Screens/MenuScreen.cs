@@ -17,6 +17,8 @@ namespace Superorganism.Screens
 
         private readonly InputAction _menuUp;
         private readonly InputAction _menuDown;
+        private readonly InputAction _menuLeft;
+        private readonly InputAction _menuRight;
         private readonly InputAction _menuSelect;
         private readonly InputAction _menuCancel;
 
@@ -42,38 +44,43 @@ namespace Superorganism.Screens
             _menuCancel = new InputAction(
                 new[] { Buttons.B, Buttons.Back },
                 new[] { Keys.Back }, true);
+            _menuLeft = new InputAction(
+                new[] { Buttons.DPadLeft, Buttons.LeftThumbstickLeft },
+                new[] { Keys.Left }, true);
+            _menuRight = new InputAction(
+                new[] { Buttons.DPadRight, Buttons.LeftThumbstickRight },
+                new[] { Keys.Right }, true);
         }
 
-        // Responds to user input, changing the selected entry and accepting or cancelling the menu.
         public override void HandleInput(GameTime gameTime, InputState input)
         {
-            // For input tests we pass in our ControllingPlayer, which may
-            // either be null (to accept input from any player) or a specific index.
-            // If we pass a null controlling player, the InputState helper returns to
-            // us which player actually provided the input. We pass that through to
-            // OnSelectEntry and OnCancel, so they can tell which player triggered them.
             PlayerIndex playerIndex;
 
             if (_menuUp.Occurred(input, ControllingPlayer, out playerIndex))
             {
                 _selectedEntry--;
-
                 if (_selectedEntry < 0)
                     _selectedEntry = _menuEntries.Count - 1;
             }
-
             if (_menuDown.Occurred(input, ControllingPlayer, out playerIndex))
             {
                 _selectedEntry++;
-
                 if (_selectedEntry >= _menuEntries.Count)
                     _selectedEntry = 0;
             }
-
             if (_menuSelect.Occurred(input, ControllingPlayer, out playerIndex))
                 OnSelectEntry(_selectedEntry, playerIndex);
-            else if (_menuCancel.Occurred(input, ControllingPlayer, out playerIndex))
+            if (_menuCancel.Occurred(input, ControllingPlayer, out playerIndex))
                 OnCancel(playerIndex);
+            if (_menuLeft.Occurred(input, ControllingPlayer, out playerIndex))
+                OnAdjustValue(_selectedEntry, -1, playerIndex);
+            if (_menuRight.Occurred(input, ControllingPlayer, out playerIndex))
+                OnAdjustValue(_selectedEntry, 1, playerIndex);
+        }
+
+        protected virtual void OnAdjustValue(int entryIndex, int direction, PlayerIndex playerIndex)
+        {
+            _menuEntries[entryIndex].OnAdjustValue(direction, playerIndex);
         }
 
         protected virtual void OnSelectEntry(int entryIndex, PlayerIndex playerIndex)
