@@ -8,9 +8,17 @@ namespace Superorganism.Screens
     public class PlayerIndexEventArgs : EventArgs
     {
         public PlayerIndex PlayerIndex { get; }
+        public int Direction { get; }
 
         public PlayerIndexEventArgs(PlayerIndex playerIndex)
         {
+            PlayerIndex = playerIndex;
+            Direction = 0;
+        }
+
+        public PlayerIndexEventArgs(int direction, PlayerIndex playerIndex)
+        {
+            Direction = direction;
             PlayerIndex = playerIndex;
         }
     }
