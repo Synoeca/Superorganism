@@ -43,7 +43,7 @@ namespace Superorganism.Screens
                 [Keys.Enter, Keys.Space], true);
             _menuCancel = new InputAction(
                 [Buttons.B, Buttons.Back],
-                [Keys.Back], true);
+                [Keys.Back, Keys.Escape], true);
             _menuLeft = new InputAction(
                 [Buttons.DPadLeft, Buttons.LeftThumbstickLeft],
                 [Keys.Left], true);

@@ -81,10 +81,12 @@ namespace Superorganism.Screens
 
         public override void HandleInput(GameTime gameTime, InputState input)
         {
-            if (_menuLeft.Occurred(input, ControllingPlayer, out PlayerIndex playerIndex))
+            if (_menuLeft.Occurred(input, ControllingPlayer, out _))
             {
                 _currentPage = (_currentPage - 1 + _pages.Count) % _pages.Count;
             }
+
+            PlayerIndex playerIndex;
             if (_menuRight.Occurred(input, ControllingPlayer, out playerIndex))
             {
                 _currentPage = (_currentPage + 1) % _pages.Count;

@@ -4,25 +4,13 @@ using Superorganism.StateManagement;
 
 namespace Superorganism.Screens;
 
-public class InstructionEntry
+public class InstructionEntry(string text)
 {
-    private string _text;
-    private Vector2 _position;
     private const float FONT_SCALE = 0.8f;
 
-    public string Text
-    {
-        get => _text;
-        set => _text = value;
-    }
+    public string Text { get; set; } = text;
 
-    public Vector2 Position
-    {
-        get => _position;
-        set => _position = value;
-    }
-
-    public InstructionEntry(string text) => _text = text;
+    public Vector2 Position { get; set; }
 
     public void Draw(GameScreen screen, bool isSelected = false)
     {
@@ -31,13 +19,13 @@ public class InstructionEntry
         const float shadowOffset = 2f;
         Color textColor = isSelected ? Color.Yellow : Color.White;
 
-        spriteBatch.DrawString(font, _text,
-            _position + new Vector2(shadowOffset),
+        spriteBatch.DrawString(font, Text,
+            Position + new Vector2(shadowOffset),
             Color.Black * 0.8f * screen.TransitionAlpha,
             0, Vector2.Zero, FONT_SCALE, SpriteEffects.None, 0);
 
-        spriteBatch.DrawString(font, _text,
-            _position,
+        spriteBatch.DrawString(font, Text,
+            Position,
             textColor * screen.TransitionAlpha,
             0, Vector2.Zero, FONT_SCALE, SpriteEffects.None, 0);
     }

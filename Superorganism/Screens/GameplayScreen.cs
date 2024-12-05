@@ -174,6 +174,7 @@ public class GameplayScreen : GameScreen
 
     public override void Unload()
     {
+        DecisionMaker.Entities.Clear();
         _content.Unload();
     }
 
@@ -247,7 +248,6 @@ public class GameplayScreen : GameScreen
 
         if (!_isGameOver && !_isGameWon) return;
         if (input.IsNewKeyPress(Keys.R, ControllingPlayer, out _))
-            //ScreenManager.AddScreen(new GameplayScreen(), ControllingPlayer);
             ResetGame();
     }
 
