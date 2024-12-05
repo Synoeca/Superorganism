@@ -65,22 +65,25 @@ namespace Superorganism.Entities
 
 		public void DrawAnimation(SpriteBatch spriteBatch)
 		{
-			//if (!IsSpriteAtlas) return;
+            //if (!IsSpriteAtlas) return;
 
-			if (HasDirection)
-			{
-				Rectangle source = new(AnimationFrame * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols),
-					(int)Direction * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols),
-					TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols,
-					TextureInfo.TextureHeight / TextureInfo.NumOfSpriteRows);
+            if (HasDirection)
+            {
+                int directionIndex = (int)Direction;
+                Rectangle source = new(AnimationFrame * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols),
+                    directionIndex * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols),
+                    TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols,
+                    TextureInfo.TextureHeight / TextureInfo.NumOfSpriteRows);
 
-				// Add flipping based on velocity for directional sprites too
-				SpriteEffects effect = _velocity.X < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+                // Only apply horizontal flipping for sprites with less than 2 rows
+                SpriteEffects effect = TextureInfo.NumOfSpriteRows < 2 && _velocity.X < 0
+                    ? SpriteEffects.FlipHorizontally
+                    : SpriteEffects.None;
 
-				spriteBatch.Draw(Texture, Position, source, Color.White, 0f, Vector2.Zero,
-					TextureInfo.SizeScale, effect, 0f);
-			}
-			else
+                spriteBatch.Draw(Texture, Position, source, Color.White, 0f, Vector2.Zero,
+                    TextureInfo.SizeScale, effect, 0f);
+            }
+            else
 			{
 				// Single row sprite with three frames (idle, walk1, walk2)
 				Rectangle source = new(AnimationFrame * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols),
@@ -111,7 +114,7 @@ namespace Superorganism.Entities
 		public override void Update(GameTime gameTime)
 		{
 			CollisionBounding ??= TextureInfo.CollisionType;
-			DecisionMaker.Action(ref _strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
+			DecisionMaker.Action(ref _strategy, ref _strategyHistory, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
 				ref _velocity, 800, 420, TextureInfo, EntityStatus);
 			if (CollisionBounding is BoundingRectangle br)
 			{

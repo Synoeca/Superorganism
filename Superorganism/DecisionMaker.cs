@@ -4,14 +4,17 @@ using System;
 using System.Collections.Generic;
 using Superorganism.Enums;
 using Superorganism.Collisions;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
+using System.Linq;
 
 namespace Superorganism
 {
 	public static class DecisionMaker
 	{
 		private static readonly Random Rand = new();
-		public static GameTime GameTime { get; set; }
+        private static Vector2 _lastKnownTargetPosition;
+        private static Strategy _targetStrategy;
+        private const float TRANSITION_DURATION = 1.0f; // 1 second pause
+        public static GameTime GameTime { get; set; }
 		public static List<Entity> Entities { get; set; } = [];
 		public static Strategy Strategy { get; set; }
 		public static int GroundY { get; set; }
@@ -21,58 +24,102 @@ namespace Superorganism
 			return Rand.NextDouble() * 3.0 + 1.0;
 		}
 
-		public static void Action(ref Strategy strategy, GameTime gameTime, ref Direction direction, ref Vector2 position,
-			ref double directionTimer, ref double directionInterval, ref Vector2 velocity, int screenWidth,
-			int groundHeight,
-			TextureInfo textureInfo, EntityStatus entityStatus)
+        private static void AddStrategyToHistory(
+            ref Strategy strategy,
+            Strategy newStrategy,
+            ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
+            GameTime gameTime)
+        {
+            if (strategy != newStrategy)
+            {
+                strategy = newStrategy;
+                double currentTime = gameTime.TotalGameTime.TotalSeconds;
+                strategyHistory.Add((newStrategy, currentTime, currentTime));
+            }
+        }
+
+        private static double GetStrategyDuration(List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, GameTime gameTime)
+        {
+            if (!strategyHistory.Any()) return 0;
+            var lastEntry = strategyHistory[^1];
+            return gameTime.TotalGameTime.TotalSeconds - lastEntry.LastActionTime;
+        }
+
+        private static Vector2? GetLastTargetPosition(List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, GameTime gameTime)
+        {
+            const double minimumDuration = 3.0; // Minimum duration in seconds
+            double currentDuration = GetStrategyDuration(strategyHistory, gameTime);
+
+            if (strategyHistory.Any() &&
+                strategyHistory[^1].Strategy == Strategy.ChaseEnemy &&
+                currentDuration < minimumDuration)
+            {
+                return _lastKnownTargetPosition;
+            }
+
+            return null;
+        }
+
+        private static void TransitionToStrategy(
+            ref Strategy strategy,
+            Strategy targetStrategy,
+            ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
+            GameTime gameTime)
+        {
+            AddStrategyToHistory(ref strategy, Strategy.Transition, ref strategyHistory, gameTime);
+            _targetStrategy = targetStrategy;
+        }
+
+        public static void Action(ref Strategy strategy,
+            ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, GameTime gameTime, ref Direction direction,
+            ref Vector2 position,
+            ref double directionTimer, ref double directionInterval, ref Vector2 velocity, int screenWidth,
+            int groundHeight,
+            TextureInfo textureInfo, EntityStatus entityStatus)
 		{
-			if (strategy == Strategy.RandomFlyingMovement)
-			{
-				// Original 4-direction movement logic
-				directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
-				if (directionTimer > directionInterval)
-				{
-					switch (direction)
-					{
-						case Direction.Up:
-							direction = Direction.Down;
-							break;
-						case Direction.Down:
-							direction = Direction.Right;
-							break;
-						case Direction.Right:
-							direction = Direction.Left;
-							break;
-						case Direction.Left:
-							direction = Direction.Up;
-							break;
-					}
+            if (strategy == Strategy.RandomFlyingMovement)
+            {
+                // Original 4-direction movement logic
+                directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                if (directionTimer > directionInterval)
+                {
+                    switch (direction)
+                    {
+                        case Direction.Up:
+                            direction = Direction.Down;
+                            break;
+                        case Direction.Down:
+                            direction = Direction.Right;
+                            break;
+                        case Direction.Right:
+                            direction = Direction.Left;
+                            break;
+                        case Direction.Left:
+                            direction = Direction.Up;
+                            break;
+                    }
+                    directionTimer -= directionInterval;
+                    directionInterval = GetNewDirectionInterval(); // Randomize next interval
+                }
 
-					directionTimer -= directionInterval;
-					directionInterval = GetNewDirectionInterval(); // Randomize next interval
-				}
-
-				switch (direction)
-				{
-					case Direction.Up:
-						position += new Vector2(0, -1) * (entityStatus.Agility * 100) *
-						            (float)gameTime.ElapsedGameTime.TotalSeconds;
-						break;
-					case Direction.Down:
-						position += new Vector2(0, 1) * (entityStatus.Agility * 100) *
-						            (float)gameTime.ElapsedGameTime.TotalSeconds;
-						break;
-					case Direction.Left:
-						position += new Vector2(-1, 0) * (entityStatus.Agility * 100) *
-						            (float)gameTime.ElapsedGameTime.TotalSeconds;
-						break;
-					case Direction.Right:
-						position += new Vector2(1, 0) * (entityStatus.Agility * 100) *
-						            (float)gameTime.ElapsedGameTime.TotalSeconds;
-						break;
-				}
-			}
-			else if (strategy == Strategy.Random360FlyingMovement)
+                // Set velocity instead of modifying position directly
+                switch (direction)
+                {
+                    case Direction.Up:
+                        velocity = new Vector2(0, -1) * (entityStatus.Agility * 100);
+                        break;
+                    case Direction.Down:
+                        velocity = new Vector2(0, 1) * (entityStatus.Agility * 100);
+                        break;
+                    case Direction.Left:
+                        velocity = new Vector2(-1, 0) * (entityStatus.Agility * 100);
+                        break;
+                    case Direction.Right:
+                        velocity = new Vector2(1, 0) * (entityStatus.Agility * 100);
+                        break;
+                }
+            }
+            else if (strategy == Strategy.Random360FlyingMovement)
 			{
 				// Initialize velocity if it's zero (first frame)
 				if (velocity == Vector2.Zero)
@@ -115,199 +162,188 @@ namespace Superorganism
 			}
 		}
 
-		public static void Action(ref Strategy strategy, GameTime gameTime, ref Direction direction, ref Vector2 position,
-			ref double directionTimer, ref double directionInterval, ref ICollisionBounding collisionBounding,
-			ref Vector2 velocity, int screenWidth, int groundHeight, TextureInfo textureInfo, EntityStatus entityStatus)
-		{
-			float entityGroundY;
-			GameTime = gameTime;
-			if (strategy == Strategy.RandomFlyingMovement)
-			{
-				// Original 4-direction movement logic
-				directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
-				if (directionTimer > directionInterval)
-				{
-					switch (direction)
-					{
-						case Direction.Up:
-							direction = Direction.Down;
-							break;
-						case Direction.Down:
-							direction = Direction.Right;
-							break;
-						case Direction.Right:
-							direction = Direction.Left;
-							break;
-						case Direction.Left:
-							direction = Direction.Up;
-							break;
-					}
+        public static void Action(ref Strategy strategy, ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
+        GameTime gameTime, ref Direction direction, ref Vector2 position,
+        ref double directionTimer, ref double directionInterval, ref ICollisionBounding collisionBounding,
+        ref Vector2 velocity, int screenWidth, int groundHeight, TextureInfo textureInfo, EntityStatus entityStatus)
+        {
+            float entityGroundY;
+            GameTime = gameTime;
+            double currentStrategyDuration = GetStrategyDuration(strategyHistory, gameTime);
 
-					directionTimer -= directionInterval;
-					directionInterval = GetNewDirectionInterval(); // Randomize next interval
-				}
+            if (strategy == Strategy.RandomFlyingMovement)
+            {
+                // Original 4-direction movement logic
+                directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                if (directionTimer > directionInterval)
+                {
+                    switch (direction)
+                    {
+                        case Direction.Up:
+                            direction = Direction.Down;
+                            break;
+                        case Direction.Down:
+                            direction = Direction.Right;
+                            break;
+                        case Direction.Right:
+                            direction = Direction.Left;
+                            break;
+                        case Direction.Left:
+                            direction = Direction.Up;
+                            break;
+                    }
+                    directionTimer -= directionInterval;
+                    directionInterval = GetNewDirectionInterval(); // Randomize next interval
+                }
 
-				switch (direction)
-				{
-					case Direction.Up:
-						position += new Vector2(0, -1) * (entityStatus.Agility * 100) *
-						            (float)gameTime.ElapsedGameTime.TotalSeconds;
-						break;
-					case Direction.Down:
-						position += new Vector2(0, 1) * (entityStatus.Agility * 100) *
-						            (float)gameTime.ElapsedGameTime.TotalSeconds;
-						break;
-					case Direction.Left:
-						position += new Vector2(-1, 0) * (entityStatus.Agility * 100) *
-						            (float)gameTime.ElapsedGameTime.TotalSeconds;
-						break;
-					case Direction.Right:
-						position += new Vector2(1, 0) * (entityStatus.Agility * 100) *
-						            (float)gameTime.ElapsedGameTime.TotalSeconds;
-						break;
-				}
-			}
-			else if (strategy == Strategy.Patrol)
-			{
-				const float movementSpeed = 1.0f;
-				const float directionChangeTime = 3.0f;
-				const float gravity = 0.5f; // Match the gravity from ControllableEntity
-				
+                // Update velocity and ensure direction matches velocity
+                switch (direction)
+                {
+                    case Direction.Up:
+                        velocity = new Vector2(0, -1) * (entityStatus.Agility * 100);
+                        break;
+                    case Direction.Down:
+                        velocity = new Vector2(0, 1) * (entityStatus.Agility * 100);
+                        break;
+                    case Direction.Left:
+                        velocity = new Vector2(-1, 0) * (entityStatus.Agility * 100);
+                        break;
+                    case Direction.Right:
+                        velocity = new Vector2(1, 0) * (entityStatus.Agility * 100);
+                        break;
+                }
 
-				// Initialize movement if it hasn't started yet
-				if (directionTimer == 0)
-				{
-					velocity.X = movementSpeed;
-					directionTimer = gameTime.TotalGameTime.TotalSeconds;
-				}
+                // Update position using velocity and elapsed time
+                position += velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+            else if (strategy == Strategy.Patrol)
+            {
+                const float movementSpeed = 1.0f;
+                const float gravity = 0.5f;
 
-				double currentGameTime = gameTime.TotalGameTime.TotalSeconds;
-				double elapsedTime = currentGameTime - directionTimer;
+                // Apply gravity
+                velocity.Y += gravity;
 
-				// Change direction every 3 seconds
-				if (elapsedTime >= directionChangeTime)
-				{
-					velocity.X = -velocity.X; // Reverse direction
-					directionTimer = currentGameTime;
-				}
+                // Initialize movement if needed
+                if (velocity.X == 0)
+                {
+                    velocity.X = movementSpeed;
+                }
 
-				// Apply gravity
-				velocity.Y += gravity;
+                // Change direction every 3 seconds based on strategy duration
+                if (currentStrategyDuration >= 3.0)
+                {
+                    velocity.X = -velocity.X; // Reverse direction
+                    var current = strategyHistory[^1];
+                    strategyHistory[^1] = (current.Strategy, current.StartTime, gameTime.TotalGameTime.TotalSeconds);
+                }
 
-				// Update position
-				position += velocity;
+                // Update position
+                position += velocity;
 
-				entityGroundY = GroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale) + 6.0f;
+                entityGroundY = GroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale) + 6.0f;
 
-				if (position.Y >= entityGroundY)
-				{
-					position.Y = entityGroundY;
-					velocity.Y = 0;
-				}
+                if (position.Y >= entityGroundY)
+                {
+                    position.Y = entityGroundY;
+                    velocity.Y = 0;
+                }
 
-				Console.WriteLine("("+position.X+","+position.Y+")");
+                // Handle screen bounds
+                if (position.X <= 100)
+                {
+                    velocity.X = Math.Abs(velocity.X);
+                    position.X = 100;
+                }
+                else if (position.X >= 700)
+                {
+                    velocity.X = -Math.Abs(velocity.X);
+                    position.X = 700;
+                }
 
-				// Handle screen bounds
-				if (position.X <= 100)
-				{
-					velocity.X = Math.Abs(velocity.X); // Force right movement
-					position.X = 100;
-				}
-				else if (position.X >= 700)
-				{
-					velocity.X = -Math.Abs(velocity.X); // Force left movement
-					position.X = 700;
-				}
-
-				foreach (Entity entity in Entities)
-				{
-					if (entity is ControllableEntity { IsControlled: true } controllableEntity)
-					{
+                // Check for transition to chase
+                foreach (Entity entity in Entities)
+                {
+                    if (entity is ControllableEntity { IsControlled: true } controllableEntity)
+                    {
                         float distance = Vector2.Distance(position, controllableEntity.Position);
                         if (distance < 100)
                         {
-                            strategy = Strategy.ChaseEnemy;
+                            TransitionToStrategy(ref strategy, Strategy.ChaseEnemy, ref strategyHistory, gameTime);
+                            _lastKnownTargetPosition = controllableEntity.Position;
+                            return; // Exit early during transition
                         }
                     }
-				}
+                }
+            }
+            else if (strategy == Strategy.ChaseEnemy)
+            {
+                const float chaseSpeed = 3.0f;
+                const float gravity = 0.5f;
+                velocity.Y += gravity;
+                Vector2? targetPosition = null;
+                float closestDistance = float.MaxValue;
 
-			}
+                // Find the closest controlled entity
+                foreach (Entity entity in Entities)
+                {
+                    if (entity is ControllableEntity { IsControlled: true } controllableEntity)
+                    {
+                        float distance = Vector2.Distance(position, controllableEntity.Position);
+                        if (distance < closestDistance)
+                        {
+                            closestDistance = distance;
+                            targetPosition = controllableEntity.Position;
+                            _lastKnownTargetPosition = controllableEntity.Position;
+                        }
+                    }
+                }
 
-			else if (strategy == Strategy.ChaseEnemy)
-			{
-				const float chaseSpeed = 3.0f; // Slightly faster than patrol speed
-				const float gravity = 0.5f;
-				const float minDirectionChangeTime = 0.8f;
+                // Check if target is lost and duration threshold is met
+                if ((!targetPosition.HasValue || closestDistance > 200) && currentStrategyDuration >= 3.0)
+                {
+                    targetPosition = GetLastTargetPosition(strategyHistory, gameTime);
+                    if (!targetPosition.HasValue)
+                    {
+                        TransitionToStrategy(ref strategy, Strategy.Patrol, ref strategyHistory, gameTime);
+                        return; // Exit early during transition
+                    }
+                }
 
-				double currentGameTime = gameTime.TotalGameTime.TotalSeconds;
-				double elapsedTime = currentGameTime - directionTimer;
+                // Chase logic - will continue chasing last known position during minimum duration
+                Vector2 targetPos = targetPosition ?? _lastKnownTargetPosition;
+                Vector2 chaseDirection = Vector2.Normalize(targetPos - position);
+                velocity.X = chaseDirection.X * chaseSpeed;
 
-				// Apply gravity
-				velocity.Y += gravity;
+                // Update position
+                position += velocity;
 
-				Vector2? targetPosition = null;
-				float closestDistance = float.MaxValue;
+                entityGroundY = GroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale) + 6.0f;
+                if (position.Y >= entityGroundY)
+                {
+                    position.Y = entityGroundY;
+                    velocity.Y = 0;
+                }
+            }
 
-				// Find the closest controlled entity
-				foreach (Entity entity in Entities)
-				{
-					if (entity is ControllableEntity controlableEntity && controlableEntity.IsControlled)
-					{
-						float distance = Vector2.Distance(position, controlableEntity.Position);
-						if (distance < closestDistance)
-						{
-							closestDistance = distance;
-							targetPosition = controlableEntity.Position;
-						}
-					}
-				}
+            else if (strategy == Strategy.Transition)
+            {
+                // Pause horizontal movement during transition
+                velocity.X = 0;
+                velocity.Y += 0.5f; // Keep gravity
 
-				// Chase logic
-				if (targetPosition.HasValue && elapsedTime >= minDirectionChangeTime)
-				{
-					Vector2 chaseDirection = Vector2.Normalize(targetPosition.Value - position);
-					velocity.X = chaseDirection.X * chaseSpeed;
-					directionTimer = currentGameTime;
-				}
+                // After 1 second, change to target strategy
+                if (currentStrategyDuration >= TRANSITION_DURATION)
+                {
+                    AddStrategyToHistory(ref strategy, _targetStrategy, ref strategyHistory, gameTime);
+                    if (_targetStrategy == Strategy.Patrol)
+                    {
+                        velocity.X = 1.0f; // Initialize patrol movement
+                    }
+                }
+            }
 
-				// Update position
-				position += velocity;
-
-				entityGroundY = GroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale) + 6.0f;
-
-				if (position.Y >= entityGroundY)
-				{
-					position.Y = entityGroundY;
-					velocity.Y = 0;
-				}
-
-				// Handle screen bounds
-				if (position.X <= 50)
-				{
-					//velocity.X = Math.Abs(velocity.X); // Force right movement
-					//position.X = 50;
-				}
-				else if (position.X >= 800)
-				{
-					//velocity.X = -Math.Abs(velocity.X); // Force left movement
-					//position.X = 800;
-				}
-
-				// Check if we should switch back to patrol
-				if (!targetPosition.HasValue || closestDistance > 200) // Adjust this threshold as needed
-				{
-					strategy = Strategy.Patrol;
-					//directionTimer = currentGameTime;
-					directionTimer = 0;
-				}
-
-				Console.WriteLine($"Chase: ({position.X},{position.Y})");
-			}
-
-
-
-
-			collisionBounding.Center = position + textureInfo.Center;
-		}
-	}
+            collisionBounding.Center = position + textureInfo.Center;
+        }
+    }
 }

@@ -19,6 +19,7 @@ namespace Superorganism.Entities
         public abstract EntityStatus EntityStatus { get; set; }
         public abstract Vector2 Position { get; set; }
         public abstract Color Color { get; set; }
+
 		public virtual void LoadContent(ContentManager content, string assetName, int numOfSpriteCols, int numOfSpriteRows, 
 			ICollisionBounding collisionType, float sizeScale)
 		{
@@ -43,6 +44,7 @@ namespace Superorganism.Entities
 					TextureInfo.UnitTextureWidth * sizeScale, TextureInfo.UnitTextureHeight * sizeScale);
 			}
 		}
+
 		public abstract void Draw(GameTime gameTime, SpriteBatch spriteBatch);
         public virtual void Update(GameTime gameTime) { }
     }

@@ -16,9 +16,16 @@ namespace Superorganism.Entities
 	{
 		public override Texture2D Texture { get; set; }
 		public override EntityStatus EntityStatus { get; set; }
-		public override Color Color { get; set; }
+        public override Color Color { get; set; }
 
-		protected Strategy _strategy;
+        protected List<(Strategy Strategy, double StartTime, double LastActionTime)> _strategyHistory = [];
+        public List<(Strategy Strategy, double StartTime, double LastActionTime)> StrategyHistory
+        {
+            get => _strategyHistory;
+            set => _strategyHistory = value;
+        }
+
+        protected Strategy _strategy;
 		public virtual Strategy Strategy
 		{
 			get => _strategy;
@@ -65,13 +72,10 @@ namespace Superorganism.Entities
 			set => _directionInterval = value;
 		}
 
-
-
 		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{
 			spriteBatch.Draw(Texture, Position, Color);
 		}
-
 
 		public void Move(Vector2 direction)
 		{
@@ -83,7 +87,7 @@ namespace Superorganism.Entities
 
 		public override void Update(GameTime gameTime)
 		{
-			DecisionMaker.Action(ref _strategy, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval,
+			DecisionMaker.Action(ref _strategy, ref _strategyHistory, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval,
 				ref _velocity, 800, 600, TextureInfo, EntityStatus); 
 		}
 	}

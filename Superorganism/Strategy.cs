@@ -9,11 +9,12 @@ namespace Superorganism
 	public enum Strategy
 	{
 		Idle = 0,
-		AvoidEnemy = 1,
-		RandomFlyingMovement = 2,
-		Random360FlyingMovement = 3,
-		Patrol,
-		ChaseEnemy = 5,
-		ChargeEnemy = 6,
+		Transition = 1,
+		AvoidEnemy = 2,
+		RandomFlyingMovement = 3,
+		Random360FlyingMovement = 4,
+		Patrol = 5,
+		ChaseEnemy = 6,
+		ChargeEnemy = 7,
 	}
 }

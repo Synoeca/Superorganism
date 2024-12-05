@@ -10,7 +10,8 @@ namespace Superorganism.Entities
 	{
 		public AntEnemy()
 		{
-			((MovableEntity)this).Strategy = global::Superorganism.Strategy.Patrol;
+			Strategy = Strategy.Patrol;
+			StrategyHistory.Add((Strategy.Patrol, 0, 0));
 		}
 
 		public override EntityStatus EntityStatus { get; set; } = new()

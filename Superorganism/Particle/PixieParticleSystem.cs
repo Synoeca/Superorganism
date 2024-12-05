@@ -25,13 +25,13 @@ namespace Superorganism.Particle
 
 		protected override void InitializeParticle(ref Particle p, Vector2 where)
 		{
-			var velocity = _emitter.Velocity;
+			Vector2 velocity = _emitter.Velocity;
 
-			var acceleration = Vector2.UnitY * 400;
+			Vector2 acceleration = Vector2.UnitY * 400;
 
-			var scale = RandomHelper.NextFloat(0.1f, 0.5f);
+			float scale = RandomHelper.NextFloat(0.1f, 0.5f);
 
-			var lifetime = RandomHelper.NextFloat(0.1f, 1.0f);
+			float lifetime = RandomHelper.NextFloat(0.1f, 1.0f);
 
 			p.Initialize(where, velocity, acceleration, Color.Goldenrod, scale: scale, lifetime: lifetime);
 		}

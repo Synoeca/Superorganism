@@ -33,17 +33,17 @@ namespace Superorganism.Particle
 
 		protected override void InitializeParticle(ref Particle p, Vector2 where)
 		{
-			var velocity = RandomHelper.NextDirection() * RandomHelper.NextFloat(40, 200);
+			Vector2 velocity = RandomHelper.NextDirection() * RandomHelper.NextFloat(40, 200);
 
-			var lifetime = RandomHelper.NextFloat(0.5f, 1.0f);
+			float lifetime = RandomHelper.NextFloat(0.5f, 1.0f);
 
-			var acceleration = -velocity / lifetime;
+			Vector2 acceleration = -velocity / lifetime;
 
-			var rotation = RandomHelper.NextFloat(-MathHelper.PiOver4, MathHelper.PiOver4);
+			float rotation = RandomHelper.NextFloat(-MathHelper.PiOver4, MathHelper.PiOver4);
 
-			var angularVelocity = RandomHelper.NextFloat(-MathHelper.PiOver4, MathHelper.PiOver4);
+			float angularVelocity = RandomHelper.NextFloat(-MathHelper.PiOver4, MathHelper.PiOver4);
 
-			var scale = RandomHelper.NextFloat(14, 26);
+			float scale = RandomHelper.NextFloat(14, 26);
 
 			p.Initialize(where, velocity, acceleration, _color, lifetime: lifetime, rotation: rotation, angularVelocity: angularVelocity, scale: scale);
 		}

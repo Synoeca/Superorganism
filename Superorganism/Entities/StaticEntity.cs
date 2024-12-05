@@ -13,7 +13,7 @@ namespace Superorganism.Entities
 	{
 		public override Texture2D Texture { get; set; }
 		public override EntityStatus EntityStatus { get; set; }
-		public override Vector2 Position { get; set; } = position;
+        public override Vector2 Position { get; set; } = position;
 		public override Color Color { get; set; } = Color.White;
 
 		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
