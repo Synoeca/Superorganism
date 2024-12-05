@@ -11,7 +11,7 @@ namespace Superorganism.Screens
     // move up and down to select an entry, or cancel to back out of the screen.
     public abstract class MenuScreen : GameScreen
     {
-        private readonly List<MenuEntry> _menuEntries = new List<MenuEntry>();
+        private readonly List<MenuEntry> _menuEntries = [];
         private int _selectedEntry;
         private readonly string _menuTitle;
 
@@ -115,7 +115,7 @@ namespace Superorganism.Screens
             foreach (MenuEntry menuEntry in _menuEntries)
             {
                 // each entry is to be centered horizontally
-                position.X = ScreenManager.GraphicsDevice.Viewport.Width / 2 - menuEntry.GetWidth(this) / 2;
+                position.X = ScreenManager.GraphicsDevice.Viewport.Width / 2f - menuEntry.GetWidth(this) / 2f;
 
                 if (ScreenState == ScreenState.TransitionOn)
                     position.X -= transitionOffset * 256;
@@ -166,14 +166,23 @@ namespace Superorganism.Screens
             float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
 
             // Draw the menu title centered on the screen
-            Vector2 titlePosition = new Vector2(graphics.Viewport.Width / 2, 80);
+            Vector2 titlePosition = new Vector2(graphics.Viewport.Width / 2f, 100);
             Vector2 titleOrigin = font.MeasureString(_menuTitle) / 2;
             Color titleColor = new Color(192, 192, 192) * TransitionAlpha;
-            const float titleScale = 1.25f;
+            Color shadowColor = new Color(0, 0, 0);
+            float shadowOffset = 3f;
+            const float titleScale = 1.5f; // Increased from 1.25f
 
             titlePosition.Y -= transitionOffset * 100;
 
-            spriteBatch.DrawString(font, _menuTitle, titlePosition, titleColor,
+            spriteBatch.DrawString(font, _menuTitle,
+                titlePosition + new Vector2(shadowOffset),
+                shadowColor * TransitionAlpha,
+                0, titleOrigin, titleScale, SpriteEffects.None, 0);
+
+            spriteBatch.DrawString(font, _menuTitle,
+                titlePosition,
+                new Color(220, 220, 220) * TransitionAlpha, // Brighter white
                 0, titleOrigin, titleScale, SpriteEffects.None, 0);
 
             spriteBatch.End();
