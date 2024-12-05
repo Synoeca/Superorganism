@@ -53,7 +53,7 @@ namespace Superorganism.Screens
         {
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
             Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
-            Rectangle fullscreen = new Rectangle(0, 0, viewport.Width, viewport.Height);
+            Rectangle fullscreen = new(0, 0, viewport.Width, viewport.Height);
 
             spriteBatch.Begin();
 

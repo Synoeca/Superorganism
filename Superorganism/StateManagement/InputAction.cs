@@ -38,8 +38,8 @@ namespace Superorganism.StateManagement
         {
             // Store the buttons and keys. If the arrays are null, we create a 0 length array so we don't
             // have to do null checks in the Occurred method
-            _buttons = triggerButtons != null ? triggerButtons.Clone() as Buttons[] : new Buttons[0];
-            _keys = triggerKeys != null ? triggerKeys.Clone() as Keys[] : new Keys[0];
+            _buttons = triggerButtons != null ? triggerButtons.Clone() as Buttons[] : [];
+            _keys = triggerKeys != null ? triggerKeys.Clone() as Keys[] : [];
             _firstPressOnly = firstPressOnly;
         }
 

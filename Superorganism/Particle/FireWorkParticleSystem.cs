@@ -5,16 +5,16 @@ namespace Superorganism.Particle
 {
 	public class FireWorkParticleSystem : ParticleSystem
 	{
-		private Color[] _colors = new Color[]
-		{
-			Color.Fuchsia,
+		private Color[] _colors =
+        [
+            Color.Fuchsia,
 			Color.Red,
 			Color.Crimson,
 			Color.CadetBlue,
 			Color.Aqua,
 			Color.HotPink,
 			Color.LimeGreen
-		};
+        ];
 
 		private Color _color;
 

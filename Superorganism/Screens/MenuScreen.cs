@@ -33,30 +33,28 @@ namespace Superorganism.Screens
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
             _menuUp = new InputAction(
-                new[] { Buttons.DPadUp, Buttons.LeftThumbstickUp },
-                new[] { Keys.Up }, true);
+                [Buttons.DPadUp, Buttons.LeftThumbstickUp],
+                [Keys.Up], true);
             _menuDown = new InputAction(
-                new[] { Buttons.DPadDown, Buttons.LeftThumbstickDown },
-                new[] { Keys.Down }, true);
+                [Buttons.DPadDown, Buttons.LeftThumbstickDown],
+                [Keys.Down], true);
             _menuSelect = new InputAction(
-                new[] { Buttons.A, Buttons.Start },
-                new[] { Keys.Enter, Keys.Space }, true);
+                [Buttons.A, Buttons.Start],
+                [Keys.Enter, Keys.Space], true);
             _menuCancel = new InputAction(
-                new[] { Buttons.B, Buttons.Back },
-                new[] { Keys.Back }, true);
+                [Buttons.B, Buttons.Back],
+                [Keys.Back], true);
             _menuLeft = new InputAction(
-                new[] { Buttons.DPadLeft, Buttons.LeftThumbstickLeft },
-                new[] { Keys.Left }, true);
+                [Buttons.DPadLeft, Buttons.LeftThumbstickLeft],
+                [Keys.Left], true);
             _menuRight = new InputAction(
-                new[] { Buttons.DPadRight, Buttons.LeftThumbstickRight },
-                new[] { Keys.Right }, true);
+                [Buttons.DPadRight, Buttons.LeftThumbstickRight],
+                [Keys.Right], true);
         }
 
         public override void HandleInput(GameTime gameTime, InputState input)
         {
-            PlayerIndex playerIndex;
-
-            if (_menuUp.Occurred(input, ControllingPlayer, out playerIndex))
+            if (_menuUp.Occurred(input, ControllingPlayer, out PlayerIndex playerIndex))
             {
                 _selectedEntry--;
                 if (_selectedEntry < 0)
@@ -109,7 +107,7 @@ namespace Superorganism.Screens
             float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
 
             // start at Y = 175; each X value is generated per entry
-            Vector2 position = new Vector2(0f, 175f);
+            Vector2 position = new(0f, 175f);
 
             // update each menu entry's location in turn
             foreach (MenuEntry menuEntry in _menuEntries)
@@ -144,45 +142,46 @@ namespace Superorganism.Screens
 
         public override void Draw(GameTime gameTime)
         {
-            // make sure our entries are in the right place before we draw them
             UpdateMenuEntryLocations();
 
             GraphicsDevice graphics = ScreenManager.GraphicsDevice;
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
             SpriteFont font = ScreenManager.Font;
+            const float shadowOffset = 3f;
 
             spriteBatch.Begin();
 
+            // Menu entries
             for (int i = 0; i < _menuEntries.Count; i++)
             {
                 MenuEntry menuEntry = _menuEntries[i];
                 bool isSelected = IsActive && i == _selectedEntry;
-                menuEntry.Draw(this, isSelected, gameTime);
+                Color color = isSelected ? Color.Yellow : Color.White;
+
+                // Draw shadow
+                spriteBatch.DrawString(font, menuEntry.Text,
+                    menuEntry.Position + new Vector2(shadowOffset),
+                    Color.Black * TransitionAlpha);
+
+                // Draw text
+                spriteBatch.DrawString(font, menuEntry.Text,
+                    menuEntry.Position,
+                    color * TransitionAlpha);
             }
 
-            // Make the menu slide into place during transitions, using a
-            // power curve to make things look more interesting (this makes
-            // the movement slow down as it nears the end).
-            float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
-
-            // Draw the menu title centered on the screen
-            Vector2 titlePosition = new Vector2(graphics.Viewport.Width / 2f, 100);
+            // Title with existing shadow
+            Vector2 titlePosition = new(graphics.Viewport.Width / 2f, 100);
             Vector2 titleOrigin = font.MeasureString(_menuTitle) / 2;
-            Color titleColor = new Color(192, 192, 192) * TransitionAlpha;
-            Color shadowColor = new Color(0, 0, 0);
-            float shadowOffset = 3f;
-            const float titleScale = 1.5f; // Increased from 1.25f
-
-            titlePosition.Y -= transitionOffset * 100;
+            const float titleScale = 1.5f;
 
             spriteBatch.DrawString(font, _menuTitle,
-                titlePosition + new Vector2(shadowOffset),
-                shadowColor * TransitionAlpha,
+                titlePosition + new Vector2(4),
+                Color.Black * TransitionAlpha,
                 0, titleOrigin, titleScale, SpriteEffects.None, 0);
 
             spriteBatch.DrawString(font, _menuTitle,
                 titlePosition,
-                new Color(220, 220, 220) * TransitionAlpha, // Brighter white
+                new Color(220, 220, 220) * TransitionAlpha,
                 0, titleOrigin, titleScale, SpriteEffects.None, 0);
 
             spriteBatch.End();

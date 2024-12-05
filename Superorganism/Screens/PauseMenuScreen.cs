@@ -6,8 +6,8 @@
     {
         public PauseMenuScreen() : base("Paused")
         {
-            MenuEntry resumeGameMenuEntry = new MenuEntry("Resume Game");
-            MenuEntry quitGameMenuEntry = new MenuEntry("Quit Game");
+            MenuEntry resumeGameMenuEntry = new("Resume Game");
+            MenuEntry quitGameMenuEntry = new("Quit Game");
 
             resumeGameMenuEntry.Selected += OnCancel;
             quitGameMenuEntry.Selected += QuitGameMenuEntrySelected;
@@ -19,7 +19,7 @@
         private void QuitGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
             const string message = "Are you sure you want to quit this game?";
-            MessageBoxScreen confirmQuitMessageBox = new MessageBoxScreen(message);
+            MessageBoxScreen confirmQuitMessageBox = new(message);
 
             confirmQuitMessageBox.Accepted += ConfirmQuitMessageBoxAccepted;
 

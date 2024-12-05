@@ -164,9 +164,6 @@ public class GameplayScreen : GameScreen
         _cameraPosition = _ant.Position;
 
         DecisionMaker.Entities.Clear();
-        //DecisionMaker.Entities.Add(_ant);
-
-        // Use the ScreenManager to reset this screen
         ScreenManager.ResetScreen(this);
     }
 
@@ -263,10 +260,10 @@ public class GameplayScreen : GameScreen
 
     private void DrawHealthBar(SpriteBatch spriteBatch)
     {
-        int barWidth = 200;
-        int barHeight = 20;
-        int barX = 20;
-        int barY = 20;
+        const int barWidth = 200;
+        const int barHeight = 20;
+        const int barX = 20;
+        const int barY = 20;
 
         Texture2D grayTexture = CreateTexture(spriteBatch.GraphicsDevice, Color.Gray);
         Texture2D redTexture = CreateTexture(spriteBatch.GraphicsDevice, Color.Red);
@@ -350,7 +347,7 @@ public class GameplayScreen : GameScreen
             );
 
             // Offset to avoid overlapping the AntEnemy sprite
-            Vector2 textOffset = new Vector2(0, -40);
+            Vector2 textOffset = new(0, -40);
             Vector2 textPosition = enemyScreenPosition + textOffset;
 
             // Text scaling factor for reduced size
@@ -422,9 +419,9 @@ public class GameplayScreen : GameScreen
 
             if (_isGameOver)
             {
-                string message = "You Lose";
+                const string message = "You Lose";
                 Vector2 textSize = _gameFont.MeasureString(message);
-                textPosition = new(
+                textPosition = new Vector2(
                     (ScreenManager.GraphicsDevice.Viewport.Width - textSize.X) / 2,
                     (ScreenManager.GraphicsDevice.Viewport.Height - textSize.Y) / 2
                 );
@@ -453,9 +450,9 @@ public class GameplayScreen : GameScreen
 
             if (_isGameWon)
             {
-                string message = "You Win";
+                const string message = "You Win";
                 Vector2 textSize = _gameFont.MeasureString(message);
-                textPosition = new(
+                textPosition = new Vector2(
                     (ScreenManager.GraphicsDevice.Viewport.Width - textSize.X) / 2,
                     (ScreenManager.GraphicsDevice.Viewport.Height - textSize.Y) / 2
                 );
@@ -465,7 +462,7 @@ public class GameplayScreen : GameScreen
 
                 spriteBatch.DrawString(_gameFont, message, textPosition, Color.Green);
 
-                string restartMessage = "Press R to Restart"; // Space added here
+                const string restartMessage = "Press R to Restart"; // Space added here
                 Vector2 restartTextSize = _gameFont.MeasureString(restartMessage);
                 Vector2 restartTextPosition = new(
                     (ScreenManager.GraphicsDevice.Viewport.Width - restartTextSize.X) / 2,

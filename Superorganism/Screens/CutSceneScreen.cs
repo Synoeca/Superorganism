@@ -17,7 +17,7 @@ namespace Superorganism.Screens
 		public CutSceneScreen()
 		{
 			_player = new VideoPlayer();
-			_skip = new InputAction(new Buttons[] { Buttons.A }, new Keys[] { Keys.Space, Keys.Enter }, true);
+			_skip = new InputAction([Buttons.A], [Keys.Space, Keys.Enter], true);
 		}
 
 		public override void Activate()
