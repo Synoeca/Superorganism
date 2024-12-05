@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Superorganism.Entities;
 
 namespace Superorganism.StateManagement
 {
@@ -150,6 +151,28 @@ namespace Superorganism.StateManagement
             if (_isInitialized) screen.Activate();
 
             _screens.Add(screen);
+        }
+
+        public void ResetScreen(GameScreen screen)
+        {
+            if (_screens.Contains(screen))
+            {
+                // Unload the current screen
+                if (_isInitialized) screen.Unload();
+
+                // Remove the screen
+                _screens.Remove(screen);
+                _tmpScreensList.Remove(screen);
+
+                // Reset the screen's state
+                screen.IsExiting = false;
+
+                // Reactivate the screen
+                if (_isInitialized) screen.Activate();
+
+                // Add the screen back
+                _screens.Add(screen);
+            }
         }
 
         public void RemoveScreen(GameScreen screen)

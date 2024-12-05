@@ -148,6 +148,20 @@ public class GameplayScreen : GameScreen
         _damageTimer = 0;
     }
 
+    public void ResetGame()
+    {
+        // Reset any internal state that needs resetting
+        _ant.Position = new Vector2(200, 200);
+        _antEnemy.Position = new Vector2(500, 200);
+        _cameraPosition = _ant.Position;
+
+        DecisionMaker.Entities.Clear();
+        //DecisionMaker.Entities.Add(_ant);
+
+        // Use the ScreenManager to reset this screen
+        ScreenManager.ResetScreen(this);
+    }
+
     public override void Deactivate()
     {
         base.Deactivate();
@@ -228,7 +242,8 @@ public class GameplayScreen : GameScreen
 
         if (!_isGameOver && !_isGameWon) return;
         if (input.IsNewKeyPress(Keys.R, ControllingPlayer, out _))
-            ScreenManager.AddScreen(new GameplayScreen(), ControllingPlayer);
+            //ScreenManager.AddScreen(new GameplayScreen(), ControllingPlayer);
+            ResetGame();
     }
 
     private Texture2D CreateTexture(GraphicsDevice graphicsDevice, Color color)
