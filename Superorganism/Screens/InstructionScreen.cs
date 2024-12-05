@@ -9,6 +9,7 @@ namespace Superorganism.Screens
     public class InstructionsScreen : MenuScreen
     {
         private readonly MenuEntry _movementEntry;
+        private readonly MenuEntry _movementEntry2;
         private readonly MenuEntry _jumpEntry;
         private readonly MenuEntry _dashEntry;
         private readonly MenuEntry _restartEntry;
@@ -19,9 +20,10 @@ namespace Superorganism.Screens
         {
             _movementEntry = new MenuEntry(
                 "Movement Controls:    " +
-                "A = Move Left    " +
-                "D = Move Right"
+                "A = Move Left"
             );
+
+            _movementEntry2 = new MenuEntry("D = Move Right");
 
             _jumpEntry = new MenuEntry(
                 "Jump:    " +
@@ -47,6 +49,7 @@ namespace Superorganism.Screens
             _backEntry.Selected += OnCancel;
 
             MenuEntries.Add(_movementEntry);
+            MenuEntries.Add(_movementEntry2);
             MenuEntries.Add(_jumpEntry);
             MenuEntries.Add(_dashEntry);
             MenuEntries.Add(_restartEntry);
