@@ -217,6 +217,56 @@ namespace Superorganism.AI
                 // Update position using velocity and elapsed time
                 position += velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
+            else if (strategy == Strategy.Random360FlyingMovement)
+            {
+                if (velocity == Vector2.Zero)
+                {
+                    double angle = Rand.NextDouble() * Math.PI * 2;
+                    velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) *
+                               (entityStatus.Agility * 100);
+                    directionInterval = GetNewDirectionInterval();
+                }
+
+                directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                if (directionTimer > directionInterval)
+                {
+                    double angle = Rand.NextDouble() * Math.PI * 2;
+                    velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) *
+                               (entityStatus.Agility * 100);
+                    directionTimer -= directionInterval;
+                    directionInterval = GetNewDirectionInterval();
+                }
+
+                // Set direction based on highest velocity component
+                float absVelX = Math.Abs(velocity.X);
+                float absVelY = Math.Abs(velocity.Y);
+
+                if (absVelX > absVelY)
+                {
+                    direction = velocity.X > 0 ? Direction.Right : Direction.Left;
+                }
+                else
+                {
+                    direction = velocity.Y > 0 ? Direction.Down : Direction.Up;
+                }
+
+                position += velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+                if (position.X < 0 || position.X > screenWidth - textureInfo.UnitTextureWidth)
+                {
+                    velocity.X = -velocity.X;
+                    position = new Vector2(
+                        Math.Clamp(position.X, 0, screenWidth - textureInfo.UnitTextureWidth),
+                        position.Y);
+                }
+
+                if (position.Y < 0 || position.Y > groundHeight - textureInfo.UnitTextureHeight)
+                {
+                    velocity.Y = -velocity.Y;
+                    position = new Vector2(position.X,
+                        Math.Clamp(position.Y, 0, groundHeight - textureInfo.UnitTextureHeight));
+                }
+            }
             else if (strategy == Strategy.Patrol)
             {
                 const float movementSpeed = 1.0f;
