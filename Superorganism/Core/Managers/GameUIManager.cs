@@ -9,14 +9,14 @@ using Superorganism.Enums;
 
 namespace Superorganism.Core.Managers
 {
-    public class GameUIManager
+    public class GameUiManager
     {
         private readonly SpriteFont _gameFont;
         private readonly SpriteBatch _spriteBatch;
         private Texture2D _grayTexture;
         private Texture2D _redTexture;
 
-        public GameUIManager(SpriteFont gameFont, SpriteBatch spriteBatch)
+        public GameUiManager(SpriteFont gameFont, SpriteBatch spriteBatch)
         {
             _gameFont = gameFont;
             _spriteBatch = spriteBatch;

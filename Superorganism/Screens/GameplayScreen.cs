@@ -15,7 +15,7 @@ namespace Superorganism.Screens
     {
         // Core components
         public GameStateManager GameState;
-        private GameUIManager _uiManager;
+        private GameUiManager _uiManager;
         private Camera2D _camera;
         private GroundSprite _groundTexture;
 
@@ -57,7 +57,7 @@ namespace Superorganism.Screens
             );
 
             // Initialize UI
-            _uiManager = new GameUIManager(
+            _uiManager = new GameUiManager(
                 _content.Load<SpriteFont>("gamefont"),
                 ScreenManager.SpriteBatch
             );
@@ -74,7 +74,7 @@ namespace Superorganism.Screens
         {
             if (GameState.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
             {
-                GameState.PauseAudio();
+                GameState.PauseMusic();
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
             }

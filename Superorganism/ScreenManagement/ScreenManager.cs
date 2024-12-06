@@ -188,7 +188,7 @@ namespace Superorganism.ScreenManagement
                 {
                     if (gs is GameplayScreen gps)
                     {
-                        gps.GameState.ResumeAudio();
+                        gps.GameState.ResumeMusic();
                     }
                 }
             }

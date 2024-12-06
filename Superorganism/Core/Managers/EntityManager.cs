@@ -1,14 +1,16 @@
-﻿using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 using Superorganism.AI;
 using Superorganism.Collisions;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Particle;
-using System.Collections.Generic;
-using System.Linq;
-using System;
+
+namespace Superorganism.Core.Managers;
 
 public class EntityManager
 {
@@ -19,14 +21,14 @@ public class EntityManager
     private ExplosionParticleSystem _explosions;
     private readonly Game _game;
 
-    private const float INVINCIBLE_ALPHA = 0.4f;
-    private const float ENEMY_ALPHA = 0.8f;
-    private const float FLY_ALPHA = 0.9f;
-    private const double BLINK_INTERVAL = 0.05;
-    private const double FLY_INVINCIBLE_DURATION = 1.5;
-    private const double ENEMY_INVINCIBLE_DURATION = 2.0;
-    private const int ENEMY_DAMAGE = 20;
-    private const int FLY_DAMAGE = 10;
+    private const float InvincibleAlpha = 0.4f;
+    private const float EnemyAlpha = 0.8f;
+    private const float FlyAlpha = 0.9f;
+    private const double BlinkInterval = 0.05;
+    private const double FlyInvincibleDuration = 1.5;
+    private const double EnemyInvincibleDuration = 2.0;
+    private const int EnemyDamage = 20;
+    private const int FlyDamage = 10;
 
     private double _invincibleTimer;
     private bool _blinkState;
@@ -85,18 +87,23 @@ public class EntityManager
 
     private void LoadContent(ContentManager content)
     {
-        _ant.LoadContent(content, "ant-side_Rev2", 3, 1, new BoundingRectangle(), 0.25f);
+        _ant.LoadContent(content, "ant-side_Rev2", 3, 1, 
+            new BoundingRectangle(), 0.25f);
         _ant.LoadSound(content);
-        _antEnemy.LoadContent(content, "antEnemy-side_Rev3", 3, 1, new BoundingRectangle(), 0.3f);
+
+        _antEnemy.LoadContent(content, "antEnemy-side_Rev3", 3, 1, 
+            new BoundingRectangle(), 0.3f);
 
         foreach (Crop crop in _crops)
         {
-            crop.LoadContent(content, "crops", 8, 1, new BoundingCircle(), 1.0f);
+            crop.LoadContent(content, "crops", 8, 1, 
+                new BoundingCircle(), 1.0f);
         }
 
         foreach (Fly fly in _flies)
         {
-            fly.LoadContent(content, "flies", 4, 4, new BoundingCircle(), 1.0f);
+            fly.LoadContent(content, "flies", 4, 4, 
+                new BoundingCircle(), 1.0f);
         }
     }
 
@@ -122,11 +129,11 @@ public class EntityManager
         }
 
         // Smoother alpha transition during blinking
-        float blinkProgress = (float)(_invincibleTimer % BLINK_INTERVAL / BLINK_INTERVAL);
-        _blinkState = ((int)(_invincibleTimer / BLINK_INTERVAL) % 2) == 0;
+        float blinkProgress = (float)(_invincibleTimer % BlinkInterval / BlinkInterval);
+        _blinkState = ((int)(_invincibleTimer / BlinkInterval) % 2) == 0;
         float alpha = _blinkState ?
-            MathHelper.Lerp(INVINCIBLE_ALPHA, 1f, blinkProgress) :
-            MathHelper.Lerp(1f, INVINCIBLE_ALPHA, blinkProgress);
+            MathHelper.Lerp(InvincibleAlpha, 1f, blinkProgress) :
+            MathHelper.Lerp(1f, InvincibleAlpha, blinkProgress);
 
         _ant.Color = Color.White * alpha;
     }
@@ -180,11 +187,11 @@ public class EntityManager
     {
         if (IsPlayerInvincible) return;
 
-        _ant.HitPoints -= ENEMY_DAMAGE;
+        _ant.HitPoints -= EnemyDamage;
 
         // Add flash effect
         _ant.Color = Color.Red;  // Will be modified by invincibility immediately after
-        StartInvincibility(ENEMY_INVINCIBLE_DURATION);
+        StartInvincibility(EnemyInvincibleDuration);
     }
 
     public bool CheckFlyCollisions()
@@ -197,11 +204,11 @@ public class EntityManager
             {
                 fly.Destroyed = true;
                 _explosions.PlaceExplosion(fly.Position);
-                _ant.HitPoints = Math.Max(0, _ant.HitPoints - FLY_DAMAGE);
+                _ant.HitPoints = Math.Max(0, _ant.HitPoints - FlyDamage);
 
                 // Add flash effect
                 _ant.Color = Color.Red * 0.8f;  // Will be modified by invincibility immediately after
-                StartInvincibility(FLY_INVINCIBLE_DURATION);
+                StartInvincibility(FlyInvincibleDuration);
                 return true;
             }
         }
@@ -220,7 +227,7 @@ public class EntityManager
         // Draw flies with slight transparency
         foreach (Fly fly in _flies.Where(f => !f.Destroyed))
         {
-            fly.Color = Color.White * FLY_ALPHA;
+            fly.Color = Color.White * FlyAlpha;
             fly.Draw(gameTime, spriteBatch);
         }
 
@@ -228,7 +235,7 @@ public class EntityManager
         _ant.Draw(gameTime, spriteBatch);
 
         // Draw enemy ant with slight transparency
-        _antEnemy.Color = Color.White * ENEMY_ALPHA;
+        _antEnemy.Color = Color.White * EnemyAlpha;
         _antEnemy.Draw(gameTime, spriteBatch);
     }
 

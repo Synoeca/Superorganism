@@ -93,7 +93,7 @@ namespace Superorganism.Core.Managers
             if (_entityManager.CheckCropCollisions())
             {
                 CropsLeft--;
-                _audioManager.PlayCropPickup();
+                _audioManager.PlayCropPickup();  // Moved to GameAudioManager
             }
 
             // Handle enemy collisions with timer
@@ -104,7 +104,7 @@ namespace Superorganism.Core.Managers
                     if (!_entityManager.IsPlayerInvincible) // Only apply damage if not invincible
                     {
                         _entityManager.ApplyEnemyDamage();
-                        _audioManager.PlayFliesDestroy();
+                        _audioManager.PlayFliesDestroy();  // Moved to GameAudioManager
                         _enemyCollisionTimer = EnemyCollisionInterval;
                         _camera.StartShake(0.5f); // Stronger shake for enemy collision
                         System.Diagnostics.Debug.WriteLine($"Enemy collision: Applied damage, Timer reset to {EnemyCollisionInterval}");
@@ -121,11 +121,10 @@ namespace Superorganism.Core.Managers
                 }
             }
 
-
             // Handle fly collisions
             if (_entityManager.CheckFlyCollisions())
             {
-                _audioManager.PlayFliesDestroy();
+                _audioManager.PlayFliesDestroy();  // Moved to GameAudioManager
                 _camera.StartShake(0.2f); // Lighter shake for fly collision
             }
         }
@@ -150,10 +149,6 @@ namespace Superorganism.Core.Managers
             InitializeGameState();
         }
 
-        public void PauseAudio() => _audioManager.PauseMusic();
-        public void ResumeAudio() => _audioManager.ResumeMusic();
-        public void StopAudio() => _audioManager.StopMusic();
-
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             _entityManager.Draw(gameTime, spriteBatch);
@@ -162,11 +157,13 @@ namespace Superorganism.Core.Managers
         public Vector2 GetPlayerPosition() => _entityManager.PlayerPosition;
         public int GetPlayerHealth() => _entityManager.PlayerHealth;
         public int GetPlayerMaxHealth() => _entityManager.PlayerMaxHealth;
+        public void ResumeMusic() => _audioManager.ResumeMusic();
+        public void PauseMusic() => _audioManager.PauseMusic();
 
         public void Unload()
         {
             _entityManager.Unload();
-            StopAudio();
+            _audioManager.StopMusic();
         }
     }
 }
