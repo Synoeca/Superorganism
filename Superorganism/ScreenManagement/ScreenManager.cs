@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Superorganism.Screens;
 
 namespace Superorganism.ScreenManagement
 {
@@ -181,6 +182,16 @@ namespace Superorganism.ScreenManagement
 
             _screens.Remove(screen);
             _tmpScreensList.Remove(screen);
+            if (screen is PauseMenuScreen psm)
+            {
+                foreach (GameScreen gs in _screens)
+                {
+                    if (gs is GameplayScreen gps)
+                    {
+                        gps.GameState.ResumeAudio();
+                    }
+                }
+            }
         }
 
         /// <summary>

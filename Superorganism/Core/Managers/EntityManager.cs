@@ -54,7 +54,7 @@ namespace Superorganism.Core.Managers
             InitializeCropsAndFlies(graphicsDevice);
 
             _explosions = new ExplosionParticleSystem(_game, 20);
-            _game.Components.Add(_explosions);
+            //_game.Components.Add(_explosions);
             DecisionMaker.Entities.Add(_ant);
             DecisionMaker.Entities.Add(_antEnemy);
         }

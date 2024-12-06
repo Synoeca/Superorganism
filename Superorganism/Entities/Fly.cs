@@ -15,8 +15,9 @@ namespace Superorganism.Entities
 	{
 		public Fly()
 		{
-			Strategy = Strategy.RandomFlyingMovement;
-		}
+			Strategy = Strategy.Random360FlyingMovement;
+            StrategyHistory.Add((Strategy.Random360FlyingMovement, 0, 0));
+        }
 		public override EntityStatus EntityStatus { get; set; } = new ()
 		{
 			Agility = 1
