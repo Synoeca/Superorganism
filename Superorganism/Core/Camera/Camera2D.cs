@@ -51,7 +51,7 @@ namespace Superorganism.Core.Camera
             UpdateTransformMatrix();
         }
 
-        public void StartShake(float intensity = 1.0f)
+        public void StartShake(float intensity)
         {
             _isShaking = true;
             _shakeIntensity = Math.Min(intensity * MAX_SHAKE_INTENSITY, MAX_SHAKE_INTENSITY);

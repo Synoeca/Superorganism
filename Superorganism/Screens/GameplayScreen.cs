@@ -62,12 +62,11 @@ namespace Superorganism.Screens
                 ScreenManager.SpriteBatch
             );
 
-            _camera.Initialize(GameState.GetPlayerPosition());
-
             // Initialize ground
             _groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
             _groundTexture.LoadContent(_content);
 
+            _camera.Initialize(GameState.GetPlayerPosition());
             DecisionMaker.GroundY = _groundY;
         }
 
@@ -95,8 +94,6 @@ namespace Superorganism.Screens
             if (!IsActive) return;
 
             GameState.Update(gameTime);
-
-            // Update camera with player position and any active effects
             _camera.Update(GameState.GetPlayerPosition(), gameTime);
         }
 
@@ -107,8 +104,8 @@ namespace Superorganism.Screens
             // Draw game world
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
             spriteBatch.Begin(
-                SpriteSortMode.Deferred,
-                BlendState.AlphaBlend,
+                SpriteSortMode.BackToFront,
+                BlendState.NonPremultiplied,
                 SamplerState.PointClamp,
                 DepthStencilState.None,
                 RasterizerState.CullNone,
@@ -130,13 +127,10 @@ namespace Superorganism.Screens
                 RasterizerState.CullNone
             );
 
-            // Get health values
+            // Draw Health bar
             int currentHealth = GameState.GetPlayerHealth();
             int maxHealth = GameState.GetPlayerMaxHealth();
-
-            // Draw health bar first
             _uiManager.DrawHealthBar(currentHealth, maxHealth);
-
             _uiManager.DrawCropsLeft(GameState.CropsLeft);
 
             // Add enemy debug info

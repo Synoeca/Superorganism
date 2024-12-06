@@ -106,7 +106,7 @@ namespace Superorganism.Core.Managers
                         _entityManager.ApplyEnemyDamage();
                         _audioManager.PlayFliesDestroy();
                         _enemyCollisionTimer = EnemyCollisionInterval;
-                        _camera.StartShake(1.0f); // Stronger shake for enemy collision
+                        _camera.StartShake(0.5f); // Stronger shake for enemy collision
                         System.Diagnostics.Debug.WriteLine($"Enemy collision: Applied damage, Timer reset to {EnemyCollisionInterval}");
                     }
                 }
@@ -126,7 +126,7 @@ namespace Superorganism.Core.Managers
             if (_entityManager.CheckFlyCollisions())
             {
                 _audioManager.PlayFliesDestroy();
-                _camera.StartShake(0.5f); // Lighter shake for fly collision
+                _camera.StartShake(0.2f); // Lighter shake for fly collision
             }
         }
 

@@ -35,8 +35,6 @@ namespace Superorganism.Core.Managers
 
         public void DrawHealthBar(int currentHealth, int maxHealth)
         {
-            // Debug output
-            System.Diagnostics.Debug.WriteLine($"Drawing health bar - Current: {currentHealth}, Max: {maxHealth}");
             const int barWidth = 200;
             const int barHeight =30;
             const int barX = 20;
@@ -48,9 +46,6 @@ namespace Superorganism.Core.Managers
 
             // Calculate and clamp health percentage
             float healthPercentage = Math.Clamp((float)currentHealth / maxHealth, 0f, 1f);
-
-            // Debug output
-            System.Diagnostics.Debug.WriteLine($"Health percentage: {healthPercentage}");
 
             // Draw foreground (red) bar only if health > 0
             if (healthPercentage > 0)
