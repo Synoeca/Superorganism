@@ -65,7 +65,7 @@ namespace Superorganism.Core.Managers
             Vector2 textSize = _gameFont.MeasureString(healthText) * textScale;
             Vector2 textPosition = new(
                 barX + (barWidth - textSize.X) / 2,
-                barY + (barHeight - textSize.Y) / 2
+                barY + (barHeight - textSize.Y) / 2 - 2
             );
             DrawTextWithShadow(healthText, textPosition, Color.White, textScale);
         }
