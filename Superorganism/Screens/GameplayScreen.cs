@@ -40,11 +40,15 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
+            // Initialize camera
+            _camera = new Camera2D(ScreenManager.GraphicsDevice, _zoom);
+
             // Initialize core managers
             GameState = new GameStateManager(
                 ScreenManager.Game,
                 _content,
-                ScreenManager.GraphicsDevice
+                ScreenManager.GraphicsDevice,
+                _camera
             );
 
             GameState.InitializeAudio(
@@ -58,13 +62,11 @@ namespace Superorganism.Screens
                 ScreenManager.SpriteBatch
             );
 
-            // Initialize camera
-            _camera = new Camera2D(ScreenManager.GraphicsDevice, _zoom);
-
             // Initialize ground
             _groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
             _groundTexture.LoadContent(_content);
 
+            _camera.Initialize(GameState.GetPlayerPosition());
             DecisionMaker.GroundY = _groundY;
         }
 
@@ -92,7 +94,7 @@ namespace Superorganism.Screens
             if (!IsActive) return;
 
             GameState.Update(gameTime);
-            _camera.Update(GameState.GetPlayerPosition());
+            _camera.Update(GameState.GetPlayerPosition(), gameTime);
         }
 
         public override void Draw(GameTime gameTime)
@@ -102,8 +104,8 @@ namespace Superorganism.Screens
             // Draw game world
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
             spriteBatch.Begin(
-                SpriteSortMode.Deferred,
-                BlendState.AlphaBlend,
+                SpriteSortMode.BackToFront,
+                BlendState.NonPremultiplied,
                 SamplerState.PointClamp,
                 DepthStencilState.None,
                 RasterizerState.CullNone,
@@ -125,13 +127,10 @@ namespace Superorganism.Screens
                 RasterizerState.CullNone
             );
 
-            // Get health values
+            // Draw Health bar
             int currentHealth = GameState.GetPlayerHealth();
             int maxHealth = GameState.GetPlayerMaxHealth();
-
-            // Draw health bar first
             _uiManager.DrawHealthBar(currentHealth, maxHealth);
-
             _uiManager.DrawCropsLeft(GameState.CropsLeft);
 
             // Add enemy debug info

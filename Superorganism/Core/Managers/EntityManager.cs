@@ -19,10 +19,12 @@ public class EntityManager
     private ExplosionParticleSystem _explosions;
     private readonly Game _game;
 
+    private const float INVINCIBLE_ALPHA = 0.4f;
+    private const float ENEMY_ALPHA = 0.8f;
+    private const float FLY_ALPHA = 0.9f;
     private const double BLINK_INTERVAL = 0.05;
     private const double FLY_INVINCIBLE_DURATION = 1.5;
     private const double ENEMY_INVINCIBLE_DURATION = 2.0;
-    private const float INVINCIBLE_ALPHA = 0.4f;
     private const int ENEMY_DAMAGE = 20;
     private const int FLY_DAMAGE = 10;
 
@@ -108,6 +110,7 @@ public class EntityManager
         UpdateEntities(gameTime);
     }
 
+    // Inside UpdateInvincibility method:
     private void UpdateInvincibility(double deltaTime)
     {
         _invincibleTimer -= deltaTime;
@@ -118,8 +121,14 @@ public class EntityManager
             return;
         }
 
+        // Smoother alpha transition during blinking
+        float blinkProgress = (float)(_invincibleTimer % BLINK_INTERVAL / BLINK_INTERVAL);
         _blinkState = ((int)(_invincibleTimer / BLINK_INTERVAL) % 2) == 0;
-        _ant.Color = _blinkState ? Color.White * INVINCIBLE_ALPHA : Color.White;
+        float alpha = _blinkState ?
+            MathHelper.Lerp(INVINCIBLE_ALPHA, 1f, blinkProgress) :
+            MathHelper.Lerp(1f, INVINCIBLE_ALPHA, blinkProgress);
+
+        _ant.Color = Color.White * alpha;
     }
 
     private void UpdateEntities(GameTime gameTime)
@@ -172,6 +181,9 @@ public class EntityManager
         if (IsPlayerInvincible) return;
 
         _ant.HitPoints -= ENEMY_DAMAGE;
+
+        // Add flash effect
+        _ant.Color = Color.Red;  // Will be modified by invincibility immediately after
         StartInvincibility(ENEMY_INVINCIBLE_DURATION);
     }
 
@@ -186,6 +198,9 @@ public class EntityManager
                 fly.Destroyed = true;
                 _explosions.PlaceExplosion(fly.Position);
                 _ant.HitPoints = Math.Max(0, _ant.HitPoints - FLY_DAMAGE);
+
+                // Add flash effect
+                _ant.Color = Color.Red * 0.8f;  // Will be modified by invincibility immediately after
                 StartInvincibility(FLY_INVINCIBLE_DURATION);
                 return true;
             }
@@ -193,11 +208,27 @@ public class EntityManager
         return false;
     }
 
+    // Modify Draw method to handle layering
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
     {
-        foreach (Crop crop in _crops) crop.Draw(gameTime, spriteBatch);
-        foreach (Fly fly in _flies) fly.Draw(gameTime, spriteBatch);
+        // Draw crops first (they're on the ground)
+        foreach (Crop crop in _crops)
+        {
+            crop.Draw(gameTime, spriteBatch);
+        }
+
+        // Draw flies with slight transparency
+        foreach (Fly fly in _flies.Where(f => !f.Destroyed))
+        {
+            fly.Color = Color.White * FLY_ALPHA;
+            fly.Draw(gameTime, spriteBatch);
+        }
+
+        // Draw the player ant
         _ant.Draw(gameTime, spriteBatch);
+
+        // Draw enemy ant with slight transparency
+        _antEnemy.Color = Color.White * ENEMY_ALPHA;
         _antEnemy.Draw(gameTime, spriteBatch);
     }
 

@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
+using Superorganism.Core.Camera;
 using Superorganism.ScreenManagement;
 
 namespace Superorganism.Core.Managers
@@ -14,6 +15,7 @@ namespace Superorganism.Core.Managers
         private readonly EntityManager _entityManager;
         private readonly GameAudioManager _audioManager;
         private readonly InputAction _pauseAction;
+        private readonly Camera2D _camera;
 
         public bool IsGameOver { get; private set; }
         public bool IsGameWon { get; private set; }
@@ -23,11 +25,12 @@ namespace Superorganism.Core.Managers
         private double _enemyCollisionTimer;
         private const double EnemyCollisionInterval = 0.2;
 
-        public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice)
+        public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera)
         {
             DecisionMaker.Entities.Clear();
             _entityManager = new EntityManager(game, content, graphicsDevice);
             _audioManager = new GameAudioManager(content);
+            _camera = camera;
 
             _pauseAction = new InputAction(
                 [Buttons.Start, Buttons.Back],
@@ -103,6 +106,7 @@ namespace Superorganism.Core.Managers
                         _entityManager.ApplyEnemyDamage();
                         _audioManager.PlayFliesDestroy();
                         _enemyCollisionTimer = EnemyCollisionInterval;
+                        _camera.StartShake(0.5f); // Stronger shake for enemy collision
                         System.Diagnostics.Debug.WriteLine($"Enemy collision: Applied damage, Timer reset to {EnemyCollisionInterval}");
                     }
                 }
@@ -122,6 +126,7 @@ namespace Superorganism.Core.Managers
             if (_entityManager.CheckFlyCollisions())
             {
                 _audioManager.PlayFliesDestroy();
+                _camera.StartShake(0.2f); // Lighter shake for fly collision
             }
         }
 

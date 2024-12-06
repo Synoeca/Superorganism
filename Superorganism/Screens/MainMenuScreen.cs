@@ -40,7 +40,7 @@ namespace Superorganism.Screens
 
         protected override void OnCancel(PlayerIndex playerIndex)
         {
-            const string message = "Are you sure you want to quit the game?";
+            const string message = "Are you sure you want to exit the game?";
             MessageBoxScreen confirmExitMessageBox = new(message);
 
             confirmExitMessageBox.Accepted += ConfirmExitMessageBoxAccepted;
