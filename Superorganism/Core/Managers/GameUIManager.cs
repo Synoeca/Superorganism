@@ -35,8 +35,6 @@ namespace Superorganism.Core.Managers
 
         public void DrawHealthBar(int currentHealth, int maxHealth)
         {
-            // Debug output
-            System.Diagnostics.Debug.WriteLine($"Drawing health bar - Current: {currentHealth}, Max: {maxHealth}");
             const int barWidth = 200;
             const int barHeight =30;
             const int barX = 20;
@@ -48,9 +46,6 @@ namespace Superorganism.Core.Managers
 
             // Calculate and clamp health percentage
             float healthPercentage = Math.Clamp((float)currentHealth / maxHealth, 0f, 1f);
-
-            // Debug output
-            System.Diagnostics.Debug.WriteLine($"Health percentage: {healthPercentage}");
 
             // Draw foreground (red) bar only if health > 0
             if (healthPercentage > 0)
@@ -169,10 +164,14 @@ namespace Superorganism.Core.Managers
 
         private void DrawTextWithShadow(string text, Vector2 position, Color color, float scale = 1.0f)
         {
+            string adjustedText = text.Replace(" ", "   ");
+
             Vector2 shadowOffset = new(2, 2);
-            _spriteBatch.DrawString(_gameFont, text, position + shadowOffset, Color.Black * 0.5f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
-            _spriteBatch.DrawString(_gameFont, text, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
+            _spriteBatch.DrawString(_gameFont, adjustedText, position + shadowOffset, Color.Black * 0.5f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
+            _spriteBatch.DrawString(_gameFont, adjustedText, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
         }
+
+
 
         private static Texture2D CreateTexture(GraphicsDevice graphicsDevice, Color color)
         {

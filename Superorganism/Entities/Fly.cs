@@ -17,7 +17,11 @@ namespace Superorganism.Entities
 		{
 			Strategy = Strategy.Random360FlyingMovement;
             StrategyHistory.Add((Strategy.Random360FlyingMovement, 0, 0));
-            Color = Color.White;
+            if (CollisionBounding is BoundingCircle bc)
+            {
+                bc.Radius *= 0.8f;
+            }
+            UseRotation = true;
         }
 		public override EntityStatus EntityStatus { get; set; } = new ()
 		{

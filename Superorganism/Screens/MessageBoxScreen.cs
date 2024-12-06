@@ -12,10 +12,10 @@ namespace Superorganism.Screens
         private readonly string _confirmText;
         private readonly string _cancelText;
         private Texture2D _backgroundTexture;
-        private Vector2 _padding = new(40, 24);
-        private Color _backgroundColor = new(0, 0, 0, 230);
-        private Color _textColor = Color.White;
-        private Color _selectedColor = Color.Yellow;
+        private readonly Vector2 _padding = new(40, 24);
+        private readonly Color _backgroundColor = new(0, 0, 0, 230);
+        private readonly Color _textColor = Color.White;
+        private readonly Color _selectedColor = Color.Yellow;
         private bool _isConfirmSelected = true;
 
         private readonly InputAction _menuSelect;
@@ -54,9 +54,7 @@ namespace Superorganism.Screens
 
         public override void HandleInput(GameTime gameTime, InputState input)
         {
-            PlayerIndex playerIndex;
-
-            if (_menuLeft.Occurred(input, ControllingPlayer, out playerIndex) ||
+            if (_menuLeft.Occurred(input, ControllingPlayer, out PlayerIndex playerIndex) ||
                 _menuRight.Occurred(input, ControllingPlayer, out playerIndex))
             {
                 _isConfirmSelected = !_isConfirmSelected;
@@ -84,10 +82,16 @@ namespace Superorganism.Screens
             ScreenManager.FadeBackBufferToBlack(TransitionAlpha * 0.7f);
 
             Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
-            Vector2 messageSize = font.MeasureString(_message);
+
+            // Replace single spaces with three consecutive spaces in message, confirmText, and cancelText
+            string adjustedMessage = _message.Replace(" ", "   ");
+            string adjustedConfirmText = _confirmText.Replace(" ", "   ");
+            string adjustedCancelText = _cancelText.Replace(" ", "   ");
+
+            Vector2 messageSize = font.MeasureString(adjustedMessage);
             float buttonTextSize = Math.Max(
-                font.MeasureString(_confirmText).X,
-                font.MeasureString(_cancelText).X
+                font.MeasureString(adjustedConfirmText).X,
+                font.MeasureString(adjustedCancelText).X
             );
 
             float boxWidth = Math.Max(messageSize.X, buttonTextSize * 2.5f) + _padding.X * 2;
@@ -107,14 +111,15 @@ namespace Superorganism.Screens
 
             Rectangle boxRect = new((int)boxPosition.X, (int)boxPosition.Y, (int)boxWidth, (int)boxHeight);
             DrawRoundedRect(spriteBatch, boxRect, _backgroundColor * TransitionAlpha);
-            spriteBatch.DrawString(font, _message, messagePosition, _textColor * TransitionAlpha);
+            spriteBatch.DrawString(font, adjustedMessage, messagePosition, _textColor * TransitionAlpha);
 
             float buttonY = boxPosition.Y + boxHeight - font.LineSpacing - _padding.Y;
-            DrawButton(spriteBatch, font, _confirmText, new Vector2(boxPosition.X + boxWidth * 0.3f, buttonY), _isConfirmSelected);
-            DrawButton(spriteBatch, font, _cancelText, new Vector2(boxPosition.X + boxWidth * 0.7f, buttonY), !_isConfirmSelected);
+            DrawButton(spriteBatch, font, adjustedConfirmText, new Vector2(boxPosition.X + boxWidth * 0.3f, buttonY), _isConfirmSelected);
+            DrawButton(spriteBatch, font, adjustedCancelText, new Vector2(boxPosition.X + boxWidth * 0.7f, buttonY), !_isConfirmSelected);
 
             spriteBatch.End();
         }
+
 
         private void DrawButton(SpriteBatch spriteBatch, SpriteFont font, string text, Vector2 position, bool isSelected)
         {
@@ -124,6 +129,6 @@ namespace Superorganism.Screens
         }
 
         private void DrawRoundedRect(SpriteBatch spriteBatch, Rectangle rect, Color color) =>
-            spriteBatch.Draw(_backgroundTexture, rect, color);
+            spriteBatch.Draw(_backgroundTexture, rect, color); 
     }
 }

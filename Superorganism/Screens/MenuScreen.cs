@@ -158,13 +158,16 @@ namespace Superorganism.Screens
                 bool isSelected = IsActive && i == _selectedEntry;
                 Color color = isSelected ? Color.Yellow : Color.White;
 
+                // Replace single spaces with three consecutive spaces in menu entry text
+                string adjustedMenuEntryText = menuEntry.Text.Replace(" ", "   ");
+
                 // Draw shadow
-                spriteBatch.DrawString(font, menuEntry.Text,
+                spriteBatch.DrawString(font, adjustedMenuEntryText,
                     menuEntry.Position + new Vector2(shadowOffset),
                     Color.Black * TransitionAlpha);
 
                 // Draw text
-                spriteBatch.DrawString(font, menuEntry.Text,
+                spriteBatch.DrawString(font, adjustedMenuEntryText,
                     menuEntry.Position,
                     color * TransitionAlpha);
             }
@@ -174,17 +177,23 @@ namespace Superorganism.Screens
             Vector2 titleOrigin = font.MeasureString(_menuTitle) / 2;
             const float titleScale = 1.5f;
 
-            spriteBatch.DrawString(font, _menuTitle,
+            // Replace single spaces with three consecutive spaces in title text
+            string adjustedTitleText = _menuTitle.Replace(" ", "   ");
+
+            // Draw title shadow
+            spriteBatch.DrawString(font, adjustedTitleText,
                 titlePosition + new Vector2(4),
                 Color.Black * TransitionAlpha,
                 0, titleOrigin, titleScale, SpriteEffects.None, 0);
 
-            spriteBatch.DrawString(font, _menuTitle,
+            // Draw title text
+            spriteBatch.DrawString(font, adjustedTitleText,
                 titlePosition,
                 new Color(220, 220, 220) * TransitionAlpha,
                 0, titleOrigin, titleScale, SpriteEffects.None, 0);
 
             spriteBatch.End();
         }
+
     }
 }
