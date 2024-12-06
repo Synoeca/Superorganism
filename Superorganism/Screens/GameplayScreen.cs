@@ -14,7 +14,7 @@ namespace Superorganism.Screens
     public class GameplayScreen : GameScreen
     {
         // Core components
-        private GameStateManager _gameState;
+        public GameStateManager GameState;
         private GameUIManager _uiManager;
         private Camera2D _camera;
         private GroundSprite _groundTexture;
@@ -33,6 +33,7 @@ namespace Superorganism.Screens
 
         public override void Activate()
         {
+            DecisionMaker.GameStartTime = DateTime.Now;
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
             InitializeComponents();
         }
@@ -40,13 +41,13 @@ namespace Superorganism.Screens
         private void InitializeComponents()
         {
             // Initialize core managers
-            _gameState = new GameStateManager(
+            GameState = new GameStateManager(
                 ScreenManager.Game,
                 _content,
                 ScreenManager.GraphicsDevice
             );
 
-            _gameState.InitializeAudio(
+            GameState.InitializeAudio(
                 OptionsMenuScreen.SoundEffectVolume,
                 OptionsMenuScreen.BackgroundMusicVolume
             );
@@ -69,17 +70,17 @@ namespace Superorganism.Screens
 
         public override void HandleInput(GameTime gameTime, InputState input)
         {
-            if (_gameState.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
+            if (GameState.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
             {
-                _gameState.PauseAudio();
+                GameState.PauseAudio();
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
             }
 
-            if ((_gameState.IsGameOver || _gameState.IsGameWon) &&
+            if ((GameState.IsGameOver || GameState.IsGameWon) &&
                 input.IsNewKeyPress(Keys.R, ControllingPlayer, out playerIndex))
             {
-                _gameState.Reset();
+                GameState.Reset();
                 ScreenManager.ResetScreen(this);
             }
         }
@@ -90,8 +91,8 @@ namespace Superorganism.Screens
 
             if (!IsActive) return;
 
-            _gameState.Update(gameTime);
-            _camera.Update(_gameState.GetPlayerPosition());
+            GameState.Update(gameTime);
+            _camera.Update(GameState.GetPlayerPosition());
         }
 
         public override void Draw(GameTime gameTime)
@@ -111,7 +112,7 @@ namespace Superorganism.Screens
             );
 
             _groundTexture.Draw(spriteBatch);
-            _gameState.Draw(gameTime, spriteBatch);
+            GameState.Draw(gameTime, spriteBatch);
 
             spriteBatch.End();
 
@@ -125,26 +126,26 @@ namespace Superorganism.Screens
             );
 
             // Get health values
-            int currentHealth = _gameState.GetPlayerHealth();
-            int maxHealth = _gameState.GetPlayerMaxHealth();
+            int currentHealth = GameState.GetPlayerHealth();
+            int maxHealth = GameState.GetPlayerMaxHealth();
 
             // Draw health bar first
             _uiManager.DrawHealthBar(currentHealth, maxHealth);
 
-            _uiManager.DrawCropsLeft(_gameState.CropsLeft);
+            _uiManager.DrawCropsLeft(GameState.CropsLeft);
 
             // Add enemy debug info
             _uiManager.DrawEnemyDebugInfo(
-                _gameState.GetEnemyPosition(),
+                GameState.GetEnemyPosition(),
                 _camera.TransformMatrix,
-                _gameState.GetEnemyStrategy(),
-                _gameState.GetDistanceToPlayer(),
-                _gameState.GetEnemyStrategyHistory()
+                GameState.GetEnemyStrategy(),
+                GameState.GetDistanceToPlayer(),
+                GameState.GetEnemyStrategyHistory()
             );
 
-            if (_gameState.IsGameOver)
+            if (GameState.IsGameOver)
                 _uiManager.DrawGameOverScreen();
-            else if (_gameState.IsGameWon)
+            else if (GameState.IsGameWon)
                 _uiManager.DrawWinScreen();
 
             spriteBatch.End();
@@ -159,7 +160,7 @@ namespace Superorganism.Screens
         public override void Unload()
         {
             _uiManager?.Dispose();
-            _gameState?.Unload();
+            GameState?.Unload();
             _content?.Unload();
         }
     }
