@@ -40,11 +40,15 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
+            // Initialize camera
+            _camera = new Camera2D(ScreenManager.GraphicsDevice, _zoom);
+
             // Initialize core managers
             GameState = new GameStateManager(
                 ScreenManager.Game,
                 _content,
-                ScreenManager.GraphicsDevice
+                ScreenManager.GraphicsDevice,
+                _camera
             );
 
             GameState.InitializeAudio(
@@ -58,8 +62,7 @@ namespace Superorganism.Screens
                 ScreenManager.SpriteBatch
             );
 
-            // Initialize camera
-            _camera = new Camera2D(ScreenManager.GraphicsDevice, _zoom);
+            _camera.Initialize(GameState.GetPlayerPosition());
 
             // Initialize ground
             _groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
@@ -92,7 +95,9 @@ namespace Superorganism.Screens
             if (!IsActive) return;
 
             GameState.Update(gameTime);
-            _camera.Update(GameState.GetPlayerPosition());
+
+            // Update camera with player position and any active effects
+            _camera.Update(GameState.GetPlayerPosition(), gameTime);
         }
 
         public override void Draw(GameTime gameTime)
