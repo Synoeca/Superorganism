@@ -18,7 +18,7 @@
 
         private void QuitGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
-            const string message = "Are you sure you want to quit this game?";
+            const string message = "Are you sure you want to quit this game?\nUnsaved progress will be lost.";
             MessageBoxScreen confirmQuitMessageBox = new(message);
 
             confirmQuitMessageBox.Accepted += ConfirmQuitMessageBoxAccepted;

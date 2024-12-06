@@ -32,28 +32,29 @@ namespace Superorganism.Screens
             [
                 // Page 1 - Basic Controls
                 "Movement Controls:",
-                "                                        A = Move Left        D = Move Right",
+                "    A = Move Left        D = Move Right",
                 "Jump:",
-                "                                        Press SPACE while on ground",
+                "    Press SPACE while on ground",
                 "Dash:",
-                "                                        Hold SHIFT to increase speed",
+                "    Hold SHIFT to increase speed",
                 "Restart:",
-                "                                        Press R to restart current level",
+                "    Press R to restart current level",
                 "Exit Game:",
-                "                                        ESC > Pause Menu > Select 'Quit Game'",
+                "    ESC > Pause Menu > Select 'Quit Game'",
 
                 // Page 2 - Game Objectives
                 "Game Objective:",
-                "                                        Collect all crops in the level",
+                "    Collect all crops in the level",
                 "Avoid Flies:",
-                "                                        Do not make contact with flies",
+                "    Do not make contact with flies",
                 "Avoid Enemy Ants:",
-                "                                        Stay away from red enemy ants",
+                "    Stay away from red enemy ants",
                 "Level Completion:",
-                "                                        Collect all crops to complete level",
+                "    Collect all crops to complete level",
                 "Strategic Dash:",
-                "                                        Use SHIFT to avoid enemies strategically"
+                "    Use SHIFT to avoid enemies strategically"
             ];
+
 
             for (int i = 0; i < instructions.Length; i += ENTRIES_PER_PAGE)
             {
@@ -138,7 +139,7 @@ namespace Superorganism.Screens
         private void DrawPageIndicator(Vector2 position)
         {
             SpriteFont font = ScreenManager.Font;
-            string text = $"Page {_currentPage + 1}/{_pages.Count}";
+            string text = $"Page   {_currentPage + 1}/{_pages.Count}";
 
             ScreenManager.SpriteBatch.DrawString(font, text,
                 position + new Vector2(2),

@@ -164,10 +164,14 @@ namespace Superorganism.Core.Managers
 
         private void DrawTextWithShadow(string text, Vector2 position, Color color, float scale = 1.0f)
         {
+            string adjustedText = text.Replace(" ", "   ");
+
             Vector2 shadowOffset = new(2, 2);
-            _spriteBatch.DrawString(_gameFont, text, position + shadowOffset, Color.Black * 0.5f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
-            _spriteBatch.DrawString(_gameFont, text, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
+            _spriteBatch.DrawString(_gameFont, adjustedText, position + shadowOffset, Color.Black * 0.5f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
+            _spriteBatch.DrawString(_gameFont, adjustedText, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
         }
+
+
 
         private static Texture2D CreateTexture(GraphicsDevice graphicsDevice, Color color)
         {
