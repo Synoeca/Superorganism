@@ -17,6 +17,7 @@ namespace Superorganism.Entities
 		{
 			Strategy = Strategy.Random360FlyingMovement;
             StrategyHistory.Add((Strategy.Random360FlyingMovement, 0, 0));
+            Color = Color.White;
         }
 		public override EntityStatus EntityStatus { get; set; } = new ()
 		{

@@ -98,18 +98,25 @@ namespace Superorganism.Core.Managers
             {
                 if (_enemyCollisionTimer <= 0)
                 {
-                    _entityManager.ApplyEnemyDamage();
-                    _audioManager.PlayFliesDestroy();
-                    _enemyCollisionTimer = EnemyCollisionInterval;
-                    System.Diagnostics.Debug.WriteLine($"Enemy collision: Applied damage, Timer reset to {EnemyCollisionInterval}");
+                    if (!_entityManager.IsPlayerInvincible) // Only apply damage if not invincible
+                    {
+                        _entityManager.ApplyEnemyDamage();
+                        _audioManager.PlayFliesDestroy();
+                        _enemyCollisionTimer = EnemyCollisionInterval;
+                        System.Diagnostics.Debug.WriteLine($"Enemy collision: Applied damage, Timer reset to {EnemyCollisionInterval}");
+                    }
                 }
                 else
                 {
-                    // Still colliding but timer active, ensure visual feedback
-                    _entityManager.ResetEntityColors();
-                    System.Diagnostics.Debug.WriteLine($"Enemy collision: Timer active {_enemyCollisionTimer}, no damage");
+                    // Ensure visual feedback only if not invincible
+                    if (!_entityManager.IsPlayerInvincible)
+                    {
+                        _entityManager.ResetEntityColors();
+                        System.Diagnostics.Debug.WriteLine($"Enemy collision: Timer active {_enemyCollisionTimer}, no damage");
+                    }
                 }
             }
+
 
             // Handle fly collisions
             if (_entityManager.CheckFlyCollisions())
