@@ -37,9 +37,8 @@ namespace Superorganism.Core.Managers
         {
             // Debug output
             System.Diagnostics.Debug.WriteLine($"Drawing health bar - Current: {currentHealth}, Max: {maxHealth}");
-
             const int barWidth = 200;
-            const int barHeight = 20;
+            const int barHeight =30;
             const int barX = 20;
             const int barY = 20;
 
@@ -62,8 +61,13 @@ namespace Superorganism.Core.Managers
 
             // Draw health text
             string healthText = $"{currentHealth}/{maxHealth}";
-            Vector2 textPosition = new(barX + barWidth + 10, barY);
-            DrawTextWithShadow(healthText, textPosition, Color.White);
+            float textScale = 0.55f;
+            Vector2 textSize = _gameFont.MeasureString(healthText) * textScale;
+            Vector2 textPosition = new(
+                barX + (barWidth - textSize.X) / 2,
+                barY + (barHeight - textSize.Y) / 2
+            );
+            DrawTextWithShadow(healthText, textPosition, Color.White, textScale);
         }
 
         public void DrawCropsLeft(int cropsLeft)
