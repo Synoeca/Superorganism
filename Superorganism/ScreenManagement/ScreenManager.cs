@@ -2,9 +2,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Superorganism.Entities;
 
-namespace Superorganism.StateManagement
+namespace Superorganism.ScreenManagement
 {
     /// <summary>
     /// The ScreenManager is a component which manages one or more GameScreen instance.

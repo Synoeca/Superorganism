@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 
-namespace Superorganism.StateManagement
+namespace Superorganism.ScreenManagement
 {
     /// <summary>
     /// A screen is a single layer of game content that has

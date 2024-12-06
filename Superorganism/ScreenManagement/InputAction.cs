@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace Superorganism.StateManagement
+namespace Superorganism.ScreenManagement
 {
     /// <summary>
     /// Defines an action that is designated by some set of buttons and/or keys.

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Superorganism.StateManagement;
+using Superorganism.ScreenManagement;
 
 namespace Superorganism.Screens;
 

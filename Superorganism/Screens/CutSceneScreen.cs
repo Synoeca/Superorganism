@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
-using Superorganism.StateManagement;
+using Superorganism.ScreenManagement;
 
 namespace Superorganism.Screens
 {
