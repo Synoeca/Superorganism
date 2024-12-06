@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
@@ -39,15 +34,15 @@ namespace Superorganism.Entities
 
 		public SoundEffect MoveSound { get; set; }
 		public SoundEffect JumpSound { get; set; }
-		private float _soundTimer = 0f;
-		private const float MOVE_SOUND_INTERVAL = 0.25f;
-		private const float SHIFT_MOVE_SOUND_INTERVAL = 0.15f;
+		private float _soundTimer;
+		private const float MoveSoundInterval = 0.25f;
+		private const float ShiftMoveSoundInterval = 0.15f;
 
 		private float GetMoveSoundInterval()
 		{
 			return (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
-				? SHIFT_MOVE_SOUND_INTERVAL
-				: MOVE_SOUND_INTERVAL;
+				? ShiftMoveSoundInterval
+				: MoveSoundInterval;
 		}
 
 		private void PlayMoveSound(GameTime gameTime)

@@ -4,18 +4,11 @@ using Microsoft.Xna.Framework.Media;
 
 namespace Superorganism.Core.Managers
 {
-    public class GameAudioManager
+    public class GameAudioManager(ContentManager content)
     {
-        private readonly SoundEffect _cropPickup;
-        private readonly SoundEffect _fliesDestroy;
-        private readonly Song _backgroundMusic;
-
-        public GameAudioManager(ContentManager content)
-        {
-            _cropPickup = content.Load<SoundEffect>("Pickup_Coin4");
-            _fliesDestroy = content.Load<SoundEffect>("damaged");
-            _backgroundMusic = content.Load<Song>("MaxBrhon_Cyberpunk");
-        }
+        private readonly SoundEffect _cropPickup = content.Load<SoundEffect>("Pickup_Coin4");
+        private readonly SoundEffect _fliesDestroy = content.Load<SoundEffect>("damaged");
+        private readonly Song _backgroundMusic = content.Load<Song>("MaxBrhon_Cyberpunk");
 
         public void Initialize(float soundEffectVolume, float musicVolume)
         {
