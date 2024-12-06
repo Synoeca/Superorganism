@@ -33,6 +33,7 @@ namespace Superorganism.Screens
 
         public override void Activate()
         {
+            DecisionMaker.GameStartTime = DateTime.Now;
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
             InitializeComponents();
         }

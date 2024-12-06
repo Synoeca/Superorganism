@@ -19,6 +19,7 @@ namespace Superorganism.AI
 		public static List<Entity> Entities { get; set; } = [];
 		public static Strategy Strategy { get; set; }
 		public static int GroundY { get; set; }
+        public static DateTime GameStartTime { get; set; }
 
 		private static double GetNewDirectionInterval()
 		{
@@ -34,7 +35,7 @@ namespace Superorganism.AI
             if (strategy != newStrategy)
             {
                 strategy = newStrategy;
-                double currentTime = gameTime.TotalGameTime.TotalSeconds;
+                double currentTime = (DateTime.Now - GameStartTime).TotalSeconds;
                 strategyHistory.Add((newStrategy, currentTime, currentTime));
             }
         }
@@ -43,7 +44,7 @@ namespace Superorganism.AI
         {
             if (!strategyHistory.Any()) return 0;
             (Strategy Strategy, double StartTime, double LastActionTime) lastEntry = strategyHistory[^1];
-            return gameTime.TotalGameTime.TotalSeconds - lastEntry.LastActionTime;
+            return (DateTime.Now - GameStartTime).TotalSeconds - lastEntry.LastActionTime;
         }
 
         private static Vector2? GetLastTargetPosition(List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, GameTime gameTime)
@@ -286,7 +287,7 @@ namespace Superorganism.AI
                 {
                     velocity.X = -velocity.X; // Reverse direction
                     (Strategy Strategy, double StartTime, double LastActionTime) current = strategyHistory[^1];
-                    strategyHistory[^1] = (current.Strategy, current.StartTime, gameTime.TotalGameTime.TotalSeconds);
+                    strategyHistory[^1] = (current.Strategy, current.StartTime, (DateTime.Now - GameStartTime).TotalSeconds);
                 }
 
                 // Update position
