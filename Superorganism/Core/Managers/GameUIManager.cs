@@ -61,7 +61,7 @@ namespace Superorganism.Core.Managers
 
             // Draw health text
             string healthText = $"{currentHealth}/{maxHealth}";
-            float textScale = 0.55f;
+            const float textScale = 0.55f;
             Vector2 textSize = _gameFont.MeasureString(healthText) * textScale;
             Vector2 textPosition = new(
                 barX + (barWidth - textSize.X) / 2,
@@ -73,12 +73,13 @@ namespace Superorganism.Core.Managers
         public void DrawCropsLeft(int cropsLeft)
         {
             string cropsLeftText = $"Crops Left: {cropsLeft}";
-            Vector2 textSize = _gameFont.MeasureString(cropsLeftText);
+            float textScale = 0.75f; // Match health bar text scale
+            Vector2 textSize = _gameFont.MeasureString(cropsLeftText) * textScale;
             Vector2 textPosition = new(
                 _spriteBatch.GraphicsDevice.Viewport.Width - textSize.X - 20,
                 20
             );
-            DrawTextWithShadow(cropsLeftText, textPosition, Color.White);
+            DrawTextWithShadow(cropsLeftText, textPosition, Color.White, textScale);
         }
 
         public void DrawEnemyDebugInfo(
