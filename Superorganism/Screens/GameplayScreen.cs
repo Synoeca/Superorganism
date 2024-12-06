@@ -15,7 +15,7 @@ namespace Superorganism.Screens
     {
         // Core components
         public GameStateManager GameState;
-        private GameUIManager _uiManager;
+        private GameUiManager _uiManager;
         private Camera2D _camera;
         private GroundSprite _groundTexture;
 
@@ -57,7 +57,7 @@ namespace Superorganism.Screens
             );
 
             // Initialize UI
-            _uiManager = new GameUIManager(
+            _uiManager = new GameUiManager(
                 _content.Load<SpriteFont>("gamefont"),
                 ScreenManager.SpriteBatch
             );
@@ -74,7 +74,7 @@ namespace Superorganism.Screens
         {
             if (GameState.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
             {
-                GameState.PauseAudio();
+                GameState.PauseMusic();
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
             }
@@ -95,6 +95,7 @@ namespace Superorganism.Screens
 
             GameState.Update(gameTime);
             _camera.Update(GameState.GetPlayerPosition(), gameTime);
+            UpdatePauseAlpha(gameTime, coveredByOtherScreen); // Pass coveredByOtherScreen
         }
 
         public override void Draw(GameTime gameTime)
@@ -149,11 +150,15 @@ namespace Superorganism.Screens
 
             spriteBatch.End();
 
-            if (TransitionPosition > 0 || _pauseAlpha > 0)
-            {
-                float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
-                ScreenManager.FadeBackBufferToBlack(alpha);
-            }
+            if (!(TransitionPosition > 0) && !(_pauseAlpha > 0)) return;
+            float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
+            ScreenManager.FadeBackBufferToBlack(alpha);
+        }
+
+        private void UpdatePauseAlpha(GameTime gameTime, bool coveredByOtherScreen)
+        {
+            _pauseAlpha = coveredByOtherScreen ? 
+                Math.Min(_pauseAlpha + 0.05f, 1.0f) : Math.Max(_pauseAlpha - 0.05f, 0f);
         }
 
         public override void Unload()

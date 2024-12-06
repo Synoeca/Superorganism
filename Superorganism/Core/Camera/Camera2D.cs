@@ -4,49 +4,35 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Superorganism.Core.Camera
 {
-    public class Camera2D
+    public class Camera2D(GraphicsDevice graphicsDevice, float baseZoom)
     {
-        private Vector2 _position;
-        private readonly float _baseZoom;
-        private float _currentZoom;
-        private float _targetZoom;
+        private Vector2 _position = Vector2.Zero;
+        private readonly float _baseZoom = baseZoom;
+        private float _currentZoom = InitialZoom;
+        private float _targetZoom = baseZoom;
         private float _rotation;
         private float _shakeIntensity;
         private float _shakeTimer;
         private bool _isShaking;
-        private Vector2 _focusTarget;
+        private Vector2 _focusTarget = Vector2.Zero;
         private bool _isTransitioning;
         private float _transitionTimer;
-        private readonly GraphicsDevice _graphicsDevice;
-        private Matrix _transformMatrix;
-        private readonly Random _random;
+        private readonly Random _random = new();
 
         // Constants for effects
-        private const float ZOOM_SPEED = 2f;
-        private const float MAX_SHAKE_INTENSITY = 15f;
-        private const float SHAKE_DECAY = 0.95f;
-        private const float TRANSITION_SPEED = 3f;
-        private const float INITIAL_ZOOM = 0.2f;
+        private const float ZoomSpeed = 2f;
+        private const float MaxShakeIntensity = 15f;
+        private const float ShakeDecay = 0.95f;
+        private const float TransitionSpeed = 3f;
+        private const float InitialZoom = 0.2f;
 
-        public Matrix TransformMatrix => _transformMatrix;
-
-        public Camera2D(GraphicsDevice graphicsDevice, float baseZoom)
-        {
-            _graphicsDevice = graphicsDevice;
-            _baseZoom = baseZoom;
-            _currentZoom = INITIAL_ZOOM;
-            _targetZoom = baseZoom;
-            _random = new Random();
-            _position = Vector2.Zero;
-            _focusTarget = Vector2.Zero;
-            _transformMatrix = Matrix.Identity;
-        }
+        public Matrix TransformMatrix { get; private set; } = Matrix.Identity;
 
         public void Initialize(Vector2 startPosition)
         {
             _position = startPosition;
             _focusTarget = startPosition;
-            _currentZoom = INITIAL_ZOOM;
+            _currentZoom = InitialZoom;
             _targetZoom = _baseZoom;
             UpdateTransformMatrix();
         }
@@ -54,7 +40,7 @@ namespace Superorganism.Core.Camera
         public void StartShake(float intensity)
         {
             _isShaking = true;
-            _shakeIntensity = Math.Min(intensity * MAX_SHAKE_INTENSITY, MAX_SHAKE_INTENSITY);
+            _shakeIntensity = Math.Min(intensity * MaxShakeIntensity, MaxShakeIntensity);
             _shakeTimer = 0;
         }
 
@@ -73,14 +59,14 @@ namespace Superorganism.Core.Camera
             // Handle initial zoom out effect
             if (_currentZoom < _targetZoom)
             {
-                _currentZoom = MathHelper.Lerp(_currentZoom, _targetZoom, ZOOM_SPEED * deltaTime);
+                _currentZoom = MathHelper.Lerp(_currentZoom, _targetZoom, ZoomSpeed * deltaTime);
             }
 
             // Handle transition to target
             if (_isTransitioning)
             {
                 _transitionTimer += deltaTime;
-                float progress = Math.Min(_transitionTimer * TRANSITION_SPEED, 1f);
+                float progress = Math.Min(_transitionTimer * TransitionSpeed, 1f);
                 _position = Vector2.Lerp(_position, _focusTarget, progress);
 
                 if (progress >= 1f)
@@ -100,7 +86,7 @@ namespace Superorganism.Core.Camera
             if (_isShaking)
             {
                 _shakeTimer += deltaTime;
-                _shakeIntensity *= SHAKE_DECAY;
+                _shakeIntensity *= ShakeDecay;
 
                 if (_shakeIntensity > 0.1f)
                 {
@@ -122,11 +108,11 @@ namespace Superorganism.Core.Camera
         private void UpdateTransformMatrix(Vector2 shakeOffset = default)
         {
             Vector2 screenCenter = new(
-                _graphicsDevice.Viewport.Width * 0.5f,
-                _graphicsDevice.Viewport.Height * 0.5f
+                graphicsDevice.Viewport.Width * 0.5f,
+                graphicsDevice.Viewport.Height * 0.5f
             );
 
-            _transformMatrix =
+            TransformMatrix =
                 Matrix.CreateTranslation(new Vector3(-_position - shakeOffset, 0.0f)) *
                 Matrix.CreateRotationZ(_rotation) *
                 Matrix.CreateScale(_currentZoom) *

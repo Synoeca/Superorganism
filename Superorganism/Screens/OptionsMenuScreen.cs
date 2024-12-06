@@ -12,15 +12,8 @@ namespace Superorganism.Screens
     // in various hopefully useful ways.
     public class OptionsMenuScreen : MenuScreen
     {
-        private enum Ungulate
-        {
-            BactrianCamel,
-            Dromedary,
-            Llama,
-        }
-
-        private MenuEntry _backgroundMusicVolumeEntry;
-        private MenuEntry _soundEffectVolumeEntry;
+        private readonly MenuEntry _backgroundMusicVolumeEntry;
+        private readonly MenuEntry _soundEffectVolumeEntry;
 
         public static float BackgroundMusicVolume { get; private set; } = 0.05f;
 
