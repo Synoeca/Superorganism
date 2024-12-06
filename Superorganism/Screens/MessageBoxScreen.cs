@@ -1,70 +1,72 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Superorganism.StateManagement;
+using Superorganism.ScreenManagement;
 
 namespace Superorganism.Screens
 {
-    // A popup message box screen, used to display "are you sure?" confirmation messages.
     public class MessageBoxScreen : GameScreen
     {
         private readonly string _message;
-        private Texture2D _gradientTexture;
+        private readonly string _confirmText;
+        private readonly string _cancelText;
+        private Texture2D _backgroundTexture;
+        private Vector2 _padding = new(40, 24);
+        private Color _backgroundColor = new(0, 0, 0, 230);
+        private Color _textColor = Color.White;
+        private Color _selectedColor = Color.Yellow;
+        private bool _isConfirmSelected = true;
+
         private readonly InputAction _menuSelect;
         private readonly InputAction _menuCancel;
+        private readonly InputAction _menuLeft;
+        private readonly InputAction _menuRight;
 
         public event EventHandler<PlayerIndexEventArgs> Accepted;
         public event EventHandler<PlayerIndexEventArgs> Cancelled;
 
-        // Constructor lets the caller specify whether to include the standard
-        // "A=ok, B=cancel" usage text prompt.
-        public MessageBoxScreen(string message, bool includeUsageText = true)
+        public MessageBoxScreen(string message, string confirmText = "OK", string cancelText = "Cancel")
         {
-            const string usageText = "\nA button, Space, Enter = ok" +
-                                     "\nB button, Backspace = cancel";
-
-            if (includeUsageText)
-                _message = message + usageText;
-            else
-                _message = message;
-
+            _message = message;
+            _confirmText = confirmText;
+            _cancelText = cancelText;
             IsPopup = true;
+            TransitionOnTime = TimeSpan.FromSeconds(0.15);
+            TransitionOffTime = TimeSpan.FromSeconds(0.15);
 
-            TransitionOnTime = TimeSpan.FromSeconds(0.2);
-            TransitionOffTime = TimeSpan.FromSeconds(0.2);
-
-            _menuSelect = new InputAction(
-                new[] { Buttons.A, Buttons.Start },
-                new[] { Keys.Enter, Keys.Space }, true);
-            _menuCancel = new InputAction(
-                new[] { Buttons.B, Buttons.Back },
-                new[] { Keys.Back, Keys.Escape }, true);
+            _menuSelect = new InputAction([Buttons.A, Buttons.Start], 
+                [Keys.Enter, Keys.Space], true);
+            _menuCancel = new InputAction([Buttons.B, Buttons.Back], 
+                [Keys.Back, Keys.Escape], true);
+            _menuLeft = new InputAction([Buttons.DPadLeft, Buttons.LeftThumbstickLeft], 
+                [Keys.Left], true);
+            _menuRight = new InputAction([Buttons.DPadRight, Buttons.LeftThumbstickRight], 
+                [Keys.Right], true);
         }
 
-        // Loads graphics content for this screen. This uses the shared ContentManager
-        // provided by the Game class, so the content will remain loaded forever.
-        // Whenever a subsequent MessageBoxScreen tries to load this same content,
-        // it will just get back another reference to the already loaded data.
         public override void Activate()
         {
-            ContentManager content = ScreenManager.Game.Content;
-                _gradientTexture = content.Load<Texture2D>("gradient");
+            GraphicsDevice graphics = ScreenManager.GraphicsDevice;
+            _backgroundTexture = new Texture2D(graphics, 1, 1);
+            _backgroundTexture.SetData([Color.White]);
         }
 
         public override void HandleInput(GameTime gameTime, InputState input)
         {
             PlayerIndex playerIndex;
 
-            // We pass in our ControllingPlayer, which may either be null (to
-            // accept input from any player) or a specific index. If we pass a null
-            // controlling player, the InputState helper returns to us which player
-            // actually provided the input. We pass that through to our Accepted and
-            // Cancelled events, so they can tell which player triggered them.
-            if (_menuSelect.Occurred(input, ControllingPlayer, out playerIndex))
+            if (_menuLeft.Occurred(input, ControllingPlayer, out playerIndex) ||
+                _menuRight.Occurred(input, ControllingPlayer, out playerIndex))
             {
-                Accepted?.Invoke(this, new PlayerIndexEventArgs(playerIndex));
+                _isConfirmSelected = !_isConfirmSelected;
+            }
+            else if (_menuSelect.Occurred(input, ControllingPlayer, out playerIndex))
+            {
+                if (_isConfirmSelected)
+                    Accepted?.Invoke(this, new PlayerIndexEventArgs(playerIndex));
+                else
+                    Cancelled?.Invoke(this, new PlayerIndexEventArgs(playerIndex));
                 ExitScreen();
             }
             else if (_menuCancel.Occurred(input, ControllingPlayer, out playerIndex))
@@ -79,30 +81,49 @@ namespace Superorganism.Screens
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
             SpriteFont font = ScreenManager.Font;
 
-            // Darken down any other screens that were drawn beneath the popup.
-            ScreenManager.FadeBackBufferToBlack(TransitionAlpha * 2 / 3);
+            ScreenManager.FadeBackBufferToBlack(TransitionAlpha * 0.7f);
 
-            // Center the message text in the viewport.
             Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
-            Vector2 viewportSize = new Vector2(viewport.Width, viewport.Height);
-            Vector2 textSize = font.MeasureString(_message);
-            Vector2 textPosition = (viewportSize - textSize) / 2;
+            Vector2 messageSize = font.MeasureString(_message);
+            float buttonTextSize = Math.Max(
+                font.MeasureString(_confirmText).X,
+                font.MeasureString(_cancelText).X
+            );
 
-            // The background includes a border somewhat larger than the text itself.
-            const int hPad = 32;
-            const int vPad = 16;
+            float boxWidth = Math.Max(messageSize.X, buttonTextSize * 2.5f) + _padding.X * 2;
+            float boxHeight = messageSize.Y + font.LineSpacing * 2 + _padding.Y * 2;
 
-            Rectangle backgroundRectangle = new Rectangle((int)textPosition.X - hPad,
-                (int)textPosition.Y - vPad, (int)textSize.X + hPad * 2, (int)textSize.Y + vPad * 2);
+            Vector2 boxPosition = new(
+                (viewport.Width - boxWidth) / 2,
+                (viewport.Height - boxHeight) / 2
+            );
 
-            Color color = Color.White * TransitionAlpha;    // Fade the popup alpha during transitions
+            Vector2 messagePosition = new(
+                boxPosition.X + _padding.X,
+                boxPosition.Y + _padding.Y
+            );
 
             spriteBatch.Begin();
 
-            spriteBatch.Draw(_gradientTexture, backgroundRectangle, color);
-            spriteBatch.DrawString(font, _message, textPosition, color);
+            Rectangle boxRect = new((int)boxPosition.X, (int)boxPosition.Y, (int)boxWidth, (int)boxHeight);
+            DrawRoundedRect(spriteBatch, boxRect, _backgroundColor * TransitionAlpha);
+            spriteBatch.DrawString(font, _message, messagePosition, _textColor * TransitionAlpha);
+
+            float buttonY = boxPosition.Y + boxHeight - font.LineSpacing - _padding.Y;
+            DrawButton(spriteBatch, font, _confirmText, new Vector2(boxPosition.X + boxWidth * 0.3f, buttonY), _isConfirmSelected);
+            DrawButton(spriteBatch, font, _cancelText, new Vector2(boxPosition.X + boxWidth * 0.7f, buttonY), !_isConfirmSelected);
 
             spriteBatch.End();
         }
+
+        private void DrawButton(SpriteBatch spriteBatch, SpriteFont font, string text, Vector2 position, bool isSelected)
+        {
+            Vector2 size = font.MeasureString(text);
+            position.X -= size.X / 2;
+            spriteBatch.DrawString(font, text, position, (isSelected ? _selectedColor : _textColor) * TransitionAlpha);
+        }
+
+        private void DrawRoundedRect(SpriteBatch spriteBatch, Rectangle rect, Color color) =>
+            spriteBatch.Draw(_backgroundTexture, rect, color);
     }
 }
