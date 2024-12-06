@@ -16,7 +16,8 @@ namespace Superorganism.Entities
 	    {
 		    IsSpriteAtlas = true;
 		    HasDirection = false;
-	    }
+            Color = Color.White;
+        }
 
 	    public int HitPoints { get; set; } = 100;
 
