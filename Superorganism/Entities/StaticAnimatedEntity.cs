@@ -31,13 +31,17 @@ namespace Superorganism.Entities
 		}
 
 		public void DrawAnimation(SpriteBatch spriteBatch)
-		{
-			if (IsSpriteAtlas)
-			{
-				Rectangle source = new((AnimationFrame * TextureInfo.TextureWidth) / TextureInfo.NumOfSpriteCols, DirectionIndex, TextureInfo.UnitTextureWidth, TextureInfo.UnitTextureHeight);
-				spriteBatch.Draw(Texture, Position, source, Color.White);
-			}
-		}
+        {
+            switch (IsSpriteAtlas)
+            {
+                case true:
+                {
+                    Rectangle source = new((AnimationFrame * TextureInfo.TextureWidth) / TextureInfo.NumOfSpriteCols, DirectionIndex, TextureInfo.UnitTextureWidth, TextureInfo.UnitTextureHeight);
+                    spriteBatch.Draw(Texture, Position, source, Color.White);
+                    break;
+                }
+            }
+        }
 
 		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{

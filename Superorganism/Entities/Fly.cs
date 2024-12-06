@@ -1,13 +1,6 @@
 ﻿using Superorganism.Collisions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
 using Superorganism.AI;
 using Superorganism.Common;
-using Superorganism.Enums;
 
 namespace Superorganism.Entities
 {
