@@ -95,6 +95,7 @@ namespace Superorganism.Screens
 
             GameState.Update(gameTime);
             _camera.Update(GameState.GetPlayerPosition(), gameTime);
+            UpdatePauseAlpha(gameTime, coveredByOtherScreen); // Pass coveredByOtherScreen
         }
 
         public override void Draw(GameTime gameTime)
@@ -149,11 +150,15 @@ namespace Superorganism.Screens
 
             spriteBatch.End();
 
-            if (TransitionPosition > 0 || _pauseAlpha > 0)
-            {
-                float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
-                ScreenManager.FadeBackBufferToBlack(alpha);
-            }
+            if (!(TransitionPosition > 0) && !(_pauseAlpha > 0)) return;
+            float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
+            ScreenManager.FadeBackBufferToBlack(alpha);
+        }
+
+        private void UpdatePauseAlpha(GameTime gameTime, bool coveredByOtherScreen)
+        {
+            _pauseAlpha = coveredByOtherScreen ? 
+                Math.Min(_pauseAlpha + 0.05f, 1.0f) : Math.Max(_pauseAlpha - 0.05f, 0f);
         }
 
         public override void Unload()

@@ -7,23 +7,13 @@ namespace Superorganism.Screens
     // just draws the entry text string, but it can be customized to display menu
     // entries in different ways. This also provides an event that will be raised
     // when the menu entry is selected.
-    public class MenuEntry
+    public class MenuEntry(string text)
     {
-        private string _text;
         private float _selectionFade;    // Entries transition out of the selection effect when they are deselected
-        private Vector2 _position;    // This is set by the MenuScreen each frame in Update
 
-        public string Text
-        {
-            get => _text;
-            set => _text = value;
-        }
+        public string Text { get; set; } = text;
 
-        public Vector2 Position
-        {
-            get => _position;
-            set => _position = value;
-        }
+        public Vector2 Position { get; set; }
 
         public event EventHandler<PlayerIndexEventArgs> AdjustValue;
         protected internal virtual void OnAdjustValue(int direction, PlayerIndex playerIndex)
@@ -37,11 +27,6 @@ namespace Superorganism.Screens
             Selected?.Invoke(this, new PlayerIndexEventArgs(playerIndex));
         }
 
-        public MenuEntry(string text)
-        {
-            _text = text;
-        }
-
         public virtual void Update(MenuScreen screen, bool isSelected, GameTime gameTime)
         {
             // When the menu selection changes, entries gradually fade between
@@ -49,10 +34,8 @@ namespace Superorganism.Screens
             // popping to the new state.
             float fadeSpeed = (float)gameTime.ElapsedGameTime.TotalSeconds * 4;
 
-            if (isSelected)
-                _selectionFade = Math.Min(_selectionFade + fadeSpeed, 1);
-            else
-                _selectionFade = Math.Max(_selectionFade - fadeSpeed, 0);
+            _selectionFade = isSelected ? 
+                Math.Min(_selectionFade + fadeSpeed, 1) : Math.Max(_selectionFade - fadeSpeed, 0);
         }
 
         public virtual int GetHeight(MenuScreen screen)

@@ -14,7 +14,7 @@ namespace Superorganism.AI
 		private static readonly Random Rand = new();
         private static Vector2 _lastKnownTargetPosition;
         private static Strategy _targetStrategy;
-        private const float TRANSITION_DURATION = 1.0f; // 1 second pause
+        private const float TransitionDuration = 1.0f; // 1 second pause
         public static GameTime GameTime { get; set; }
 		public static List<Entity> Entities { get; set; } = [];
 		public static Strategy Strategy { get; set; }
@@ -95,45 +95,30 @@ namespace Superorganism.AI
             {
                 case Strategy.RandomFlyingMovement:
                 {
-                    // Original 4-direction movement logic
                     directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
                     if (directionTimer > directionInterval)
                     {
-                        switch (direction)
+                        direction = direction switch
                         {
-                            case Direction.Up:
-                                direction = Direction.Down;
-                                break;
-                            case Direction.Down:
-                                direction = Direction.Right;
-                                break;
-                            case Direction.Right:
-                                direction = Direction.Left;
-                                break;
-                            case Direction.Left:
-                                direction = Direction.Up;
-                                break;
-                        }
+                            Direction.Up => Direction.Down,
+                            Direction.Down => Direction.Right,
+                            Direction.Right => Direction.Left,
+                            Direction.Left => Direction.Up,
+                            _ => direction
+                        };
                         directionTimer -= directionInterval;
                         directionInterval = GetNewDirectionInterval(); // Randomize next interval
                     }
 
                     // Update velocity and ensure direction matches velocity
-                    switch (direction)
+                    velocity = direction switch
                     {
-                        case Direction.Up:
-                            velocity = new Vector2(0, -1) * (entityStatus.Agility * 100);
-                            break;
-                        case Direction.Down:
-                            velocity = new Vector2(0, 1) * (entityStatus.Agility * 100);
-                            break;
-                        case Direction.Left:
-                            velocity = new Vector2(-1, 0) * (entityStatus.Agility * 100);
-                            break;
-                        case Direction.Right:
-                            velocity = new Vector2(1, 0) * (entityStatus.Agility * 100);
-                            break;
-                    }
+                        Direction.Up => new Vector2(0, -1) * (entityStatus.Agility * 100),
+                        Direction.Down => new Vector2(0, 1) * (entityStatus.Agility * 100),
+                        Direction.Left => new Vector2(-1, 0) * (entityStatus.Agility * 100),
+                        Direction.Right => new Vector2(1, 0) * (entityStatus.Agility * 100),
+                        _ => velocity
+                    };
 
                     // Update position using velocity and elapsed time
                     position += velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -224,29 +209,35 @@ namespace Superorganism.AI
                         velocity.Y = 0;
                     }
 
-                    // Handle screen bounds
-                    if (position.X <= 100)
+                    switch (position.X)
                     {
-                        velocity.X = Math.Abs(velocity.X);
-                        position.X = 100;
-                    }
-                    else if (position.X >= 700)
-                    {
-                        velocity.X = -Math.Abs(velocity.X);
-                        position.X = 700;
+                        // Handle screen bounds
+                        case <= 100:
+                            velocity.X = Math.Abs(velocity.X);
+                            position.X = 100;
+                            break;
+                        case >= 700:
+                            velocity.X = -Math.Abs(velocity.X);
+                            position.X = 700;
+                            break;
                     }
 
                     // Check for transition to chase
                     foreach (Entity entity in Entities)
                     {
-                        if (entity is ControllableEntity { IsControlled: true } controllableEntity)
+                        switch (entity)
                         {
-                            float distance = Vector2.Distance(position, controllableEntity.Position);
-                            if (distance < 100)
+                            case ControllableEntity { IsControlled: true } controllableEntity:
                             {
-                                TransitionToStrategy(ref strategy, Strategy.ChaseEnemy, ref strategyHistory, gameTime);
-                                _lastKnownTargetPosition = controllableEntity.Position;
-                                return; // Exit early during transition
+                                float distance = Vector2.Distance(position, controllableEntity.Position);
+                                if (distance < 100)
+                                {
+                                    TransitionToStrategy(ref strategy, Strategy.ChaseEnemy, ref strategyHistory, gameTime);
+                                    _lastKnownTargetPosition = controllableEntity.Position;
+                                    return; // Exit early during transition
+                                }
+
+                                break;
                             }
                         }
                     }
@@ -264,14 +255,19 @@ namespace Superorganism.AI
                     // Find the closest controlled entity
                     foreach (Entity entity in Entities)
                     {
-                        if (entity is ControllableEntity { IsControlled: true } controllableEntity)
+                        switch (entity)
                         {
-                            float distance = Vector2.Distance(position, controllableEntity.Position);
-                            if (distance < closestDistance)
+                            case ControllableEntity { IsControlled: true } controllableEntity:
                             {
-                                closestDistance = distance;
-                                targetPosition = controllableEntity.Position;
-                                _lastKnownTargetPosition = controllableEntity.Position;
+                                float distance = Vector2.Distance(position, controllableEntity.Position);
+                                if (distance < closestDistance)
+                                {
+                                    closestDistance = distance;
+                                    targetPosition = controllableEntity.Position;
+                                    _lastKnownTargetPosition = controllableEntity.Position;
+                                }
+
+                                break;
                             }
                         }
                     }
@@ -311,7 +307,7 @@ namespace Superorganism.AI
                     velocity.Y += 0.5f; // Keep gravity
 
                     // After 1 second, change to target strategy
-                    if (currentStrategyDuration >= TRANSITION_DURATION)
+                    if (currentStrategyDuration >= TransitionDuration)
                     {
                         AddStrategyToHistory(ref strategy, _targetStrategy, ref strategyHistory, gameTime);
                         if (_targetStrategy == Strategy.Patrol)

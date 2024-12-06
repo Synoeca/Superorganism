@@ -23,7 +23,7 @@ namespace Superorganism.Entities
 
         protected bool UseRotation { get; set; }
         protected float Rotation { get; set; }
-        protected const float ROTATION_SMOOTHING = 0.05f;
+        protected const float RotationSmoothing = 0.05f;
 
         protected virtual void UpdateRotation()
         {
@@ -61,7 +61,7 @@ namespace Superorganism.Entities
                         }
 
                         // Smooth rotation transition
-                        Rotation = MathHelper.Lerp(Rotation, targetRotation, ROTATION_SMOOTHING);
+                        Rotation = MathHelper.Lerp(Rotation, targetRotation, RotationSmoothing);
                     }
                     else
                     {

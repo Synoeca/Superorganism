@@ -16,10 +16,7 @@ namespace Superorganism.Screens
 		{
 			base.Activate();
 
-			if (_content == null)
-			{
-				_content = new ContentManager(ScreenManager.Game.Services, "Content");
-			}
+			_content ??= new ContentManager(ScreenManager.Game.Services, "Content");
 			_background = _content.Load<Texture2D>("splashRev1");
 			_displayTime = TimeSpan.FromSeconds(2);
 		}
