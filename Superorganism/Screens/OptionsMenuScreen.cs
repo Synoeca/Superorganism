@@ -33,7 +33,7 @@ namespace Superorganism.Screens
 
             SetMenuEntryText();
 
-            MenuEntry back = new MenuEntry("Back");
+            MenuEntry back = new("Back");
 
             _backgroundMusicVolumeEntry.Selected += BackgroundMusicVolumeEntrySelected;
             _soundEffectVolumeEntry.Selected += SoundEffectVolumeEntrySelected;
@@ -46,19 +46,23 @@ namespace Superorganism.Screens
             MenuEntries.Add(back);
         }
 
-        // Fills in the latest values for the options screen menu text.
         private void SetMenuEntryText()
         {
-            _backgroundMusicVolumeEntry.Text = $"Background Music Volume: {BackgroundMusicVolume:F2}";
-            _soundEffectVolumeEntry.Text = $"Sound Effect Volume: {SoundEffectVolume:F2}";
+            int backgroundMusicVolumePercent = (int)Math.Round(BackgroundMusicVolume * 100);
+            int soundEffectVolumePercent = (int)Math.Round(SoundEffectVolume * 100);
+
+            _backgroundMusicVolumeEntry.Text = $"Music Volume: {backgroundMusicVolumePercent}";
+            _soundEffectVolumeEntry.Text = $"Sound Effect Volume: {soundEffectVolumePercent}";
         }
 
         private void BackgroundMusicVolumeEntrySelected(object sender, PlayerIndexEventArgs e)
         {
-            if (e.Direction > 0)
-                BackgroundMusicVolume = Math.Min(BackgroundMusicVolume + 0.05f, 1.0f);
-            else if (e.Direction < 0)
-                BackgroundMusicVolume = Math.Max(BackgroundMusicVolume - 0.05f, 0f);
+            BackgroundMusicVolume = e.Direction switch
+            {
+                > 0 => Math.Min(BackgroundMusicVolume + 0.05f, 1.0f),
+                < 0 => Math.Max(BackgroundMusicVolume - 0.05f, 0f),
+                _ => BackgroundMusicVolume
+            };
 
             MediaPlayer.Volume = BackgroundMusicVolume;
             SetMenuEntryText();
@@ -66,10 +70,12 @@ namespace Superorganism.Screens
 
         private void SoundEffectVolumeEntrySelected(object sender, PlayerIndexEventArgs e)
         {
-            if (e.Direction > 0)
-                SoundEffectVolume = Math.Min(SoundEffectVolume + 0.05f, 1.0f);
-            else if (e.Direction < 0)
-                SoundEffectVolume = Math.Max(SoundEffectVolume - 0.05f, 0f);
+            SoundEffectVolume = e.Direction switch
+            {
+                > 0 => Math.Min(SoundEffectVolume + 0.05f, 1.0f),
+                < 0 => Math.Max(SoundEffectVolume - 0.05f, 0f),
+                _ => SoundEffectVolume
+            };
 
             SoundEffect.MasterVolume = SoundEffectVolume;
             SetMenuEntryText();

@@ -2,9 +2,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Superorganism.Entities;
 
-namespace Superorganism.StateManagement
+namespace Superorganism.ScreenManagement
 {
     /// <summary>
     /// The ScreenManager is a component which manages one or more GameScreen instance.
@@ -13,11 +12,11 @@ namespace Superorganism.StateManagement
     /// </summary>
     public class ScreenManager : DrawableGameComponent
     {
-        private readonly List<GameScreen> _screens = new List<GameScreen>();
-        private readonly List<GameScreen> _tmpScreensList = new List<GameScreen>();
+        private readonly List<GameScreen> _screens = [];
+        private readonly List<GameScreen> _tmpScreensList = [];
 
         private readonly ContentManager _content;
-        private readonly InputState _input = new InputState();
+        private readonly InputState _input = new();
 
         private bool _isInitialized;
 
@@ -101,7 +100,7 @@ namespace Superorganism.StateManagement
             while (_tmpScreensList.Count > 0)
             {
                 // Pop the topmost screen 
-                GameScreen screen = _tmpScreensList[_tmpScreensList.Count - 1];
+                GameScreen screen = _tmpScreensList[^1];
                 _tmpScreensList.RemoveAt(_tmpScreensList.Count - 1);
 
                 screen.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);

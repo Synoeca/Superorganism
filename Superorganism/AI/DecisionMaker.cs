@@ -1,12 +1,13 @@
-﻿using Microsoft.Xna.Framework;
-using Superorganism.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Superorganism.Enums;
-using Superorganism.Collisions;
 using System.Linq;
+using Microsoft.Xna.Framework;
+using Superorganism.Collisions;
+using Superorganism.Common;
+using Superorganism.Entities;
+using Superorganism.Enums;
 
-namespace Superorganism
+namespace Superorganism.AI
 {
 	public static class DecisionMaker
 	{

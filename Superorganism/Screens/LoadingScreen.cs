@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Superorganism.StateManagement;
+using Superorganism.ScreenManagement;
 
 namespace Superorganism.Screens
 {
@@ -41,7 +41,7 @@ namespace Superorganism.Screens
                 screen.ExitScreen();
 
             // Create and activate the loading screen.
-            LoadingScreen loadingScreen = new LoadingScreen(screenManager, loadingIsSlow, screensToLoad);
+            LoadingScreen loadingScreen = new(screenManager, loadingIsSlow, screensToLoad);
 
             screenManager.AddScreen(loadingScreen, controllingPlayer);
         }
@@ -94,7 +94,7 @@ namespace Superorganism.Screens
 
                 // Center the text in the viewport.
                 Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
-                Vector2 viewportSize = new Vector2(viewport.Width, viewport.Height);
+                Vector2 viewportSize = new(viewport.Width, viewport.Height);
                 Vector2 textSize = font.MeasureString(message);
                 Vector2 textPosition = (viewportSize - textSize) / 2;
 

@@ -1,9 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 
-namespace Superorganism
+namespace Superorganism.Common
 {
 	public class GroundSprite(GraphicsDevice graphics, int groundY, int groundHeight)
 	{

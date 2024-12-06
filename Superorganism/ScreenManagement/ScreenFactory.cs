@@ -1,7 +1,6 @@
 ﻿using System;
-using Superorganism.StateManagement;
 
-namespace Superorganism
+namespace Superorganism.ScreenManagement
 {
     // Our game's implementation of IScreenFactory which can handle creating the screens
     public class ScreenFactory : IScreenFactory

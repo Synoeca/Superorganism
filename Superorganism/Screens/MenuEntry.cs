@@ -1,7 +1,5 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Superorganism.StateManagement;
 
 namespace Superorganism.Screens
 {
@@ -17,7 +15,7 @@ namespace Superorganism.Screens
 
         public string Text
         {
-            private get => _text;
+            get => _text;
             set => _text = value;
         }
 
@@ -55,34 +53,6 @@ namespace Superorganism.Screens
                 _selectionFade = Math.Min(_selectionFade + fadeSpeed, 1);
             else
                 _selectionFade = Math.Max(_selectionFade - fadeSpeed, 0);
-        }
-
-
-        public virtual void Draw(MenuScreen screen, bool isSelected, GameTime gameTime)
-        {
-            Color textColor = isSelected ? Color.Yellow : Color.White;
-            Color shadowColor = new Color(0, 0, 0);
-            float shadowOffset = 2f;
-
-            double time = gameTime.TotalGameTime.TotalSeconds;
-            float pulsate = (float)Math.Sin(time * 6) + 1;
-            float scale = 1.2f + pulsate * 0.05f * _selectionFade;
-
-            textColor *= screen.TransitionAlpha;
-            shadowColor *= screen.TransitionAlpha;
-
-            ScreenManager screenManager = screen.ScreenManager;
-            SpriteBatch spriteBatch = screenManager.SpriteBatch;
-            SpriteFont font = screenManager.Font;
-            Vector2 origin = new Vector2(0, font.LineSpacing / 2f);
-
-            // Draw shadow
-            spriteBatch.DrawString(font, _text, _position + new Vector2(shadowOffset),
-                shadowColor, 0, origin, scale, SpriteEffects.None, 0);
-
-            // Draw main text
-            spriteBatch.DrawString(font, _text, _position,
-                textColor, 0, origin, scale, SpriteEffects.None, 0);
         }
 
         public virtual int GetHeight(MenuScreen screen)

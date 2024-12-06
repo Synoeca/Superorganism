@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Superorganism.AI;
+using Superorganism.Common;
 
 namespace Superorganism.Entities
 {

@@ -9,7 +9,7 @@ namespace Superorganism.Particle
     /// </summary>
     public static class RandomHelper
     {
-        static Random _random = new Random();
+        static Random _random = new();
 
         /// <summary>
         /// Returns a random integer
