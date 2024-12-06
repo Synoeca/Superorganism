@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 using Superorganism.AI;
 using Superorganism.Common;
 
@@ -14,7 +15,8 @@ namespace Superorganism.Entities
 		{
 			Strategy = Strategy.Patrol;
 			StrategyHistory.Add((Strategy.Patrol, 0, 0));
-		}
+			Color = Color.White;
+        }
 
 		public override EntityStatus EntityStatus { get; set; } = new()
 		{

@@ -81,7 +81,7 @@ namespace Superorganism.Entities
                     ? SpriteEffects.FlipHorizontally
                     : SpriteEffects.None;
 
-                spriteBatch.Draw(Texture, Position, source, Color.White, 0f, Vector2.Zero,
+                spriteBatch.Draw(Texture, Position, source, Color, 0f, Vector2.Zero,
                     TextureInfo.SizeScale, effect, 0f);
             }
             else
@@ -101,7 +101,7 @@ namespace Superorganism.Entities
 
 				SpriteEffects effect = _flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 
-				spriteBatch.Draw(Texture, Position, source, Color.White, 0f, Vector2.Zero,
+				spriteBatch.Draw(Texture, Position, source, Color, 0f, Vector2.Zero,
 					TextureInfo.SizeScale, effect, 0f);
 			}
 		}
