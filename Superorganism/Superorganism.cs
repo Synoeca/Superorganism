@@ -1,27 +1,34 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Superorganism.ScreenManagement;
 using Superorganism.Screens;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace Superorganism;
 
 public class Superorganism : Game
 {
 	private readonly ScreenManager _screenManager;
-	private GraphicsDeviceManager _graphics;
+    public DisplayMode DisplayMode;
+	public GraphicsDeviceManager Graphics;
 
 	public Superorganism()
 	{
-		_graphics = new GraphicsDeviceManager(this);
-		Content.RootDirectory = "Content";
+		Graphics = new GraphicsDeviceManager(this);
+        Content.RootDirectory = "Content";
 		IsMouseVisible = true;
 
 		ScreenFactory screenFactory = new();
 		Services.AddService(typeof(IScreenFactory), screenFactory);
 
-		_screenManager = new ScreenManager(this);
+        DisplayMode = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+
+        _screenManager = new ScreenManager(this);
+		_screenManager.GraphicsDeviceManager = Graphics;
+        _screenManager.DisplayMode = DisplayMode;
 		Components.Add(_screenManager);
 
-		AddInitialScreens();
+        AddInitialScreens();
 	}
 
 	private void AddInitialScreens()

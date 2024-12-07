@@ -37,6 +37,17 @@ namespace Superorganism.ScreenManagement
         public Texture2D BlankTexture { get; private set; }
 
         /// <summary>
+        /// GraphicsDeviceManager for this game
+        /// </summary>
+        public GraphicsDeviceManager GraphicsDeviceManager { get; set; }
+
+
+        /// <summary>
+        /// DisplayMode for this game
+        /// </summary>
+        public DisplayMode DisplayMode { get; set; }
+
+        /// <summary>
         /// Constructs a new ScreenManager
         /// </summary>
         /// <param name="game">The game this ScreenManager belongs to</param>
@@ -146,6 +157,10 @@ namespace Superorganism.ScreenManagement
             screen.ControllingPlayer = controllingPlayer;
             screen.ScreenManager = this;
             screen.IsExiting = false;
+
+            GraphicsDeviceManager.IsFullScreen = true;
+            GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Width;
+            GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Height;
 
             // If we have a graphics device, tell the screen to load content
             if (_isInitialized) screen.Activate();
