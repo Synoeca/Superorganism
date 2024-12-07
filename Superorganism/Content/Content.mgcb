@@ -688,6 +688,18 @@
 /processorParam:TextureFormat=Color
 /build:tiles2.png
 
+#begin Tileset/MapTest.tmx
+/copy:Tileset/MapTest.tmx
+
+#begin Tileset/MapTestRev1.tmx
+/copy:Tileset/MapTestRev1.tmx
+
+#begin Tileset/TestMap.tmx
+/copy:Tileset/TestMap.tmx
+
+#begin Tileset/TestMapRev1.tmx
+/copy:Tileset/TestMapRev1.tmx
+
 #begin Tileset/tileset64.png
 /importer:TextureImporter
 /processor:TextureProcessor

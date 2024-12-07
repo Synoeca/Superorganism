@@ -10,6 +10,8 @@ using Superorganism.AI;
 using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
+using System.IO;
+using System.Reflection.Metadata;
 
 namespace Superorganism.Screens
 {
@@ -22,6 +24,7 @@ namespace Superorganism.Screens
         private GroundSprite _groundTexture;
         private ParallaxBackground _parallaxBackground;
         private Tilemap _tilemap;
+        private Map _map;
 
         // Constants
         private const int GroundY = 400;
@@ -45,6 +48,7 @@ namespace Superorganism.Screens
         private void InitializeComponents()
         {
             _tilemap = new Tilemap("Tileset/map.txt");
+            _map = Map.Load(Path.Combine(_content.RootDirectory, "Tileset/TestMapRev1.tmx"), _content);
 
             // Initialize camera
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
@@ -124,8 +128,10 @@ namespace Superorganism.Screens
             _parallaxBackground.Draw(spriteBatch, _camera.Position);
 
             // Draw other game elements
-            _groundTexture.Draw(spriteBatch);
-            _tilemap.Draw(gameTime, spriteBatch);
+            //_groundTexture.Draw(spriteBatch);
+            //_tilemap.Draw(gameTime, spriteBatch);
+            _map.Draw(spriteBatch, new Rectangle(0, 0, ScreenManager.GraphicsDevice.Viewport.Width, 
+                ScreenManager.GraphicsDevice.Viewport.Height), _camera.Position);
             GameState.Draw(gameTime, spriteBatch);
 
             spriteBatch.End();
