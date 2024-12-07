@@ -159,6 +159,7 @@ namespace Superorganism.ScreenManagement
             screen.IsExiting = false;
 
             GraphicsDeviceManager.IsFullScreen = true;
+            GraphicsDeviceManager.HardwareModeSwitch = false;
             GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Width;
             GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Height;
 

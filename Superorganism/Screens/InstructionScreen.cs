@@ -154,9 +154,20 @@ namespace Superorganism.Screens
 
         private void UpdateEntryLocations()
         {
-            float y = INITIAL_Y;
-            float leftMargin = ScreenManager.GraphicsDevice.Viewport.Width * 0.2f;
-            float viewportWidth = ScreenManager.GraphicsDevice.Viewport.Width;
+            Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
+            float viewportHeight = viewport.Height;
+            float viewportWidth = viewport.Width;
+
+            // Calculate the center of the screen
+            float centerY = viewportHeight / 2f;
+
+            // Calculate total height of all entries
+            float totalHeight = _pages[_currentPage].Count * Y_SPACING;
+
+            // Start position, centered vertically
+            float y = centerY - totalHeight / 2f;
+
+            float leftMargin = viewportWidth * 0.2f;
             float bottomY = y;
 
             // Left-align instructions
@@ -180,6 +191,10 @@ namespace Superorganism.Screens
             Vector2 origin = font.MeasureString(title) / 2;
             const float scale = 1.5f;
             const float shadowOffset = 4f;
+
+            Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
+            (float x, float y) = position;
+            position = new Vector2(viewport.Width / 2f, viewport.Height * 0.1f);
 
             ScreenManager.SpriteBatch.DrawString(font, title,
                 position + new Vector2(shadowOffset),

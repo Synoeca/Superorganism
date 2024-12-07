@@ -18,6 +18,8 @@ public class Superorganism : Game
         Content.RootDirectory = "Content";
 		IsMouseVisible = true;
 
+        Window.IsBorderless = true;
+
 		ScreenFactory screenFactory = new();
 		Services.AddService(typeof(IScreenFactory), screenFactory);
 
