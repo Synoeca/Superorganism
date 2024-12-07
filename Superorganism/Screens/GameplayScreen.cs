@@ -50,12 +50,8 @@ namespace Superorganism.Screens
                 ScreenManager.Game,
                 _content,
                 ScreenManager.GraphicsDevice,
-                _camera
-            );
-
-            GameState.InitializeAudio(
-                OptionsMenuScreen.SoundEffectVolume,
-                OptionsMenuScreen.BackgroundMusicVolume
+                _camera,
+                ScreenManager.GameAudioManager
             );
 
             // Initialize UI
@@ -79,7 +75,7 @@ namespace Superorganism.Screens
         {
             if (GameState.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
             {
-                GameState.PauseMusic();
+                //GameState.PauseMusic();
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
             }

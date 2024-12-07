@@ -25,11 +25,11 @@ namespace Superorganism.Core.Managers
         private double _enemyCollisionTimer;
         private const double EnemyCollisionInterval = 0.2;
 
-        public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera)
+        public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera, GameAudioManager audio)
         {
             DecisionMaker.Entities.Clear();
             _entityManager = new EntityManager(game, content, graphicsDevice);
-            _audioManager = new GameAudioManager(content);
+            _audioManager = audio;
             _camera = camera;
 
             _pauseAction = new InputAction(
@@ -158,12 +158,12 @@ namespace Superorganism.Core.Managers
         public int GetPlayerHealth() => _entityManager.PlayerHealth;
         public int GetPlayerMaxHealth() => _entityManager.PlayerMaxHealth;
         public void ResumeMusic() => _audioManager.ResumeMusic();
-        public void PauseMusic() => _audioManager.PauseMusic();
+        //public void PauseMusic() => _audioManager.PauseMusic();
 
         public void Unload()
         {
             _entityManager.Unload();
-            _audioManager.StopMusic();
+            //_audioManager.StopMusic();
         }
     }
 }

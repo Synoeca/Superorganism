@@ -334,6 +334,282 @@
 /processorParam:Quality=Best
 /build:move.wav
 
+#begin Music/bach_brandenburg_concerto_movement_1.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/bach_brandenburg_concerto_movement_1.ogg
+
+#begin Music/bach_cello_suite_1.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/bach_cello_suite_1.ogg
+
+#begin Music/bach_concerto_for_two_violins_first_movement.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/bach_concerto_for_two_violins_first_movement.ogg
+
+#begin Music/bach_gavotte.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/bach_gavotte.ogg
+
+#begin Music/bach_orchestral_suite_3_air.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/bach_orchestral_suite_3_air.ogg
+
+#begin Music/beethoven_symphony_5_1.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/beethoven_symphony_5_1.ogg
+
+#begin Music/beethoven_symphony_no_9_movement_4.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/beethoven_symphony_no_9_movement_4.ogg
+
+#begin Music/bizet_carmen_aragonaise.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/bizet_carmen_aragonaise.ogg
+
+#begin Music/bizet_carmen_toreador.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/bizet_carmen_toreador.ogg
+
+#begin Music/boccherini_minuet.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/boccherini_minuet.ogg
+
+#begin Music/brahms_hungarian_dance_5.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/brahms_hungarian_dance_5.ogg
+
+#begin Music/chopin_polonaise_military.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/chopin_polonaise_military.ogg
+
+#begin Music/dvorak_symphony_9_4.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/dvorak_symphony_9_4.ogg
+
+#begin Music/elgar_pomp_and_circumstance_march_1.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/elgar_pomp_and_circumstance_march_1.mp3
+
+#begin Music/franz_schubert_marche_militaire.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/franz_schubert_marche_militaire.ogg
+
+#begin Music/geminiani_concerto_grosso.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/geminiani_concerto_grosso.ogg
+
+#begin Music/grieg_peer_gynt_in_the_hall_of_the_mountain_king.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/grieg_peer_gynt_in_the_hall_of_the_mountain_king.ogg
+
+#begin Music/grieg_peer_gynt_overture.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/grieg_peer_gynt_overture.ogg
+
+#begin Music/handel_hallelujah_chorus_from_the_messiah.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/handel_hallelujah_chorus_from_the_messiah.mp3
+
+#begin Music/handel_queen_of_sheba.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/handel_queen_of_sheba.mp3
+
+#begin Music/hummel_rondo.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/hummel_rondo.ogg
+
+#begin Music/liszt_les_preludes.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/liszt_les_preludes.ogg
+
+#begin Music/mazurek_dabrowskiego_polish_national_anthem.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/mazurek_dabrowskiego_polish_national_anthem.ogg
+
+#begin Music/mendelssohn_wedding_march_recessional.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/mendelssohn_wedding_march_recessional.ogg
+
+#begin Music/mm_intro.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/mm_intro.ogg
+
+#begin Music/mozart_eine_kleine_nachtmusik_allegro.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/mozart_eine_kleine_nachtmusik_allegro.ogg
+
+#begin Music/mozart_great_mass_gloria.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/mozart_great_mass_gloria.ogg
+
+#begin Music/pachelbel_canon.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/pachelbel_canon.ogg
+
+#begin Music/rimsky_korsakov_the_flight_of_the_bumble_bee.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/rimsky_korsakov_the_flight_of_the_bumble_bee.ogg
+
+#begin Music/rossini_william_tell_overture.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/rossini_william_tell_overture.ogg
+
+#begin Music/saint_saens_danse_macabre.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/saint_saens_danse_macabre.ogg
+
+#begin Music/strauss_blue_danube_waltz.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/strauss_blue_danube_waltz.ogg
+
+#begin Music/strauss_radetzky_march.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/strauss_radetzky_march.ogg
+
+#begin Music/tchaikovsky_overture_1812.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/tchaikovsky_overture_1812.ogg
+
+#begin Music/vivaldi_autumn_allegro.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/vivaldi_autumn_allegro.ogg
+
+#begin Music/vivaldi_concerto_10_allegro_II.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/vivaldi_concerto_10_allegro_II.ogg
+
+#begin Music/vivaldi_concerto_flute_violin_continuo_allegro.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/vivaldi_concerto_flute_violin_continuo_allegro.ogg
+
+#begin Music/vivaldi_concerto_grosso_8_allegro.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/vivaldi_concerto_grosso_8_allegro.ogg
+
+#begin Music/vivaldi_spring_allegro_2.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/vivaldi_spring_allegro_2.ogg
+
+#begin Music/vivaldi_spring_allegro.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/vivaldi_spring_allegro.ogg
+
+#begin Music/vivaldi_summer_allegro_adagio.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/vivaldi_summer_allegro_adagio.ogg
+
+#begin Music/vivaldi_summer_presto.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/vivaldi_summer_presto.mp3
+
+#begin Music/vivaldi_winter_allegro.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/vivaldi_winter_allegro.ogg
+
+#begin Music/vivaldi_winter_presto.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/vivaldi_winter_presto.ogg
+
+#begin Music/wagner_ride_of_the_valkyries.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/wagner_ride_of_the_valkyries.ogg
+
+#begin Music/william_boyce_sinfonia_1.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/william_boyce_sinfonia_1.mp3
+
 #begin particle.png
 /importer:TextureImporter
 /processor:TextureProcessor
