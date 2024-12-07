@@ -29,8 +29,7 @@ namespace Superorganism.Screens
         /// </summary>
         public override void Activate()
         {
-            if (_content == null)
-                _content = new ContentManager(ScreenManager.Game.Services, "Content");
+            _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
 
             _backgroundTexture = _content.Load<Texture2D>("background");
         }
