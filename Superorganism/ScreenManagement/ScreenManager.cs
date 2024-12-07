@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Superorganism.Core.Managers;
 using Superorganism.Screens;
 
 namespace Superorganism.ScreenManagement
@@ -41,11 +42,15 @@ namespace Superorganism.ScreenManagement
         /// </summary>
         public GraphicsDeviceManager GraphicsDeviceManager { get; set; }
 
-
         /// <summary>
         /// DisplayMode for this game
         /// </summary>
         public DisplayMode DisplayMode { get; set; }
+
+        /// <summary>
+        /// GameAudioManager for this game
+        /// </summary>
+        public GameAudioManager GameAudioManager { get; set; }
 
         /// <summary>
         /// Constructs a new ScreenManager

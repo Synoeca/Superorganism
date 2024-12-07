@@ -8,7 +8,7 @@ namespace Superorganism.Core.Managers
     {
         private readonly SoundEffect _cropPickup = content.Load<SoundEffect>("Pickup_Coin4");
         private readonly SoundEffect _fliesDestroy = content.Load<SoundEffect>("damaged");
-        private readonly Song _backgroundMusic = content.Load<Song>("MaxBrhon_Cyberpunk");
+        private readonly Song _backgroundMusic = content.Load<Song>("Music/strauss_blue_danube_waltz");
 
         public void Initialize(float soundEffectVolume, float musicVolume)
         {

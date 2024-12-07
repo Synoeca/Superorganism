@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Superorganism.Core.Managers;
 using Superorganism.ScreenManagement;
 using Superorganism.Screens;
 using Color = Microsoft.Xna.Framework.Color;
@@ -11,13 +13,14 @@ public class Superorganism : Game
 	private readonly ScreenManager _screenManager;
     public DisplayMode DisplayMode;
 	public GraphicsDeviceManager Graphics;
+    public GameAudioManager GameAudioManager;
 
 	public Superorganism()
 	{
 		Graphics = new GraphicsDeviceManager(this);
+        Graphics.GraphicsProfile = GraphicsProfile.HiDef;
         Content.RootDirectory = "Content";
 		IsMouseVisible = true;
-
         Window.IsBorderless = true;
 
 		ScreenFactory screenFactory = new();
@@ -25,13 +28,20 @@ public class Superorganism : Game
 
         DisplayMode = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
 
+        
+
         _screenManager = new ScreenManager(this);
 		_screenManager.GraphicsDeviceManager = Graphics;
         _screenManager.DisplayMode = DisplayMode;
+
+        GameAudioManager = new GameAudioManager(new ContentManager(_screenManager.Game.Services, "Content"));
+        _screenManager.GameAudioManager = GameAudioManager;
 		Components.Add(_screenManager);
 
         AddInitialScreens();
-	}
+		_screenManager.GameAudioManager.Initialize(OptionsMenuScreen.SoundEffectVolume,
+            OptionsMenuScreen.BackgroundMusicVolume);
+    }
 
 	private void AddInitialScreens()
 	{

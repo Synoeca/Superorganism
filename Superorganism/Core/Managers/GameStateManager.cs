@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
 using Superorganism.Core.Camera;
 using Superorganism.ScreenManagement;
+using Superorganism.Tiles;
 
 namespace Superorganism.Core.Managers
 {
@@ -16,6 +17,7 @@ namespace Superorganism.Core.Managers
         private readonly GameAudioManager _audioManager;
         private readonly InputAction _pauseAction;
         private readonly Camera2D _camera;
+        private readonly Tilemap _tilemap;
 
         public bool IsGameOver { get; private set; }
         public bool IsGameWon { get; private set; }
@@ -25,18 +27,21 @@ namespace Superorganism.Core.Managers
         private double _enemyCollisionTimer;
         private const double EnemyCollisionInterval = 0.2;
 
-        public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera)
+        public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera,
+            GameAudioManager audio, Tilemap tilemap)
         {
             DecisionMaker.Entities.Clear();
             _entityManager = new EntityManager(game, content, graphicsDevice);
-            _audioManager = new GameAudioManager(content);
+            _audioManager = audio;
             _camera = camera;
+            _tilemap = tilemap;
 
             _pauseAction = new InputAction(
                 [Buttons.Start, Buttons.Back],
                 [Keys.Back, Keys.Escape],
                 true);
 
+            _tilemap.LoadContent(content);
             InitializeGameState();
         }
 
@@ -158,12 +163,12 @@ namespace Superorganism.Core.Managers
         public int GetPlayerHealth() => _entityManager.PlayerHealth;
         public int GetPlayerMaxHealth() => _entityManager.PlayerMaxHealth;
         public void ResumeMusic() => _audioManager.ResumeMusic();
-        public void PauseMusic() => _audioManager.PauseMusic();
+        //public void PauseMusic() => _audioManager.PauseMusic();
 
         public void Unload()
         {
             _entityManager.Unload();
-            _audioManager.StopMusic();
+            //_audioManager.StopMusic();
         }
     }
 }

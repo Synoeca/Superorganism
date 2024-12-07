@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Superorganism/Content/PlatformTiles_brownNature_ByEris
+
+# Ignore all .ogg files in the Music directory
+/Superorganism/Content/Music/*.ogg
+/Superorganism/Content/Music/*.mp3
+
+# But allow strauss_blue_danube_waltz.ogg
+!/Superorganism/Content/Music/strauss_blue_danube_waltz.ogg

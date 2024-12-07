@@ -44,6 +44,8 @@ namespace Superorganism.Core.Camera
             _shakeTimer = 0;
         }
 
+        public Vector2 Position => _position;
+
         public void TransitionToTarget(Vector2 target, float zoomLevel = 1.0f)
         {
             _isTransitioning = true;
