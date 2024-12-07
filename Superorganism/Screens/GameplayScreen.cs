@@ -44,7 +44,7 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            _tilemap = new Tilemap("Tiles/map.txt");
+            _tilemap = new Tilemap("Tileset/map.txt");
 
             // Initialize camera
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
