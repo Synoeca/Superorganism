@@ -362,4 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /Superorganism/Content/PlatformTiles_brownNature_ByEris
-/Superorganism/Content/Music/bach_brandenburg_concerto_movement_1.ogg
+/Superorganism/Content/Music/!strauss_blue_danube_waltz.ogg
+*.ogg
