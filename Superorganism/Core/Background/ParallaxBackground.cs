@@ -19,9 +19,9 @@ namespace Superorganism.Core.Background
         {
             // Load textures and set their scroll speeds
             // Background moves slowest, foreground moves fastest
-            _layers[0] = new Layer(content.Load<Texture2D>("background"), 0.333f);
-            _layers[1] = new Layer(content.Load<Texture2D>("midground"), 0.666f);
-            _layers[2] = new Layer(content.Load<Texture2D>("foreground"), 1.0f);
+            _layers[0] = new Layer(content.Load<Texture2D>("background"), 0.0250f);
+            _layers[1] = new Layer(content.Load<Texture2D>("midground"), 0.055f);
+            _layers[2] = new Layer(content.Load<Texture2D>("foreground"), 0.0880f);
         }
 
         public void Draw(SpriteBatch spriteBatch, Vector2 cameraPosition)
@@ -48,7 +48,7 @@ namespace Superorganism.Core.Background
                 // Draw the layer multiple times to cover the screen
                 for (int i = 0; i < screensNeeded; i++)
                 {
-                    Vector2 position = new Vector2(
+                    Vector2 position = new(
                         startX + (i * textureWidth),
                         yPosition
                     );
