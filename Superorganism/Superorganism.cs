@@ -15,6 +15,7 @@ public class Superorganism : Game
 	public Superorganism()
 	{
 		Graphics = new GraphicsDeviceManager(this);
+        Graphics.GraphicsProfile = GraphicsProfile.HiDef;
         Content.RootDirectory = "Content";
 		IsMouseVisible = true;
 

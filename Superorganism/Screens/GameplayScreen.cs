@@ -8,6 +8,7 @@ using Superorganism.Common;
 using Microsoft.Xna.Framework.Content;
 using Superorganism.AI;
 using Superorganism.ScreenManagement;
+using Superorganism.Core.Background;
 
 namespace Superorganism.Screens
 {
@@ -18,10 +19,11 @@ namespace Superorganism.Screens
         private GameUiManager _uiManager;
         private Camera2D _camera;
         private GroundSprite _groundTexture;
+        private ParallaxBackground _parallaxBackground;
 
         // Constants
-        private readonly int _groundY = 400;
-        private readonly float _zoom = 1f;
+        private const int GroundY = 400;
+        public readonly float Zoom = 1f;
         private float _pauseAlpha;
         private ContentManager _content;
 
@@ -41,7 +43,7 @@ namespace Superorganism.Screens
         private void InitializeComponents()
         {
             // Initialize camera
-            _camera = new Camera2D(ScreenManager.GraphicsDevice, _zoom);
+            _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
             // Initialize core managers
             GameState = new GameStateManager(
@@ -63,11 +65,14 @@ namespace Superorganism.Screens
             );
 
             // Initialize ground
-            _groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
+            _groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, GroundY, 100);
             _groundTexture.LoadContent(_content);
 
+            _parallaxBackground = new ParallaxBackground(ScreenManager.GraphicsDevice);
+            _parallaxBackground.LoadContent(_content);
+
             _camera.Initialize(GameState.GetPlayerPosition());
-            DecisionMaker.GroundY = _groundY;
+            DecisionMaker.GroundY = GroundY;
         }
 
         public override void HandleInput(GameTime gameTime, InputState input)
@@ -114,6 +119,10 @@ namespace Superorganism.Screens
                 _camera.TransformMatrix
             );
 
+            // Draw parallax background first
+            _parallaxBackground.Draw(spriteBatch, _camera.Position);
+
+            // Draw other game elements
             _groundTexture.Draw(spriteBatch);
             GameState.Draw(gameTime, spriteBatch);
 
@@ -164,6 +173,7 @@ namespace Superorganism.Screens
         public override void Unload()
         {
             _uiManager?.Dispose();
+            _parallaxBackground?.Unload();
             GameState?.Unload();
             _content?.Unload();
         }

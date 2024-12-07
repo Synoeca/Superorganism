@@ -249,6 +249,18 @@
 /processorParam:TextureFormat=Color
 /build:flies.png
 
+#begin foreground.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:foreground.png
+
 #begin gamefont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
@@ -279,6 +291,18 @@
 /processor:VideoProcessor
 /build:liftoff_of_smap.mp4
 
+#begin mainmenu_background.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:mainmenu_background.png
+
 #begin MaxBrhon_Cyberpunk.mp3
 /importer:Mp3Importer
 /processor:SongProcessor
@@ -291,6 +315,18 @@
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
 /build:menufont.spritefont
+
+#begin midground.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:midground.png
 
 #begin move.wav
 /importer:WavImporter
