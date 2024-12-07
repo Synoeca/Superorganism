@@ -35,7 +35,6 @@ namespace Superorganism.Screens
 		public override void Draw(GameTime gameTime)
 		{
 			ScreenManager.SpriteBatch.Begin();
-			//ScreenManager.SpriteBatch.Draw(_background, Vector2.Zero, Color.White);
 			ScreenManager.SpriteBatch.Draw(_background,
 				new Rectangle(0, 0, ScreenManager.GraphicsDevice.Viewport.Width, ScreenManager.GraphicsDevice.Viewport.Height),
 				Color.White);
