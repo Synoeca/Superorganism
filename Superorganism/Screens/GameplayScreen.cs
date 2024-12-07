@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Content;
 using Superorganism.AI;
 using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
+using Superorganism.Tiles;
 
 namespace Superorganism.Screens
 {
@@ -20,6 +21,7 @@ namespace Superorganism.Screens
         private Camera2D _camera;
         private GroundSprite _groundTexture;
         private ParallaxBackground _parallaxBackground;
+        private Tilemap _tilemap;
 
         // Constants
         private const int GroundY = 400;
@@ -42,6 +44,8 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
+            _tilemap = new Tilemap("Tiles/map.txt");
+
             // Initialize camera
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
@@ -51,7 +55,8 @@ namespace Superorganism.Screens
                 _content,
                 ScreenManager.GraphicsDevice,
                 _camera,
-                ScreenManager.GameAudioManager
+                ScreenManager.GameAudioManager,
+                _tilemap
             );
 
             // Initialize UI
@@ -120,6 +125,7 @@ namespace Superorganism.Screens
 
             // Draw other game elements
             _groundTexture.Draw(spriteBatch);
+            _tilemap.Draw(gameTime, spriteBatch);
             GameState.Draw(gameTime, spriteBatch);
 
             spriteBatch.End();
