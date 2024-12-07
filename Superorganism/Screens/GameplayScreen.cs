@@ -8,6 +8,8 @@ using Superorganism.Common;
 using Microsoft.Xna.Framework.Content;
 using Superorganism.AI;
 using Superorganism.ScreenManagement;
+using Superorganism.Core.Background;
+using Superorganism.Tiles;
 
 namespace Superorganism.Screens
 {
@@ -18,10 +20,12 @@ namespace Superorganism.Screens
         private GameUiManager _uiManager;
         private Camera2D _camera;
         private GroundSprite _groundTexture;
+        private ParallaxBackground _parallaxBackground;
+        private Tilemap _tilemap;
 
         // Constants
-        private readonly int _groundY = 400;
-        private readonly float _zoom = 1f;
+        private const int GroundY = 400;
+        public readonly float Zoom = 1f;
         private float _pauseAlpha;
         private ContentManager _content;
 
@@ -40,20 +44,19 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
+            _tilemap = new Tilemap("Tiles/map.txt");
+
             // Initialize camera
-            _camera = new Camera2D(ScreenManager.GraphicsDevice, _zoom);
+            _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
             // Initialize core managers
             GameState = new GameStateManager(
                 ScreenManager.Game,
                 _content,
                 ScreenManager.GraphicsDevice,
-                _camera
-            );
-
-            GameState.InitializeAudio(
-                OptionsMenuScreen.SoundEffectVolume,
-                OptionsMenuScreen.BackgroundMusicVolume
+                _camera,
+                ScreenManager.GameAudioManager,
+                _tilemap
             );
 
             // Initialize UI
@@ -63,18 +66,21 @@ namespace Superorganism.Screens
             );
 
             // Initialize ground
-            _groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, _groundY, 100);
+            _groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, GroundY, 100);
             _groundTexture.LoadContent(_content);
 
+            _parallaxBackground = new ParallaxBackground(ScreenManager.GraphicsDevice);
+            _parallaxBackground.LoadContent(_content);
+
             _camera.Initialize(GameState.GetPlayerPosition());
-            DecisionMaker.GroundY = _groundY;
+            DecisionMaker.GroundY = GroundY;
         }
 
         public override void HandleInput(GameTime gameTime, InputState input)
         {
             if (GameState.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
             {
-                GameState.PauseMusic();
+                //GameState.PauseMusic();
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
             }
@@ -114,7 +120,12 @@ namespace Superorganism.Screens
                 _camera.TransformMatrix
             );
 
+            // Draw parallax background first
+            _parallaxBackground.Draw(spriteBatch, _camera.Position);
+
+            // Draw other game elements
             _groundTexture.Draw(spriteBatch);
+            _tilemap.Draw(gameTime, spriteBatch);
             GameState.Draw(gameTime, spriteBatch);
 
             spriteBatch.End();
@@ -164,6 +175,7 @@ namespace Superorganism.Screens
         public override void Unload()
         {
             _uiManager?.Dispose();
+            _parallaxBackground?.Unload();
             GameState?.Unload();
             _content?.Unload();
         }

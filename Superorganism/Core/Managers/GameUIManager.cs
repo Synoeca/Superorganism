@@ -16,6 +16,10 @@ namespace Superorganism.Core.Managers
         private Texture2D _grayTexture;
         private Texture2D _redTexture;
 
+        // UI Constants
+        private const int ScreenMargin = 40; 
+        private const int BarPadding = 10;
+
         public GameUiManager(SpriteFont gameFont, SpriteBatch spriteBatch)
         {
             _gameFont = gameFont;
@@ -36,12 +40,10 @@ namespace Superorganism.Core.Managers
         public void DrawHealthBar(int currentHealth, int maxHealth)
         {
             const int barWidth = 200;
-            const int barHeight =30;
-            const int barX = 20;
-            const int barY = 20;
+            const int barHeight = 30;
 
             // Draw background (gray) bar
-            Rectangle backgroundRect = new(barX, barY, barWidth, barHeight);
+            Rectangle backgroundRect = new(ScreenMargin, ScreenMargin, barWidth, barHeight);
             _spriteBatch.Draw(_grayTexture, backgroundRect, Color.White);
 
             // Calculate and clamp health percentage
@@ -50,17 +52,17 @@ namespace Superorganism.Core.Managers
             // Draw foreground (red) bar only if health > 0
             if (healthPercentage > 0)
             {
-                Rectangle healthRect = new(barX, barY, (int)(barWidth * healthPercentage), barHeight);
+                Rectangle healthRect = new(ScreenMargin, ScreenMargin, (int)(barWidth * healthPercentage), barHeight);
                 _spriteBatch.Draw(_redTexture, healthRect, Color.White);
             }
 
-            // Draw health text
+            // Draw health text with padding
             string healthText = $"{currentHealth}/{maxHealth}";
             const float textScale = 0.55f;
             Vector2 textSize = _gameFont.MeasureString(healthText) * textScale;
             Vector2 textPosition = new(
-                barX + (barWidth - textSize.X) / 2,
-                barY + (barHeight - textSize.Y) / 2 - 2
+                ScreenMargin + (barWidth - textSize.X) / 2,
+                ScreenMargin + (barHeight - textSize.Y) / 2 - 2
             );
             DrawTextWithShadow(healthText, textPosition, Color.White, textScale);
         }
@@ -68,11 +70,11 @@ namespace Superorganism.Core.Managers
         public void DrawCropsLeft(int cropsLeft)
         {
             string cropsLeftText = $"Crops Left: {cropsLeft}";
-            float textScale = 0.75f; // Match health bar text scale
+            const float textScale = 0.75f;
             Vector2 textSize = _gameFont.MeasureString(cropsLeftText) * textScale;
             Vector2 textPosition = new(
-                _spriteBatch.GraphicsDevice.Viewport.Width - textSize.X - 20,
-                20
+                _spriteBatch.GraphicsDevice.Viewport.Width - textSize.X - ScreenMargin,
+                ScreenMargin
             );
             DrawTextWithShadow(cropsLeftText, textPosition, Color.White, textScale);
         }
@@ -87,8 +89,8 @@ namespace Superorganism.Core.Managers
             // Transform enemy position to screen coordinates
             Vector2 enemyScreenPosition = Vector2.Transform(enemyPosition, cameraMatrix);
 
-            // Offset to avoid overlapping the enemy sprite
-            Vector2 textOffset = new(0, -40);
+            // Add padding to the debug info position
+            Vector2 textOffset = new(BarPadding, -40);
             Vector2 textPosition = enemyScreenPosition + textOffset;
 
             // Text scaling factor for reduced size
@@ -111,11 +113,11 @@ namespace Superorganism.Core.Managers
             currentOffset.Y += _gameFont.MeasureString(distanceText).Y * textScale;
 
             // Draw history header
-            string historyHeader = "History:";
+            const string historyHeader = "History:";
             DrawDebugText(historyHeader, textPosition + currentOffset, textScale);
             currentOffset.Y += _gameFont.MeasureString(historyHeader).Y * textScale;
 
-            // Draw strategy history (last 3 entries)
+            // Draw strategy history
             foreach ((Strategy strategy, double startTime, double lastActionTime) in strategyHistory.Skip(Math.Max(0, strategyHistory.Count - 3)))
             {
                 string historyText = $"- {strategy} Start: {startTime:0.0}s Last: {lastActionTime:0.0}s";
@@ -170,8 +172,6 @@ namespace Superorganism.Core.Managers
             _spriteBatch.DrawString(_gameFont, adjustedText, position + shadowOffset, Color.Black * 0.5f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
             _spriteBatch.DrawString(_gameFont, adjustedText, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
         }
-
-
 
         private static Texture2D CreateTexture(GraphicsDevice graphicsDevice, Color color)
         {

@@ -83,8 +83,8 @@ namespace Superorganism.Entities
 		{
 			Position += Velocity * direction;
 			Direction = Math.Abs(direction.X) > Math.Abs(direction.Y)
-				? direction.X > 0 ? Enums.Direction.Right : Enums.Direction.Left
-				: direction.Y > 0 ? Enums.Direction.Down : Enums.Direction.Up;
+				? direction.X > 0 ? Direction.Right : Direction.Left
+				: direction.Y > 0 ? Direction.Down : Direction.Up;
 		}
 
 		public override void Update(GameTime gameTime)
