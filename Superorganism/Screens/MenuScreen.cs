@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -101,29 +102,32 @@ namespace Superorganism.Screens
         // all menu entries are lined up in a vertical list, centered on the screen.
         protected virtual void UpdateMenuEntryLocations()
         {
-            // Make the menu slide into place during transitions, using a
-            // power curve to make things look more interesting (this makes
-            // the movement slow down as it nears the end).
             float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
 
-            // start at Y = 175; each X value is generated per entry
-            Vector2 position = new(0f, 175f);
+            // Calculate the center of the screen
+            float centerY = ScreenManager.GraphicsDevice.Viewport.Height / 2f;
 
-            // update each menu entry's location in turn
+            // Calculate total height of all menu entries
+            float totalHeight = _menuEntries.Sum(entry => entry.GetHeight(this));
+
+            // Start position, centered vertically
+            Vector2 position = new(0f, centerY - totalHeight / 2f);
+
             foreach (MenuEntry menuEntry in _menuEntries)
             {
-                // each entry is to be centered horizontally
+                // Center horizontally
                 position.X = ScreenManager.GraphicsDevice.Viewport.Width / 2f - menuEntry.GetWidth(this) / 2f;
 
+                // Apply transition effect
                 if (ScreenState == ScreenState.TransitionOn)
                     position.X -= transitionOffset * 256;
                 else
                     position.X += transitionOffset * 512;
 
-                // set the entry's position
+                // Set the entry's position
                 menuEntry.Position = position;
 
-                // move down for the next entry the size of this entry
+                // Move down for the next entry
                 position.Y += menuEntry.GetHeight(this);
             }
         }

@@ -16,9 +16,9 @@ namespace Superorganism.Screens
         private readonly List<List<InstructionEntry>> _pages = [];
         private readonly InstructionEntry _backButton;
         private int _currentPage;
-        private const int ENTRIES_PER_PAGE = 6;
-        private const float INITIAL_Y = 175f;
-        private const float Y_SPACING = 35f;
+        private const int EntriesPerPage = 6;
+        private const float InitialY = 175f;
+        private const float YSpacing = 35f;
         private Vector2 _pageIndicatorPosition;
 
         private readonly InputAction _menuLeft;
@@ -56,9 +56,9 @@ namespace Superorganism.Screens
             ];
 
 
-            for (int i = 0; i < instructions.Length; i += ENTRIES_PER_PAGE)
+            for (int i = 0; i < instructions.Length; i += EntriesPerPage)
             {
-                List<InstructionEntry> page = instructions.Skip(i).Take(ENTRIES_PER_PAGE)
+                List<InstructionEntry> page = instructions.Skip(i).Take(EntriesPerPage)
                     .Select(text => new InstructionEntry(text))
                     .ToList();
                 _pages.Add(page);
@@ -87,13 +87,12 @@ namespace Superorganism.Screens
                 _currentPage = (_currentPage - 1 + _pages.Count) % _pages.Count;
             }
 
-            PlayerIndex playerIndex;
-            if (_menuRight.Occurred(input, ControllingPlayer, out playerIndex))
+            if (_menuRight.Occurred(input, ControllingPlayer, out PlayerIndex _))
             {
                 _currentPage = (_currentPage + 1) % _pages.Count;
             }
-            if (_menuSelect.Occurred(input, ControllingPlayer, out playerIndex) ||
-                _menuCancel.Occurred(input, ControllingPlayer, out playerIndex))
+            if (_menuSelect.Occurred(input, ControllingPlayer, out PlayerIndex _) ||
+                _menuCancel.Occurred(input, ControllingPlayer, out PlayerIndex _))
             {
                 ExitScreen();
             }
@@ -154,16 +153,27 @@ namespace Superorganism.Screens
 
         private void UpdateEntryLocations()
         {
-            float y = INITIAL_Y;
-            float leftMargin = ScreenManager.GraphicsDevice.Viewport.Width * 0.2f;
-            float viewportWidth = ScreenManager.GraphicsDevice.Viewport.Width;
+            Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
+            float viewportHeight = viewport.Height;
+            float viewportWidth = viewport.Width;
+
+            // Calculate the center of the screen
+            float centerY = viewportHeight / 2f;
+
+            // Calculate total height of all entries
+            float totalHeight = _pages[_currentPage].Count * YSpacing;
+
+            // Start position, centered vertically
+            float y = centerY - totalHeight / 2f;
+
+            float leftMargin = viewportWidth * 0.2f;
             float bottomY = y;
 
             // Left-align instructions
             foreach (InstructionEntry instruction in _pages[_currentPage])
             {
                 instruction.Position = new Vector2(leftMargin, y);
-                y += Y_SPACING;
+                y += YSpacing;
                 bottomY = y; // Track the last instruction's bottom position
             }
 
@@ -180,6 +190,10 @@ namespace Superorganism.Screens
             Vector2 origin = font.MeasureString(title) / 2;
             const float scale = 1.5f;
             const float shadowOffset = 4f;
+
+            Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
+            (float x, float y) = position;
+            position = new Vector2(viewport.Width / 2f, viewport.Height * 0.1f);
 
             ScreenManager.SpriteBatch.DrawString(font, title,
                 position + new Vector2(shadowOffset),
