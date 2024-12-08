@@ -42,6 +42,7 @@ public class EntityManager
     public bool IsPlayerInvincible { get; private set; }
     public Vector2 EnemyPosition => _antEnemy.Position;
     public Strategy EnemyStrategy => _antEnemy.Strategy;
+    public ICollisionBounding EnemyCollisionBounding => _antEnemy.CollisionBounding;
     public List<(Strategy Strategy, double StartTime, double LastActionTime)> EnemyStrategyHistory
         => _antEnemy.StrategyHistory;
     public Map GetCurrentMap() => _map;
@@ -73,7 +74,7 @@ public class EntityManager
 
     private void InitializeCropsAndFlies(GraphicsDevice graphicsDevice)
     {
-        _crops = new Crop[12];
+        _crops = new Crop[1];
         for (int i = 0; i < _crops.Length; i++)
         {
             _crops[i] = new Crop();

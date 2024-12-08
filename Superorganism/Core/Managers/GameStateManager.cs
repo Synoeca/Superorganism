@@ -5,7 +5,9 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
+using Superorganism.Collisions;
 using Superorganism.Core.Camera;
+using Superorganism.Entities;
 using Superorganism.ScreenManagement;
 using Superorganism.Tiles;
 
@@ -68,7 +70,19 @@ namespace Superorganism.Core.Managers
 
         public Strategy GetEnemyStrategy() => _entityManager.EnemyStrategy;
 
-        public float GetDistanceToPlayer() => Vector2.Distance(
+        public ICollisionBounding GetEnemyBounding => _entityManager.EnemyCollisionBounding;
+
+        public float GetEntityDistance(Entity entity1, Entity entity2) => Vector2.Distance(
+            entity1.Position,
+            entity2.Position
+        );
+
+        public float GetDistanceToPlayer(Entity entity) => Vector2.Distance(
+            _entityManager.PlayerPosition,
+            entity.Position
+        );
+
+        public float GetEnemyDistanceToPlayer() => Vector2.Distance(
             _entityManager.PlayerPosition,
             _entityManager.EnemyPosition
         );

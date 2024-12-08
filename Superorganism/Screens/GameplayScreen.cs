@@ -150,14 +150,7 @@ namespace Superorganism.Screens
 
             GameStateManager.Draw(gameTime, spriteBatch);
 
-            // Draw entity collision boundaries
-            foreach (Entity entity in DecisionMaker.Entities)
-            {
-                if (entity.CollisionBounding != null)
-                {
-                    _uiManager.DrawCollisionBounds(entity.CollisionBounding, _camera.TransformMatrix);
-                }
-            }
+
 
             spriteBatch.End();
 
@@ -176,14 +169,82 @@ namespace Superorganism.Screens
             _uiManager.DrawHealthBar(currentHealth, maxHealth);
             _uiManager.DrawCropsLeft(GameStateManager.CropsLeft);
 
-            // Add enemy debug info
-            _uiManager.DrawEnemyDebugInfo(
-                GameStateManager.GetEnemyPosition(),
-                _camera.TransformMatrix,
-                GameStateManager.GetEnemyStrategy(),
-                GameStateManager.GetDistanceToPlayer(),
-                GameStateManager.GetEnemyStrategyHistory()
-            );
+            //// Add enemy debug info
+            //_uiManager.DrawDebugInfo(
+            //    GameStateManager.GetEnemyPosition(),
+            //    _camera.TransformMatrix,
+            //    GameStateManager.GetEnemyStrategy(),
+            //    GameStateManager.GetDistanceToPlayer(),
+            //    GameStateManager.GetEnemyStrategyHistory(),
+            //    GameStateManager.GetEnemyBounding
+            ////DecisionMaker.Entities[0].CollisionBounding
+            //);
+
+
+            // Draw entity collision boundaries
+            foreach (Entity entity in DecisionMaker.Entities)
+            {
+                if (entity.CollisionBounding != null)
+                {
+                    _uiManager.DrawCollisionBounds(entity, entity.CollisionBounding, _camera.TransformMatrix);
+                }
+            }
+
+
+            foreach (Entity entity in DecisionMaker.Entities)
+            {
+                if (entity is Crop crop)
+                {
+                    _uiManager.DrawDebugInfo(
+                        crop.Position,
+                        _camera.TransformMatrix,
+                        GameStateManager.GetDistanceToPlayer(crop),
+                        crop.CollisionBounding
+                    );
+                }
+                else if (entity is Fly fly)
+                {
+                    if (fly.Destroyed) continue;
+                    _uiManager.DrawDebugInfo(
+                        fly.Position,
+                        _camera.TransformMatrix,
+                        fly.Strategy,
+                        GameStateManager.GetDistanceToPlayer(fly),
+                        fly.StrategyHistory,
+                        fly.CollisionBounding
+                    );
+                }
+                else if (entity is AntEnemy antEnemy)
+                {
+                    _uiManager.DrawDebugInfo(
+                        antEnemy.Position,
+                        _camera.TransformMatrix,
+                        antEnemy.Strategy,
+                        GameStateManager.GetDistanceToPlayer(antEnemy),
+                        antEnemy.StrategyHistory,
+                        antEnemy.CollisionBounding
+                    );
+                }
+                else if (entity is Ant ant)
+                {
+                    _uiManager.DrawDebugInfo(
+                        ant.Position,
+                        _camera.TransformMatrix,
+                        GameStateManager.GetDistanceToPlayer(ant),
+                        ant.CollisionBounding
+                    );
+                }
+            }
+
+            //// Add enemy debug info
+            //_uiManager.DrawDebugInfo(
+            //    GameStateManager.GetEnemyPosition(),
+            //    _camera.TransformMatrix,
+            //    GameStateManager.GetEnemyStrategy(),
+            //    GameStateManager.GetDistanceToPlayer(),
+            //    GameStateManager.GetEnemyStrategyHistory(),
+            //    DecisionMaker.Entities[0].CollisionBounding
+            //);
 
             if (GameStateManager.IsGameOver)
                 _uiManager.DrawGameOverScreen();
