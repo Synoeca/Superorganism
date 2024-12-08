@@ -74,7 +74,9 @@ namespace Superorganism.Entities
 			set => _directionInterval = value;
 		}
 
-		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+        public override ICollisionBounding CollisionBounding { get; set; }
+
+        public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{
 			spriteBatch.Draw(Texture, Position, Color);
 		}

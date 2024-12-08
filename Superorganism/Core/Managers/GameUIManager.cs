@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.AI;
+using Superorganism.Collisions;
 using Superorganism.Entities;
 using Superorganism.Enums;
 
@@ -15,6 +16,7 @@ namespace Superorganism.Core.Managers
         private readonly SpriteBatch _spriteBatch;
         private Texture2D _grayTexture;
         private Texture2D _redTexture;
+        private Texture2D _borderTexture;
 
         // UI Constants
         private const int ScreenMargin = 40; 
@@ -30,12 +32,104 @@ namespace Superorganism.Core.Managers
         private void InitializeTextures()
         {
             // Create textures once and store them
-            _grayTexture = new Texture2D(_spriteBatch.GraphicsDevice, 1, 1);
-            _grayTexture.SetData([Color.Gray]);
-
-            _redTexture = new Texture2D(_spriteBatch.GraphicsDevice, 1, 1);
-            _redTexture.SetData([Color.Red]);
+            _grayTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Gray);
+            _redTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Red);
+            _borderTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Red);
         }
+
+        /// <summary>
+        /// Draws collision bounds for debugging. Supports both rectangles and circles.
+        /// </summary>
+        public void DrawCollisionBounds(ICollisionBounding collisionBounds, Matrix cameraMatrix)
+        {
+            const int borderThickness = 10; // Visible line thickness
+
+            if (collisionBounds is BoundingRectangle rect)
+            {
+                // Transform rectangle coordinates to screen space
+                Rectangle screenBounds = new(
+                    (int)(rect.X * 2560), // Adjust to screen width
+                    (int)(rect.Y * 1440), // Adjust to screen height
+                    (int)(rect.Width * 2560),
+                    (int)(rect.Height * 1440)
+                );
+
+                // Draw the rectangle outline
+                // Top
+                _spriteBatch.Draw(_redTexture, new Rectangle(screenBounds.X, screenBounds.Y, screenBounds.Width, borderThickness), Color.Red);
+                // Bottom
+                _spriteBatch.Draw(_redTexture, new Rectangle(screenBounds.X, screenBounds.Y + screenBounds.Height - borderThickness, screenBounds.Width, borderThickness), Color.Red);
+                // Left
+                _spriteBatch.Draw(_redTexture, new Rectangle(screenBounds.X, screenBounds.Y, borderThickness, screenBounds.Height), Color.Red);
+                // Right
+                _spriteBatch.Draw(_redTexture, new Rectangle(screenBounds.X + screenBounds.Width - borderThickness, screenBounds.Y, borderThickness, screenBounds.Height), Color.Red);
+            }
+            else if (collisionBounds is BoundingCircle circle)
+            {
+                const int segments = 32;
+                for (int i = 0; i < segments; i++)
+                {
+                    float angle1 = i * MathHelper.TwoPi / segments;
+                    float angle2 = (i + 1) * MathHelper.TwoPi / segments;
+
+                    Vector2 point1 = new(
+                        circle.Center.X + (float)Math.Cos(angle1) * circle.Radius,
+                        circle.Center.Y + (float)Math.Sin(angle1) * circle.Radius
+                    );
+
+                    Vector2 point2 = new(
+                        circle.Center.X + (float)Math.Cos(angle2) * circle.Radius,
+                        circle.Center.Y + (float)Math.Sin(angle2) * circle.Radius
+                    );
+
+                    // Transform points to screen space
+                    Vector2 screenPoint1 = Vector2.Transform(point1 * new Vector2(2560, 1440), cameraMatrix);
+                    Vector2 screenPoint2 = Vector2.Transform(point2 * new Vector2(2560, 1440), cameraMatrix);
+
+                    // Draw the line segment
+                    DrawLine(screenPoint1, screenPoint2, Color.Red, borderThickness);
+
+                    // Debug markers
+                    const int markerSize = 10;
+                    _spriteBatch.Draw(
+                        _redTexture,
+                        new Rectangle((int)screenPoint1.X - markerSize / 2, (int)screenPoint1.Y - markerSize / 2, markerSize, markerSize),
+                        Color.Blue
+                    );
+                    _spriteBatch.Draw(
+                        _redTexture,
+                        new Rectangle((int)screenPoint2.X - markerSize / 2, (int)screenPoint2.Y - markerSize / 2, markerSize, markerSize),
+                        Color.Green
+                    );
+                }
+            }
+        }
+
+
+        private void DrawLine(Vector2 start, Vector2 end, Color color, int borderThickness)
+        {
+            Vector2 edge = end - start;
+            float angle = (float)Math.Atan2(edge.Y, edge.X);
+
+            // Calculate the length of the line
+            float length = edge.Length();
+
+            // Log debug info for verification
+            Console.WriteLine($"Drawing Line: Start={start}, End={end}, Angle={angle}");
+
+            // Draw the line with the specified thickness
+            _spriteBatch.Draw(
+                _redTexture,
+                new Rectangle((int)start.X, (int)start.Y, (int)length, borderThickness),
+                null,
+                color,
+                angle,
+                Vector2.Zero,
+                SpriteEffects.None,
+                0
+            );
+        }
+
 
         public void DrawHealthBar(int currentHealth, int maxHealth)
         {
@@ -184,6 +278,7 @@ namespace Superorganism.Core.Managers
         {
             _grayTexture?.Dispose();
             _redTexture?.Dispose();
+            _borderTexture?.Dispose();
         }
     }
 }

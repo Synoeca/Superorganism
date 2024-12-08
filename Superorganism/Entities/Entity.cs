@@ -43,6 +43,7 @@ namespace Superorganism.Entities
             };
         }
 
+        public abstract ICollisionBounding CollisionBounding { get; set; }
 		public abstract void Draw(GameTime gameTime, SpriteBatch spriteBatch);
         public virtual void Update(GameTime gameTime) { }
     }

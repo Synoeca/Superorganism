@@ -472,53 +472,13 @@ namespace Superorganism.Tiles
         /// <param name="tileHeight">The height of a tile</param>
         public void Draw(SpriteBatch batch, IList<Tileset> tilesets, Rectangle rectangle, Vector2 viewportPosition, int tileWidth, int tileHeight)
         {
-            Vector2 destPos = new(rectangle.Left, rectangle.Top);
-            Vector2 viewPos = viewportPosition;
-
-            int minX = (int)Math.Floor(viewportPosition.X / tileWidth);
-            int minY = (int)Math.Floor(viewportPosition.Y / tileHeight);
-            int maxX = (int)Math.Ceiling((rectangle.Width + viewportPosition.X) / tileWidth);
-            int maxY = (int)Math.Ceiling((rectangle.Height + viewportPosition.Y) / tileHeight);
-
-            if (minX < 0)
-                minX = 0;
-            if (minY < 0)
-                minY = 0;
-            if (maxX >= Width)
-                maxX = Width - 1;
-            if (maxY >= Height)
-                maxY = Height - 1;
-
-            if (viewPos.X > 0)
-            {
-                viewPos.X = ((int)Math.Floor(viewPos.X)) % tileWidth;
-            }
-            else
-            {
-                viewPos.X = (float)Math.Floor(viewPos.X);
-            }
-
-            if (viewPos.Y > 0)
-            {
-                viewPos.Y = ((int)Math.Floor(viewPos.Y)) % tileHeight;
-            }
-            else
-            {
-                viewPos.Y = (float)Math.Floor(viewPos.Y);
-            }
-
             if (TileInfoCache == null)
                 BuildTileInfoCache(tilesets);
 
-            // We're drawing at the center of the tile, so adjust our y offset
-            destPos.Y += tileHeight / 2f;
-
-            for (int y = minY; y <= maxY; y++)
+            // Draw all tiles in the layer
+            for (int y = 0; y < Height; y++)
             {
-                // We're drawing at the center of the tile, so adjust the x offset
-                destPos.X = rectangle.Left + tileWidth / 2f;
-
-                for (int x = minX; x <= maxX; x++)
+                for (int x = 0; x < Width; x++)
                 {
                     int i = (y * Width) + x;
 
@@ -526,14 +486,11 @@ namespace Superorganism.Tiles
                     SpriteEffects flipEffect = SpriteEffects.None;
                     float rotation = 0f;
 
+                    // Handle flip and rotation flags
                     if ((flipAndRotate & HorizontalFlipDrawFlag) != 0)
-                    {
                         flipEffect |= SpriteEffects.FlipHorizontally;
-                    }
                     if ((flipAndRotate & VerticalFlipDrawFlag) != 0)
-                    {
                         flipEffect |= SpriteEffects.FlipVertically;
-                    }
                     if ((flipAndRotate & DiagonallyFlipDrawFlag) != 0)
                     {
                         if ((flipAndRotate & HorizontalFlipDrawFlag) != 0 &&
@@ -563,15 +520,26 @@ namespace Superorganism.Tiles
                     if ((index >= 0) && (index < TileInfoCache.Length))
                     {
                         TileInfo info = TileInfoCache[index];
-                        batch.Draw(info.Texture, destPos - viewPos, info.Rectangle,
-                                   Color.White * Opacity, rotation, new Vector2(tileWidth / 2f, tileHeight / 2f),
-                                   1f, flipEffect, 0);
+
+                        // Position tiles relative to ground level
+                        Vector2 position = new Vector2(
+                            x * tileWidth,    // X position is straightforward left-to-right
+                            y * tileHeight    // Y position is top-to-bottom
+                        );
+
+                        batch.Draw(
+                            info.Texture,
+                            position,
+                            info.Rectangle,
+                            Color.White * Opacity,
+                            rotation,
+                            Vector2.Zero, // Don't use center origin since we're positioning manually
+                            1f,
+                            flipEffect,
+                            0
+                        );
                     }
-
-                    destPos.X += tileWidth;
                 }
-
-                destPos.Y += tileHeight;
             }
         }
     }
@@ -807,13 +775,13 @@ namespace Superorganism.Tiles
             int maxX = (int)Math.Ceiling((rectangle.Width + viewportPosition.X));
             int maxY = (int)Math.Ceiling((rectangle.Height + viewportPosition.Y));
 
-            if (X + offset.X + Width > minX && X + offset.X < maxX 
-                                            && Y + offset.Y + Height > minY && Y + offset.Y < maxY)
-            {
-                int x = (int)(X + offset.X - viewportPosition.X);
-                int y = (int)(Y + offset.Y - viewportPosition.Y);
-                batch.Draw(_Texture, new Rectangle(x, y, Width, Height), new Rectangle(0, 0, _Texture.Width, _Texture.Height), Color.White * opacity);
-            }
+            if (X + offset.X + Width > minX && X + offset.X < maxX)
+                if (Y + offset.Y + Height > minY && Y + offset.Y < maxY)
+                {
+                    int x = (int)(X + offset.X - viewportPosition.X);
+                    int y = (int)(Y + offset.Y - viewportPosition.Y);
+                    batch.Draw(_Texture, new Rectangle(x, y, Width, Height), new Rectangle(0, 0, _Texture.Width, _Texture.Height), Color.White * opacity);
+                }
         }
     }
 
@@ -971,7 +939,7 @@ namespace Superorganism.Tiles
                     }
                 }
             }
-
+            MapHelper.AnalyzeMapGround(result);
             return result;
         }
 
@@ -979,20 +947,31 @@ namespace Superorganism.Tiles
         /// Draws the Map
         /// </summary>
         /// <param name="batch">The SpriteBatch to draw with</param>
-        /// <param name="rectangle">The Viewport to draw within</param>
-        /// <param name="viewportPosition">The position of the viewport within the map</param>
-        public void Draw(SpriteBatch batch, Rectangle rectangle, Vector2 viewportPosition)
+        /// <param name="viewport">The Viewport to draw within</param>
+        /// <param name="cameraPosition">The position of the viewport within the map</param>
+        public void Draw(SpriteBatch batch, Rectangle viewport, Vector2 cameraPosition)
         {
+            // Calculate the visible area in world coordinates
+            Rectangle visibleArea = new Rectangle(
+                (int)cameraPosition.X - viewport.Width / 2,  // Left edge
+                (int)cameraPosition.Y - viewport.Height / 2, // Top edge
+                viewport.Width,
+                viewport.Height
+            );
+
+            // Add padding to ensure we draw tiles just outside the visible area
+            visibleArea.Inflate(TileWidth * 2, TileHeight * 2);
+
             // Draw the layers
-            foreach (Layer layers in Layers.Values)
+            foreach (Layer layer in Layers.Values)
             {
-                layers.Draw(batch, Tilesets.Values, rectangle, viewportPosition, TileWidth, TileHeight);
+                layer.Draw(batch, Tilesets.Values, visibleArea, cameraPosition, TileWidth, TileHeight);
             }
 
             // Draw the objects
-            foreach (ObjectGroup objectgroups in ObjectGroups.Values)
+            foreach (ObjectGroup objectGroup in ObjectGroups.Values)
             {
-                objectgroups.Draw(this, batch, rectangle, viewportPosition);
+                objectGroup.Draw(this, batch, visibleArea, cameraPosition);
             }
         }
     }

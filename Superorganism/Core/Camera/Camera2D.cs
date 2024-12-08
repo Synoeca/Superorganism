@@ -107,6 +107,7 @@ namespace Superorganism.Core.Camera
             UpdateTransformMatrix(shakeOffset);
         }
 
+        // In your camera class
         private void UpdateTransformMatrix(Vector2 shakeOffset = default)
         {
             Vector2 screenCenter = new(
@@ -114,8 +115,11 @@ namespace Superorganism.Core.Camera
                 graphicsDevice.Viewport.Height * 0.5f
             );
 
+            // Make sure position is in world coordinates (pixels)
+            Vector2 cameraPos = _position + shakeOffset;
+
             TransformMatrix =
-                Matrix.CreateTranslation(new Vector3(-_position - shakeOffset, 0.0f)) *
+                Matrix.CreateTranslation(new Vector3(-cameraPos, 0.0f)) *
                 Matrix.CreateRotationZ(_rotation) *
                 Matrix.CreateScale(_currentZoom) *
                 Matrix.CreateTranslation(new Vector3(screenCenter, 0.0f));

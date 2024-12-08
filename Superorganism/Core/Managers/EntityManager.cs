@@ -9,6 +9,7 @@ using Superorganism.Collisions;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Particle;
+using Superorganism.Tiles;
 
 namespace Superorganism.Core.Managers;
 
@@ -20,6 +21,7 @@ public class EntityManager
     private Fly[] _flies;
     private ExplosionParticleSystem _explosions;
     private readonly Game _game;
+    private readonly Map _map;
 
     private const float InvincibleAlpha = 0.4f;
     private const float EnemyAlpha = 0.8f;
@@ -42,45 +44,52 @@ public class EntityManager
     public Strategy EnemyStrategy => _antEnemy.Strategy;
     public List<(Strategy Strategy, double StartTime, double LastActionTime)> EnemyStrategyHistory
         => _antEnemy.StrategyHistory;
+    public Map GetCurrentMap() => _map;
 
-    public EntityManager(Game game, ContentManager content, GraphicsDevice graphicsDevice)
+    public EntityManager(Game game, ContentManager content, 
+        GraphicsDevice graphicsDevice, Map map)
     {
         _game = game;
+        _map = map;
         InitializeEntities(graphicsDevice);
         LoadContent(content);
     }
 
     private void InitializeEntities(GraphicsDevice graphicsDevice)
     {
-        _ant = new Ant { Position = new Vector2(200, 200), IsControlled = true };
-        _antEnemy = new AntEnemy { Position = new Vector2(500, 200) };
+        _ant = new Ant();
+        _ant.InitializeAtTile(72, 18);
+        _ant.IsControlled = true;
+
+        _antEnemy = new AntEnemy();
+        _antEnemy.InitializeAtTile(81, 18);
+
         InitializeCropsAndFlies(graphicsDevice);
         _explosions = new ExplosionParticleSystem(_game, 20);
         DecisionMaker.Entities.Add(_ant);
         DecisionMaker.Entities.Add(_antEnemy);
     }
 
+
     private void InitializeCropsAndFlies(GraphicsDevice graphicsDevice)
     {
-        Random rand = new();
-
         _crops = new Crop[12];
         for (int i = 0; i < _crops.Length; i++)
         {
-            _crops[i] = new Crop(new Vector2(
-                (float)rand.NextDouble() * graphicsDevice.Viewport.Width, 383));
+            _crops[i] = new Crop();
+            Vector2 position = MapHelper.TileToWorld(65 + i, 19);
+            _crops[i].Position = position;  // Set position after creation
             DecisionMaker.Entities.Add(_crops[i]);
         }
 
-        int numberOfFlies = rand.Next(15, 21);
+        int numberOfFlies = 15;
         _flies = new Fly[numberOfFlies];
         for (int i = 0; i < numberOfFlies; i++)
         {
-            _flies[i] = new Fly
-            {
-                Position = new Vector2(rand.Next(0, 800), rand.Next(0, 600)),
-                Direction = (Direction)rand.Next(0, 4)
-            };
+            _flies[i] = new Fly();
+            Vector2 position = MapHelper.TileToWorld(65 + (i % 7), 15);
+            _flies[i].Position = position;
+            _flies[i].Direction = (Direction)(i % 4);
             DecisionMaker.Entities.Add(_flies[i]);
         }
     }

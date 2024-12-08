@@ -6,20 +6,41 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Superorganism.Collisions;
 using Superorganism.Common;
 
 namespace Superorganism.Entities
 {
-	public class StaticEntity(Vector2 position) : Entity
+	public class StaticEntity : Entity
 	{
 		public override Texture2D Texture { get; set; }
 		public override EntityStatus EntityStatus { get; set; }
-        public override Vector2 Position { get; set; } = position;
+        public override Vector2 Position { get; set; }
 		public override Color Color { get; set; } = Color.White;
 
-		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+        protected ICollisionBounding _collisionBounding;
+        public override ICollisionBounding CollisionBounding
+        {
+            get => _collisionBounding;
+            set => _collisionBounding = value;
+        }
+
+        public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{
 			spriteBatch.Draw(Texture, Position, Color);
 		}
-	}
+
+        public override void Update(GameTime gameTime)
+        {
+            CollisionBounding ??= TextureInfo.CollisionType;
+            switch (CollisionBounding)
+            {
+                case BoundingRectangle br:
+                    br.X = Position.X - ((TextureInfo.UnitTextureWidth) * TextureInfo.SizeScale / 2.0f);
+                    br.Y = Position.Y - ((TextureInfo.UnitTextureHeight) * TextureInfo.SizeScale / 2.0f);
+                    CollisionBounding = br;
+                    break;
+            }
+        }
+    }
 }

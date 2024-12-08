@@ -4,8 +4,10 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Superorganism.Collisions;
 using Superorganism.Common;
+using Superorganism.Core.Managers;
 using Superorganism.Entities;
 using Superorganism.Enums;
+using Superorganism.Tiles;
 
 namespace Superorganism.AI
 {
@@ -72,6 +74,26 @@ namespace Superorganism.AI
             _targetStrategy = targetStrategy;
         }
 
+        // At the top of the Action method, create a helper method for consistent ground checking
+        private static (float groundY, Vector2 collisionCenter) CalculateGroundAndCollision(
+            Map map,
+            Vector2 position,
+            TextureInfo textureInfo)
+        {
+            float groundY = MapHelper.GetGroundYPosition(
+                map,
+                position.X,
+                textureInfo.UnitTextureWidth  // Remove scaling here - let MapHelper handle it
+            );
+
+            Vector2 collisionCenter = new(
+                position.X,
+                position.Y
+            );
+
+            return (groundY, collisionCenter);
+        }
+
         public static void Action(ref Strategy strategy,
             ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, GameTime gameTime, ref Direction direction,
             ref Vector2 position,
@@ -87,9 +109,9 @@ namespace Superorganism.AI
         ref double directionTimer, ref double directionInterval, ref ICollisionBounding collisionBounding,
         ref Vector2 velocity, int screenWidth, int groundHeight, TextureInfo textureInfo, EntityStatus entityStatus)
         {
-            float entityGroundY;
             GameTime = gameTime;
             double currentStrategyDuration = GetStrategyDuration(strategyHistory, gameTime);
+            Rectangle mapBounds = MapHelper.GetMapWorldBounds();
 
             switch (strategy)
             {
@@ -159,21 +181,18 @@ namespace Superorganism.AI
 
                     position += velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-                    if (position.X < 0 || position.X > screenWidth - textureInfo.UnitTextureWidth)
+                    // Update bounds checking to use map coordinates
+                    if (position.X < 0 || position.X > mapBounds.Width)
                     {
                         velocity.X = -velocity.X;
-                        position = new Vector2(
-                            Math.Clamp(position.X, 0, screenWidth - textureInfo.UnitTextureWidth),
-                            position.Y);
+                        position.X = MathHelper.Clamp(position.X, 0, mapBounds.Width);
                     }
 
-                    if (position.Y < 0 || position.Y > groundHeight - textureInfo.UnitTextureHeight)
+                    if (position.Y < 0 || position.Y > mapBounds.Height)
                     {
                         velocity.Y = -velocity.Y;
-                        position = new Vector2(position.X,
-                            Math.Clamp(position.Y, 0, groundHeight - textureInfo.UnitTextureHeight));
+                        position.Y = MathHelper.Clamp(position.Y, 0, mapBounds.Height);
                     }
-
                     break;
                 }
                 case Strategy.Patrol:
@@ -199,28 +218,41 @@ namespace Superorganism.AI
                     }
 
                     // Update position
-                    position += velocity;
+                    Vector2 newPosition = position + velocity;
 
-                    entityGroundY = GroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale) + 6.0f;
+                    //// Get ground level from map
+                    //float groundY = MapHelper.GetGroundYPosition(
+                    //    GameState.CurrentMap,
+                    //    newPosition.X,
+                    //    textureInfo.UnitTextureWidth * textureInfo.SizeScale  // Using scaled width for ground check
+                    //);
 
-                    if (position.Y >= entityGroundY)
+                    var (groundY, collisionCenter) = CalculateGroundAndCollision(
+                        GameState.CurrentMap,
+                        newPosition,
+                        textureInfo
+                    );
+
+                        if (newPosition.Y >= groundY - textureInfo.UnitTextureHeight / 2)  // Using half height for collision
                     {
-                        position.Y = entityGroundY;
+                        newPosition.Y = groundY - textureInfo.UnitTextureHeight / 2;
                         velocity.Y = 0;
                     }
 
-                    switch (position.X)
+                    // Apply horizontal bounds
+                    if (newPosition.X <= 0)
                     {
-                        // Handle screen bounds
-                        case <= 100:
-                            velocity.X = Math.Abs(velocity.X);
-                            position.X = 100;
-                            break;
-                        case >= 700:
-                            velocity.X = -Math.Abs(velocity.X);
-                            position.X = 700;
-                            break;
+                        velocity.X = Math.Abs(velocity.X);
+                        newPosition.X = 0;
                     }
+                    else if (newPosition.X >= mapBounds.Width - textureInfo.UnitTextureWidth)
+                    {
+                        velocity.X = -Math.Abs(velocity.X);
+                        newPosition.X = mapBounds.Width - textureInfo.UnitTextureWidth;
+                    }
+
+                    position = newPosition;
+                    collisionBounding.Center = collisionCenter;
 
                     // Check for transition to chase
                     foreach (Entity entity in Entities)
@@ -244,6 +276,7 @@ namespace Superorganism.AI
 
                     break;
                 }
+
                 case Strategy.ChaseEnemy:
                 {
                     const float chaseSpeed = 3.0f;
@@ -288,34 +321,55 @@ namespace Superorganism.AI
                     Vector2 chaseDirection = Vector2.Normalize(targetPos - position);
                     velocity.X = chaseDirection.X * chaseSpeed;
 
-                    // Update position
-                    position += velocity;
+                    // Calculate new position with ground check
+                    Vector2 newPosition = position + velocity;
 
-                    entityGroundY = GroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale) + 6.0f;
-                    if (position.Y >= entityGroundY)
+                    float groundY = MapHelper.GetGroundYPosition(
+                        GameState.CurrentMap,
+                        newPosition.X,
+                        textureInfo.UnitTextureWidth * textureInfo.SizeScale
+                    );
+
+                    if (newPosition.Y >= groundY - textureInfo.UnitTextureHeight)
                     {
-                        position.Y = entityGroundY;
+                        newPosition.Y = groundY - textureInfo.UnitTextureHeight;
                         velocity.Y = 0;
                     }
+
+                    position = newPosition;
 
                     break;
                 }
                 case Strategy.Transition:
                 {
-                    // Pause horizontal movement during transition
                     velocity.X = 0;
                     velocity.Y += 0.5f; // Keep gravity
 
-                    // After 1 second, change to target strategy
+                    Vector2 newPosition = position + velocity;
+
+                    // Get ground level and apply collision
+                    float groundY = MapHelper.GetGroundYPosition(
+                        GameState.CurrentMap,
+                        newPosition.X,
+                        textureInfo.UnitTextureWidth * textureInfo.SizeScale
+                    );
+
+                    if (newPosition.Y >= groundY - textureInfo.UnitTextureHeight)
+                    {
+                        newPosition.Y = groundY - textureInfo.UnitTextureHeight;
+                        velocity.Y = 0;
+                    }
+
+                    position = newPosition;
+
                     if (currentStrategyDuration >= TransitionDuration)
                     {
                         AddStrategyToHistory(ref strategy, _targetStrategy, ref strategyHistory, gameTime);
                         if (_targetStrategy == Strategy.Patrol)
                         {
-                            velocity.X = 1.0f; // Initialize patrol movement
+                            velocity.X = 1.0f;
                         }
                     }
-
                     break;
                 }
                 case Strategy.Idle:
