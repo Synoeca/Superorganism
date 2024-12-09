@@ -150,6 +150,32 @@ namespace Superorganism.Screens
 
             GameStateManager.Draw(gameTime, spriteBatch);
 
+            // Draw entity collision boundaries
+            foreach (Entity entity in DecisionMaker.Entities)
+            {
+                if (entity.CollisionBounding != null)
+                {
+                    switch (entity)
+                    {
+                        case Crop crop:
+                            _uiManager.DrawCollisionBounds(crop, crop.CollisionBounding, _camera.TransformMatrix);
+                            break;
+                        case Fly fly:
+                            _uiManager.DrawCollisionBounds(fly, fly.CollisionBounding, _camera.TransformMatrix);
+                            break;
+                        case Ant ant:
+                            _uiManager.DrawCollisionBounds(ant, ant.CollisionBounding, _camera.TransformMatrix);
+                            break;
+                        case AntEnemy antEnemy:
+                            _uiManager.DrawCollisionBounds(antEnemy, antEnemy.CollisionBounding, _camera.TransformMatrix);
+                            break;
+                        default:
+                            _uiManager.DrawCollisionBounds(entity, entity.CollisionBounding, _camera.TransformMatrix);
+                            break;
+                    }
+                }
+            }
+
 
 
             spriteBatch.End();
