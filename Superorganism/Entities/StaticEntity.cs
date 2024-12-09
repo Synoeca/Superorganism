@@ -35,6 +35,11 @@ namespace Superorganism.Entities
             CollisionBounding ??= TextureInfo.CollisionType;
             switch (CollisionBounding)
             {
+                case BoundingCircle br:
+                    br.Center = new Vector2((Position.X + (br.Radius / 2)), Position.Y + (br.Radius / 2));
+                    CollisionBounding = br;
+                    break;
+
                 case BoundingRectangle br:
                     br.X = Position.X - ((TextureInfo.UnitTextureWidth) * TextureInfo.SizeScale / 2.0f);
                     br.Y = Position.Y - ((TextureInfo.UnitTextureHeight) * TextureInfo.SizeScale / 2.0f);

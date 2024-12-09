@@ -14,6 +14,6 @@ namespace Superorganism.Entities
 		public override bool HasDirection { get; set; } = false;
 		public override int DirectionIndex { get; set; } = 0;
 		public override float AnimationSpeed { get; set; } = 0.1f;
-		public override ICollisionBounding CollisionBounding { get; set; } = new BoundingCircle(Vector2.Zero + new Vector2(4000, 1068), 80);
+		//public override ICollisionBounding CollisionBounding { get; set; }
     }
 }

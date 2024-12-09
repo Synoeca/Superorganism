@@ -132,16 +132,10 @@ namespace Superorganism.Screens
             // Draw parallax background first
             _parallaxBackground.Draw(spriteBatch, _camera.Position);
 
-            // Draw other game elements
-            //_groundTexture.Draw(spriteBatch);
-            //_tilemap.Draw(gameTime, spriteBatch);
-
             // In GameplayScreen.Draw
             _map.Draw(
                 spriteBatch,
-                new Rectangle(
-                    0,
-                    0,
+                new Rectangle(0, 0,
                     ScreenManager.GraphicsDevice.Viewport.Width,
                     ScreenManager.GraphicsDevice.Viewport.Height
                 ),
@@ -149,6 +143,24 @@ namespace Superorganism.Screens
             );
 
             GameStateManager.Draw(gameTime, spriteBatch);
+
+            spriteBatch.End();
+
+            // Draw UI elements without camera transform
+            spriteBatch.Begin(
+                SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.PointClamp,
+                DepthStencilState.None,
+                RasterizerState.CullNone
+            );
+
+            // Draw Health bar
+            int currentHealth = GameStateManager.GetPlayerHealth();
+            int maxHealth = GameStateManager.GetPlayerMaxHealth();
+            _uiManager.DrawHealthBar(currentHealth, maxHealth);
+            _uiManager.DrawCropsLeft(GameStateManager.CropsLeft);
+
 
             // Draw entity collision boundaries
             foreach (Entity entity in DecisionMaker.Entities)
@@ -175,47 +187,6 @@ namespace Superorganism.Screens
                     }
                 }
             }
-
-
-
-            spriteBatch.End();
-
-            // Draw UI elements without camera transform
-            spriteBatch.Begin(
-                SpriteSortMode.Deferred,
-                BlendState.AlphaBlend,
-                SamplerState.PointClamp,
-                DepthStencilState.None,
-                RasterizerState.CullNone
-            );
-
-            // Draw Health bar
-            int currentHealth = GameStateManager.GetPlayerHealth();
-            int maxHealth = GameStateManager.GetPlayerMaxHealth();
-            _uiManager.DrawHealthBar(currentHealth, maxHealth);
-            _uiManager.DrawCropsLeft(GameStateManager.CropsLeft);
-
-            //// Add enemy debug info
-            //_uiManager.DrawDebugInfo(
-            //    GameStateManager.GetEnemyPosition(),
-            //    _camera.TransformMatrix,
-            //    GameStateManager.GetEnemyStrategy(),
-            //    GameStateManager.GetDistanceToPlayer(),
-            //    GameStateManager.GetEnemyStrategyHistory(),
-            //    GameStateManager.GetEnemyBounding
-            ////DecisionMaker.Entities[0].CollisionBounding
-            //);
-
-
-            // Draw entity collision boundaries
-            foreach (Entity entity in DecisionMaker.Entities)
-            {
-                if (entity.CollisionBounding != null)
-                {
-                    _uiManager.DrawCollisionBounds(entity, entity.CollisionBounding, _camera.TransformMatrix);
-                }
-            }
-
 
             foreach (Entity entity in DecisionMaker.Entities)
             {
@@ -262,15 +233,7 @@ namespace Superorganism.Screens
                 }
             }
 
-            //// Add enemy debug info
-            //_uiManager.DrawDebugInfo(
-            //    GameStateManager.GetEnemyPosition(),
-            //    _camera.TransformMatrix,
-            //    GameStateManager.GetEnemyStrategy(),
-            //    GameStateManager.GetDistanceToPlayer(),
-            //    GameStateManager.GetEnemyStrategyHistory(),
-            //    DecisionMaker.Entities[0].CollisionBounding
-            //);
+            _uiManager.DrawMousePositionDebug(gameTime, _camera.TransformMatrix);
 
             if (GameStateManager.IsGameOver)
                 _uiManager.DrawGameOverScreen();

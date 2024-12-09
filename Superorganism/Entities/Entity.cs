@@ -35,6 +35,7 @@ namespace Superorganism.Entities
                 BoundingCircle => new BoundingCircle(TextureInfo.Center,
                     TextureInfo.UnitTextureWidth / 2.0f * sizeScale),
 
+
                 BoundingRectangle => new BoundingRectangle(TextureInfo.Center, 
                     TextureInfo.UnitTextureWidth * sizeScale,
                     TextureInfo.UnitTextureHeight * sizeScale),

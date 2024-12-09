@@ -25,7 +25,7 @@ namespace Superorganism.Tiles
                 for (int y = 0; y < MapHeight; y++)
                 {
                     bool foundGround = false;
-                    foreach (var layer in map.Layers.Values)
+                    foreach (Layer layer in map.Layers.Values)
                     {
                         if (layer.GetTile(x, y) != 0)
                         {
@@ -88,7 +88,7 @@ namespace Superorganism.Tiles
                 return false;
 
             // Check all layers
-            foreach (var layer in map.Layers.Values)
+            foreach (Layer layer in map.Layers.Values)
             {
                 if (layer.GetTile(tileX, tileY) != 0)
                     return true;
@@ -127,7 +127,7 @@ namespace Superorganism.Tiles
             {
                 for (int x = startTileX; x <= endTileX; x++)
                 {
-                    foreach (var layer in map.Layers.Values)
+                    foreach (Layer layer in map.Layers.Values)
                     {
                         if (layer.GetTile(x, y) != 0) // Non-empty tile
                         {
@@ -177,7 +177,7 @@ namespace Superorganism.Tiles
                 // Search from top to bottom
                 for (int tileY = 0; tileY < MapHeight; tileY++)
                 {
-                    foreach (var layer in map.Layers.Values)
+                    foreach (Layer layer in map.Layers.Values)
                     {
                         if (layer.GetTile(tileX, tileY) != 0)
                         {

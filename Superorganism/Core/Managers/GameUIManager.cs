@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
 using Superorganism.Collisions;
 using Superorganism.Entities;
 using Superorganism.Enums;
+using Superorganism.Tiles;
 
 namespace Superorganism.Core.Managers
 {
@@ -44,7 +46,7 @@ namespace Superorganism.Core.Managers
             if (collisionBounds is BoundingRectangle rect)
             {
                 // Draw both the entity position and the collision bounds for debugging
-                Vector2 screenEntityPos = Vector2.Transform(entity.Position, cameraMatrix);
+                Vector2 screenEntityPos = Vector2.Transform(entity.CollisionBounding.Center, cameraMatrix);
 
                 // Draw a small cross at the entity position
                 DrawLine(screenEntityPos - new Vector2(5, 0), screenEntityPos + new Vector2(5, 0), Color.Yellow, 1);
@@ -67,38 +69,38 @@ namespace Superorganism.Core.Managers
             }
             else if (collisionBounds is BoundingCircle circle)
             {
-                // Draw the entity position
+                // Transform entity position to screen space
                 Vector2 screenEntityPos = Vector2.Transform(entity.Position, cameraMatrix);
+                //screenEntityPos.X += 5;
+                //screenEntityPos.Y += 5;
 
-                // Draw a small cross at the entity position
+                screenEntityPos.X += circle.Radius;
+                screenEntityPos.Y += circle.Radius;
+
+                // Draw entity position marker (yellow cross)
                 DrawLine(screenEntityPos - new Vector2(5, 0), screenEntityPos + new Vector2(5, 0), Color.Yellow, 1);
                 DrawLine(screenEntityPos - new Vector2(0, 5), screenEntityPos + new Vector2(0, 5), Color.Yellow, 1);
 
-                // For circle, ensure center is relative to entity
-                Vector2 relativeCenter = new Vector2(
-                    circle.Center.X % 1000, // Use modulo to handle potential world coordinates
-                    circle.Center.Y % 1000
-                );
-
-                Vector2 worldCenter = entity.Position + relativeCenter;
-                Vector2 screenCenter = Vector2.Transform(worldCenter, cameraMatrix);
-
                 if (entity is Crop crop)
                 {
-                    if (crop.CollisionBounding is BoundingCircle bc)
-                    {
-                        DrawCircleOutline(crop.Position, circle.Radius, borderThickness, Color.Red);
-                    }
+                    // For crops, draw the circle at the transformed entity position
+                    DrawCircleOutline(screenEntityPos, circle.Radius, borderThickness, Color.Red);
+                    // Debug print
+                    System.Diagnostics.Debug.WriteLine($"Crop Position: {crop.Position}, Screen Pos: {screenEntityPos}, Radius: {circle.Radius}");
                 }
                 else
                 {
+                    // For other entities, use the relative center calculation
+                    Vector2 relativeCenter = new Vector2(
+                        circle.Center.X % MapHelper.TileSize, // Use TileSize instead of 1000
+                        circle.Center.Y % MapHelper.TileSize
+                    );
+
+                    Vector2 worldCenter = entity.Position + relativeCenter;
+                    Vector2 screenCenter = Vector2.Transform(worldCenter, cameraMatrix);
+
                     DrawCircleOutline(screenCenter, circle.Radius, borderThickness, Color.Red);
                 }
-
-               
-
-                // Draw debug info
-                System.Diagnostics.Debug.WriteLine($"Entity: {entity.Position}, Circle Center: {circle.Center}, Relative: {relativeCenter}");
             }
         }
 
@@ -183,11 +185,8 @@ namespace Superorganism.Core.Managers
             DrawTextWithShadow(cropsLeftText, textPosition, Color.White, textScale);
         }
 
-        public void DrawDebugInfo(
-            Vector2 position,
-            Matrix cameraMatrix,
-            float distanceToPlayer,
-            ICollisionBounding collisionBounding)
+        public void DrawDebugInfo(Vector2 position, Matrix cameraMatrix,
+    float distanceToPlayer, ICollisionBounding collisionBounding)
         {
             Vector2 enemyScreenPosition = Vector2.Transform(position, cameraMatrix);
             Vector2 textOffset = new(BarPadding, -40);
@@ -199,6 +198,10 @@ namespace Superorganism.Core.Managers
             DrawDebugText(positionText, textPosition + currentOffset, textScale);
             currentOffset.Y += _gameFont.MeasureString(positionText).Y * textScale;
 
+            string screenPosText = $"Screen Position: {enemyScreenPosition.X:0.0}, {enemyScreenPosition.Y:0.0}";
+            DrawDebugText(screenPosText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(screenPosText).Y * textScale;
+
             string distanceText = $"Distance: {distanceToPlayer:0.0}";
             DrawDebugText(distanceText, textPosition + currentOffset, textScale);
             currentOffset.Y += _gameFont.MeasureString(distanceText).Y * textScale;
@@ -208,12 +211,25 @@ namespace Superorganism.Core.Managers
             if (collisionBounding is BoundingCircle circle)
             {
                 boundingText += $"Circle (Center: {circle.Center.X:0.0}, {circle.Center.Y:0.0}, Radius: {circle.Radius:0.0})";
+                DrawDebugText(boundingText, textPosition + currentOffset, textScale);
             }
             else if (collisionBounding is BoundingRectangle rect)
             {
                 boundingText += $"Rectangle (X: {rect.X:0.0}, Y: {rect.Y:0.0}, W: {rect.Width:0.0}, H: {rect.Height:0.0})";
+                string leftRightText = $"Left: {rect.Left:0.0}, Right: {rect.Right:0.0}";
+                string topBottomText = $"Top: {rect.Top:0.0}, Bottom: {rect.Bottom:0.0}";
+                string rectCenterText = $"  Center: {rect.X + (rect.Width / 2):0.0}, {rect.Y + (rect.Height / 2):0.0}";
+
+                DrawDebugText(boundingText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(leftRightText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(topBottomText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(rectCenterText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(rectCenterText).Y * textScale;
             }
-            DrawDebugText(boundingText, textPosition + currentOffset, textScale);
+
             currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
 
             const string historyHeader = "History:";
@@ -243,22 +259,38 @@ namespace Superorganism.Core.Managers
             DrawDebugText(positionText, textPosition + currentOffset, textScale);
             currentOffset.Y += _gameFont.MeasureString(positionText).Y * textScale;
 
+            string screenPosText = $"Screen Position: {screenPosition.X:0.0}, {screenPosition.Y:0.0}";
+            DrawDebugText(screenPosText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(screenPosText).Y * textScale;
+
             string distanceText = $"Distance: {distanceToPlayer:0.0}";
             DrawDebugText(distanceText, textPosition + currentOffset, textScale);
             currentOffset.Y += _gameFont.MeasureString(distanceText).Y * textScale;
 
-            // Add collision bounding information
+            // Enhanced collision bounding information
             string boundingText = "Bounding: ";
             if (collisionBounding is BoundingCircle circle)
             {
                 boundingText += $"Circle (Center: {circle.Center.X:0.0}, {circle.Center.Y:0.0}, Radius: {circle.Radius:0.0})";
+                DrawDebugText(boundingText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
             }
             else if (collisionBounding is BoundingRectangle rect)
             {
                 boundingText += $"Rectangle (X: {rect.X:0.0}, Y: {rect.Y:0.0}, W: {rect.Width:0.0}, H: {rect.Height:0.0})";
+                string leftRightText = $"Left: {rect.Left:0.0}, Right: {rect.Right:0.0}";
+                string topBottomText = $"Top: {rect.Top:0.0}, Bottom: {rect.Bottom:0.0}";
+                string rectCenterText = $"  Center: {rect.Center.X:0.0}, {rect.Center.Y:0.0}";
+
+                DrawDebugText(boundingText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(leftRightText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(topBottomText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(rectCenterText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(rectCenterText).Y * textScale;
             }
-            DrawDebugText(boundingText, textPosition + currentOffset, textScale);
-            currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
 
             const string historyHeader = "History:";
             DrawDebugText(historyHeader, textPosition + currentOffset, textScale);
@@ -272,10 +304,51 @@ namespace Superorganism.Core.Managers
             }
         }
 
+        public void DrawMousePositionDebug(GameTime gameTime, Matrix cameraMatrix)
+        {
+            // Get current mouse state
+            MouseState mouseState = Mouse.GetState();
+            Vector2 mouseScreenPosition = new Vector2(mouseState.X, mouseState.Y);
+
+            // Convert screen position to world position
+            Matrix invertedMatrix = Matrix.Invert(cameraMatrix);
+            Vector2 mouseWorldPosition = Vector2.Transform(mouseScreenPosition, invertedMatrix);
+
+            // Setup text position and scale
+            Vector2 textPosition = mouseScreenPosition + new Vector2(20, 20); // Offset from cursor
+            const float textScale = 0.4f;
+            Vector2 currentOffset = Vector2.Zero;
+
+            // Draw screen coordinates
+            string screenPosText = $"Screen: {mouseScreenPosition.X:0.0}, {mouseScreenPosition.Y:0.0}";
+            DrawDebugText(screenPosText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(screenPosText).Y * textScale;
+
+            // Draw world coordinates
+            string worldPosText = $"World: {mouseWorldPosition.X:0.0}, {mouseWorldPosition.Y:0.0}";
+            DrawDebugText(worldPosText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(worldPosText).Y * textScale;
+
+            // Draw tile coordinates
+            (int tileX, int tileY) = MapHelper.WorldToTile(mouseWorldPosition);
+            string tilePosText = $"Tile: {tileX}, {tileY}";
+            DrawDebugText(tilePosText, textPosition + currentOffset, textScale);
+        }
+
         private void DrawDebugText(string text, Vector2 position, float scale)
         {
             DrawTextWithShadow(text, position, Color.White, scale);
         }
+
+        private void DrawTextWithShadow(string text, Vector2 position, Color color, float scale = 1.0f)
+        {
+            string adjustedText = text.Replace(" ", "   ");
+
+            Vector2 shadowOffset = new(2, 2);
+            _spriteBatch.DrawString(_gameFont, adjustedText, position + shadowOffset, Color.Black * 0.5f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
+            _spriteBatch.DrawString(_gameFont, adjustedText, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
+        }
+
 
         public void DrawGameOverScreen()
         {
@@ -310,14 +383,6 @@ namespace Superorganism.Core.Managers
             DrawTextWithShadow(restartMessage, position, Color.White);
         }
 
-        private void DrawTextWithShadow(string text, Vector2 position, Color color, float scale = 1.0f)
-        {
-            string adjustedText = text.Replace(" ", "   ");
-
-            Vector2 shadowOffset = new(2, 2);
-            _spriteBatch.DrawString(_gameFont, adjustedText, position + shadowOffset, Color.Black * 0.5f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
-            _spriteBatch.DrawString(_gameFont, adjustedText, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
-        }
 
         private static Texture2D CreateTexture(GraphicsDevice graphicsDevice, Color color)
         {

@@ -54,13 +54,16 @@ public class EntityManager
         _map = map;
         InitializeEntities(graphicsDevice);
         LoadContent(content);
+        _ant.CollisionBounding = (BoundingRectangle)_ant.TextureInfo.CollisionType;
     }
 
     private void InitializeEntities(GraphicsDevice graphicsDevice)
     {
         _ant = new Ant();
         _ant.InitializeAtTile(72, 18);
+        //_ant.CollisionBounding.Center = _ant.Position;
         _ant.IsControlled = true;
+        
 
         _antEnemy = new AntEnemy();
         _antEnemy.InitializeAtTile(81, 18);
@@ -78,12 +81,13 @@ public class EntityManager
         for (int i = 0; i < _crops.Length; i++)
         {
             _crops[i] = new Crop();
-            Vector2 position = MapHelper.TileToWorld(65 + i, 19);
+            Vector2 position = MapHelper.TileToWorld(65 + i, 20);
             _crops[i].Position = position;  // Set position after creation
+            //_crops[i].CollisionBounding = new BoundingCircle(position, 80);
             DecisionMaker.Entities.Add(_crops[i]);
         }
 
-        int numberOfFlies = 15;
+        int numberOfFlies = 1;
         _flies = new Fly[numberOfFlies];
         for (int i = 0; i < numberOfFlies; i++)
         {

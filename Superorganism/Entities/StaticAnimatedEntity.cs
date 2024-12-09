@@ -36,7 +36,7 @@ namespace Superorganism.Entities
             {
                 case true:
                 {
-                    Rectangle source = new((AnimationFrame * TextureInfo.TextureWidth) / TextureInfo.NumOfSpriteCols, DirectionIndex, TextureInfo.UnitTextureWidth, TextureInfo.UnitTextureHeight);
+                    Rectangle source = new((int)((AnimationFrame * TextureInfo.TextureWidth) / TextureInfo.NumOfSpriteCols), DirectionIndex, (int)TextureInfo.UnitTextureWidth, (int)TextureInfo.UnitTextureHeight);
                     spriteBatch.Draw(Texture, Position, source, Color.White);
                     break;
                 }

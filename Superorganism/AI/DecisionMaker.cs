@@ -227,7 +227,7 @@ namespace Superorganism.AI
                     //    textureInfo.UnitTextureWidth * textureInfo.SizeScale  // Using scaled width for ground check
                     //);
 
-                    var (groundY, collisionCenter) = CalculateGroundAndCollision(
+                    (float groundY, Vector2 collisionCenter) = CalculateGroundAndCollision(
                         GameState.CurrentMap,
                         newPosition,
                         textureInfo
