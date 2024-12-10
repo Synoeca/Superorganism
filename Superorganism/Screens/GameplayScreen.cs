@@ -20,7 +20,6 @@ namespace Superorganism.Screens
         private GameUiManager _uiManager;
         private Camera2D _camera;
         private ParallaxBackground _parallaxBackground;
-        private Tilemap _tilemap;
         private Map _map;
         private ContentManager _content;
 
@@ -43,7 +42,6 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            _tilemap = new Tilemap(ContentPaths.GetMapPath("map.txt"));
             _map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
 
             // Initialize camera
@@ -56,7 +54,6 @@ namespace Superorganism.Screens
                 ScreenManager.GraphicsDevice,
                 _camera,
                 ScreenManager.GameAudioManager,
-                _tilemap,
                 _map
             );
 
