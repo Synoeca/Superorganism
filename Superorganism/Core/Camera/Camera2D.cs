@@ -26,6 +26,9 @@ namespace Superorganism.Core.Camera
         private const float TransitionSpeed = 3f;
         private const float InitialZoom = 0.2f;
 
+        private const int MapWidth = 12800; // 200 * 64
+        private const int MapHeight = 3200; // 50 * 64
+
         public Matrix TransformMatrix { get; private set; } = Matrix.Identity;
 
         public void Initialize(Vector2 startPosition)
@@ -54,6 +57,25 @@ namespace Superorganism.Core.Camera
             _targetZoom = _baseZoom * zoomLevel;
         }
 
+        private Vector2 ClampCameraPosition(Vector2 position)
+        {
+            // Calculate visible area based on zoom
+            float viewportWidth = graphicsDevice.Viewport.Width / _currentZoom;
+            float viewportHeight = graphicsDevice.Viewport.Height / _currentZoom;
+
+            // Calculate the bounds where the camera should stop
+            float minX = viewportWidth / 2;
+            float maxX = MapWidth - (viewportWidth / 2);
+            float minY = viewportHeight / 2;
+            float maxY = MapHeight - (viewportHeight / 2);
+
+            // Clamp the camera position
+            return new Vector2(
+                MathHelper.Clamp(position.X, minX, maxX),
+                MathHelper.Clamp(position.Y, minY, maxY)
+            );
+        }
+
         public void Update(Vector2 playerPosition, GameTime gameTime)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -69,7 +91,8 @@ namespace Superorganism.Core.Camera
             {
                 _transitionTimer += deltaTime;
                 float progress = Math.Min(_transitionTimer * TransitionSpeed, 1f);
-                _position = Vector2.Lerp(_position, _focusTarget, progress);
+                Vector2 clampedTarget = ClampCameraPosition(_focusTarget);
+                _position = Vector2.Lerp(_position, clampedTarget, progress);
 
                 if (progress >= 1f)
                 {
@@ -80,7 +103,8 @@ namespace Superorganism.Core.Camera
             else
             {
                 // Smooth follow player when not transitioning
-                _position = Vector2.Lerp(_position, playerPosition, 5f * deltaTime);
+                Vector2 targetPos = ClampCameraPosition(playerPosition);
+                _position = Vector2.Lerp(_position, targetPos, 5f * deltaTime);
             }
 
             // Handle camera shake
@@ -115,10 +139,10 @@ namespace Superorganism.Core.Camera
             );
 
             // Calculate vertical offset to show more area above the player
-            float verticalOffset = graphicsDevice.Viewport.Height * 0.1f; // Moves focus point up by 1/4 screen height
+            float verticalOffset = graphicsDevice.Viewport.Height * 0.1f;
             Vector2 offsetScreenCenter = new(screenCenter.X, screenCenter.Y + verticalOffset);
 
-            // Make sure position is in world coordinates (pixels)
+            // Make sure position is in world coordinates (pixels) and clamped
             Vector2 cameraPos = _position + shakeOffset;
 
             TransformMatrix =
