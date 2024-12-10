@@ -314,97 +314,102 @@ namespace Superorganism.Tiles
                         switch (name)
                         {
                             case "data":
+                            {
+                                if (reader.GetAttribute("encoding") == null)
                                 {
-                                    if (reader.GetAttribute("encoding") != null)
+                                    using XmlReader st = reader.ReadSubtree();
+                                    int i = 0;
+                                    while (!st.EOF)
                                     {
-                                        string encoding = reader.GetAttribute("encoding");
-                                        string compressor = reader.GetAttribute("compression");
-                                        switch (encoding)
+                                        switch (st.NodeType)
                                         {
-                                            case "base64":
+                                            case XmlNodeType.Element:
+                                                if (st.Name == "tile")
                                                 {
-                                                    int dataSize = (result.Width * result.Height * 4) + 1024;
-                                                    byte[] buffer = new byte[dataSize];
-                                                    reader.ReadElementContentAsBase64(buffer, 0, dataSize);
-
-                                                    Stream stream = new MemoryStream(buffer, false);
-                                                    switch (compressor)
+                                                    if (i < result.Tiles.Length)
                                                     {
-                                                        case "gzip":
-                                                            stream = new GZipStream(stream, CompressionMode.Decompress, false);
-                                                            break;
-                                                        case "zlib":
-                                                            stream = new ZlibStream(stream, (MonoGame.Framework.Utilities.Deflate.CompressionMode)CompressionMode.Decompress, false);
-                                                            break;
+                                                        result.Tiles[i] = int.Parse(st.GetAttribute("gid"));
+                                                        i++;
                                                     }
-
-                                                    using (stream)
-                                                    using (BinaryReader br = new(stream))
-                                                    {
-                                                        for (int i = 0; i < result.Tiles.Length; i++)
-                                                        {
-                                                            uint tileData = br.ReadUInt32();
-
-                                                            // The data contain flip information as well as the tileset index
-                                                            byte flipAndRotateFlags = 0;
-                                                            if ((tileData & FlippedHorizontallyFlag) != 0)
-                                                            {
-                                                                flipAndRotateFlags |= HorizontalFlipDrawFlag;
-                                                            }
-                                                            if ((tileData & FlippedVerticallyFlag) != 0)
-                                                            {
-                                                                flipAndRotateFlags |= VerticalFlipDrawFlag;
-                                                            }
-                                                            if ((tileData & FlippedDiagonallyFlag) != 0)
-                                                            {
-                                                                flipAndRotateFlags |= DiagonallyFlipDrawFlag;
-                                                            }
-                                                            result.FlipAndRotate[i] = flipAndRotateFlags;
-
-                                                            // Clear the flip bits before storing the tile data
-                                                            tileData &= ~(FlippedHorizontallyFlag |
-                                                                          FlippedVerticallyFlag |
-                                                                          FlippedDiagonallyFlag);
-                                                            result.Tiles[i] = (int)tileData;
-                                                        }
-                                                    }
-
-                                                    continue;
                                                 }
 
-                                            default:
-                                                throw new Exception("Unrecognized encoding.");
+                                                break;
+                                            case XmlNodeType.EndElement:
+                                                break;
                                         }
-                                    }
-                                    // ReSharper disable once RedundantIfElseBlock
-                                    else
-                                    {
-                                        using XmlReader st = reader.ReadSubtree();
-                                        int i = 0;
-                                        while (!st.EOF)
-                                        {
-                                            switch (st.NodeType)
-                                            {
-                                                case XmlNodeType.Element:
-                                                    if (st.Name == "tile")
-                                                    {
-                                                        if (i < result.Tiles.Length)
-                                                        {
-                                                            result.Tiles[i] = int.Parse(st.GetAttribute("gid"));
-                                                            i++;
-                                                        }
-                                                    }
 
+                                        st.Read();
+                                    }
+                                }
+                                else
+                                {
+                                    string encoding = reader.GetAttribute("encoding");
+                                    string compressor = reader.GetAttribute("compression");
+                                    switch (encoding)
+                                    {
+                                        case "base64":
+                                        {
+                                            int dataSize = (result.Width * result.Height * 4) + 1024;
+                                            byte[] buffer = new byte[dataSize];
+                                            reader.ReadElementContentAsBase64(buffer, 0, dataSize);
+
+                                            Stream stream = new MemoryStream(buffer, false);
+                                            switch (compressor)
+                                            {
+                                                case "gzip":
+                                                    stream = new GZipStream(stream, CompressionMode.Decompress, false);
                                                     break;
-                                                case XmlNodeType.EndElement:
+                                                case "zlib":
+                                                    stream = new ZlibStream(stream,
+                                                        (MonoGame.Framework.Utilities.Deflate.CompressionMode)
+                                                        CompressionMode.Decompress, false);
                                                     break;
                                             }
 
-                                            st.Read();
+                                            using (stream)
+                                            using (BinaryReader br = new(stream))
+                                            {
+                                                for (int i = 0; i < result.Tiles.Length; i++)
+                                                {
+                                                    uint tileData = br.ReadUInt32();
+
+                                                    // The data contain flip information as well as the tileset index
+                                                    byte flipAndRotateFlags = 0;
+                                                    if ((tileData & FlippedHorizontallyFlag) != 0)
+                                                    {
+                                                        flipAndRotateFlags |= HorizontalFlipDrawFlag;
+                                                    }
+
+                                                    if ((tileData & FlippedVerticallyFlag) != 0)
+                                                    {
+                                                        flipAndRotateFlags |= VerticalFlipDrawFlag;
+                                                    }
+
+                                                    if ((tileData & FlippedDiagonallyFlag) != 0)
+                                                    {
+                                                        flipAndRotateFlags |= DiagonallyFlipDrawFlag;
+                                                    }
+
+                                                    result.FlipAndRotate[i] = flipAndRotateFlags;
+
+                                                    // Clear the flip bits before storing the tile data
+                                                    tileData &= ~(FlippedHorizontallyFlag |
+                                                                  FlippedVerticallyFlag |
+                                                                  FlippedDiagonallyFlag);
+                                                    result.Tiles[i] = (int)tileData;
+                                                }
+                                            }
+
+                                            continue;
                                         }
+
+                                        default:
+                                            throw new Exception("Unrecognized encoding.");
                                     }
-                                    Console.WriteLine("It made it!");
                                 }
+
+                                Console.WriteLine("It made it!");
+                            }
                                 break;
                             case "properties":
                             {
