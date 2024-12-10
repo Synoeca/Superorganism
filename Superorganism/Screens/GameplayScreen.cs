@@ -170,10 +170,17 @@ namespace Superorganism.Screens
                     switch (entity)
                     {
                         case Crop crop:
-                            _uiManager.DrawCollisionBounds(crop, crop.CollisionBounding, _camera.TransformMatrix);
+                            if (!crop.Collected)
+                            {
+                                _uiManager.DrawCollisionBounds(crop, crop.CollisionBounding, _camera.TransformMatrix);
+                            }
+
                             break;
                         case Fly fly:
-                            _uiManager.DrawCollisionBounds(fly, fly.CollisionBounding, _camera.TransformMatrix);
+                            if (!fly.Destroyed)
+                            {
+                                _uiManager.DrawCollisionBounds(fly, fly.CollisionBounding, _camera.TransformMatrix);
+                            }
                             break;
                         case Ant ant:
                             _uiManager.DrawCollisionBounds(ant, ant.CollisionBounding, _camera.TransformMatrix);
@@ -193,25 +200,29 @@ namespace Superorganism.Screens
                 switch (entity)
                 {
                     case Crop crop:
+                        if (!crop.Collected)
+                        {
+                            _uiManager.DrawDebugInfo(
+                                crop.Position,
+                                _camera.TransformMatrix,
+                                GameStateManager.GetDistanceToPlayer(crop),
+                                crop.CollisionBounding
+                            );
+                        }
+
+                        break;
+                    case Fly { Destroyed: true }:
+                        continue;
+                    case Fly fly:
                         _uiManager.DrawDebugInfo(
-                            crop.Position,
+                            fly.Position,
                             _camera.TransformMatrix,
-                            GameStateManager.GetDistanceToPlayer(crop),
-                            crop.CollisionBounding
+                            fly.Strategy,
+                            GameStateManager.GetDistanceToPlayer(fly),
+                            fly.StrategyHistory,
+                            fly.CollisionBounding
                         );
                         break;
-                    //case Fly { Destroyed: true }:
-                    //    continue;
-                    //case Fly fly:
-                    //    _uiManager.DrawDebugInfo(
-                    //        fly.Position,
-                    //        _camera.TransformMatrix,
-                    //        fly.Strategy,
-                    //        GameStateManager.GetDistanceToPlayer(fly),
-                    //        fly.StrategyHistory,
-                    //        fly.CollisionBounding
-                    //    );
-                    //    break;
                     case AntEnemy antEnemy:
                         _uiManager.DrawDebugInfo(
                             antEnemy.Position,
@@ -222,14 +233,14 @@ namespace Superorganism.Screens
                             antEnemy.CollisionBounding
                         );
                         break;
-                    //case Ant ant:
-                    //    _uiManager.DrawDebugInfo(
-                    //        ant.Position,
-                    //        _camera.TransformMatrix,
-                    //        GameStateManager.GetDistanceToPlayer(ant),
-                    //        ant.CollisionBounding
-                    //    );
-                    //    break;
+                    case Ant ant:
+                        _uiManager.DrawDebugInfo(
+                            ant.Position,
+                            _camera.TransformMatrix,
+                            GameStateManager.GetDistanceToPlayer(ant),
+                            ant.CollisionBounding
+                        );
+                        break;
                 }
             }
 

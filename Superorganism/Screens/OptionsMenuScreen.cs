@@ -15,7 +15,7 @@ namespace Superorganism.Screens
         private readonly MenuEntry _backgroundMusicVolumeEntry;
         private readonly MenuEntry _soundEffectVolumeEntry;
 
-        public static float BackgroundMusicVolume { get; private set; } = 0.05f;
+        public static float BackgroundMusicVolume { get; private set; } = 0.00f;
 
         public static float SoundEffectVolume { get; private set; } = 0.5f;
 

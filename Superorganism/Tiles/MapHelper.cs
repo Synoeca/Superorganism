@@ -49,7 +49,7 @@ namespace Superorganism.Tiles
             float worldX = tileX * TileSize;
 
             // For Y position: align with top of tile since that's where collision should happen
-            float worldY = tileY * TileSize - TileSize;  // Subtract TileSize to align with top of the tile
+            float worldY = tileY * TileSize;  // Subtract TileSize to align with top of the tile
 
             return new Vector2(worldX, worldY);
         }
@@ -160,40 +160,27 @@ namespace Superorganism.Tiles
         /// <summary>
         /// Gets the ground Y position at a given world X coordinate
         /// </summary>
-        public static float GetGroundYPosition(Map map, float worldX, float entityWidth)
+        public static float GetGroundYPosition(Map map, float worldX, float positionY, float entityHeight)
         {
-            // Check a few points along the entity's width
-            float leftX = worldX - entityWidth / 2;
-            float rightX = worldX + entityWidth / 2;
-            float centerX = worldX;
-            float highestGround = -1;
+            // Convert world X to tile X
+            int tileX = (int)(worldX / TileSize);
+            int tileY = (int)(positionY / TileSize);
+            if (tileX < 0 || tileX >= MapWidth) return MapHeight * TileSize;
 
-            // Check ground at left, center, and right points
-            foreach (float x in new[] { leftX, centerX, rightX })
+            // Search downward until we find ground
+            for (; tileY < MapHeight; tileY++)
             {
-                int tileX = (int)(x / TileSize);
-                if (tileX < 0 || tileX >= MapWidth) continue;
-
-                // Search from top to bottom
-                for (int tileY = 0; tileY < MapHeight; tileY++)
+                foreach (Layer layer in map.Layers.Values)
                 {
-                    foreach (Layer layer in map.Layers.Values)
+                    if (layer.GetTile(tileX, tileY) != 0)
                     {
-                        if (layer.GetTile(tileX, tileY) != 0)
-                        {
-                            // Return the top of the tile by multiplying tileY by TileSize
-                            float groundY = (tileY) * TileSize;  // Removed any offset adjustments
-                            if (highestGround == -1 || groundY < highestGround)
-                            {
-                                highestGround = groundY;
-                            }
-                            break;
-                        }
+                        // Found ground - return the top of this tile minus entity height
+                        return (tileY * TileSize);
                     }
                 }
             }
 
-            return highestGround == -1 ? MapHeight * TileSize : highestGround;
+            return MapHeight * TileSize;
         }
     }
 }

@@ -159,20 +159,21 @@ namespace Superorganism.Entities
             // Check map bounds
             Rectangle mapBounds = MapHelper.GetMapWorldBounds();
             newPosition.X = MathHelper.Clamp(newPosition.X,
-                TextureInfo.UnitTextureWidth / 2f,
-                mapBounds.Width - TextureInfo.UnitTextureWidth / 2f);
+                (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f,
+                mapBounds.Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
 
             // Get ground level at new position
             float groundY = MapHelper.GetGroundYPosition(
                 GameState.CurrentMap,
                 newPosition.X,
-                TextureInfo.UnitTextureWidth * TextureInfo.SizeScale
+                _position.Y,
+                TextureInfo.UnitTextureHeight * TextureInfo.SizeScale
             );
 
             // Update position and handle ground collision
-            if (newPosition.Y >= groundY - TextureInfo.UnitTextureHeight / 2f)
+            if (newPosition.Y > groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale))
             {
-                newPosition.Y = groundY - TextureInfo.UnitTextureHeight / 2f;
+                newPosition.Y = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                 _velocity.Y = 0;
                 IsOnGround = true;
                 if (IsJumping) IsJumping = false;
@@ -183,8 +184,6 @@ namespace Superorganism.Entities
             // Update collision bounds
             if (CollisionBounding is BoundingRectangle boundingRectangle)
             {
-                //boundingRectangle.X = _position.X + (boundingRectangle.Width / 2f);
-                //boundingRectangle.Y = _position.Y + (boundingRectangle.Height / 2f);
                 boundingRectangle.X = _position.X;
                 boundingRectangle.Y = _position.Y;
                 CollisionBounding = boundingRectangle;

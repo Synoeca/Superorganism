@@ -60,7 +60,7 @@ public class EntityManager
     private void InitializeEntities(GraphicsDevice graphicsDevice)
     {
         _ant = new Ant();
-        _ant.InitializeAtTile(72, 18);
+        _ant.InitializeAtTile(72, 19);
         //_ant.CollisionBounding.Center = _ant.Position;
         _ant.IsControlled = true;
         
@@ -77,24 +77,35 @@ public class EntityManager
 
     private void InitializeCropsAndFlies(GraphicsDevice graphicsDevice)
     {
-        _crops = new Crop[1];
+        _crops = new Crop[12];
         for (int i = 0; i < _crops.Length; i++)
         {
             _crops[i] = new Crop();
-            Vector2 position = MapHelper.TileToWorld(65 + i, 20);
+            Vector2 position = MapHelper.TileToWorld(10 + 4*i, 19);
             _crops[i].Position = position;  // Set position after creation
             //_crops[i].CollisionBounding = new BoundingCircle(position, 80);
             DecisionMaker.Entities.Add(_crops[i]);
         }
 
-        int numberOfFlies = 1;
-        _flies = new Fly[numberOfFlies];
-        for (int i = 0; i < numberOfFlies; i++)
+        _flies = new Fly[20];
+        Random rand = new();
+        for (int i = 0; i < _flies.Length; i++)
         {
             _flies[i] = new Fly();
-            Vector2 position = MapHelper.TileToWorld(65 + (i % 7), 15);
+
+            // Spread flies across a wider X range (50 to 100 tiles)
+            int spreadX = 50 + rand.Next(50);
+            // Vary Y position between tiles 10 and 20
+            int spreadY = 10 + rand.Next(11);
+
+            Vector2 position = MapHelper.TileToWorld(spreadX, spreadY);
+
+            // Add small random offsets within the tile for more natural positioning
+            position.X += rand.Next(-32, 32); // Half tile random offset
+            position.Y += rand.Next(-32, 32);
+
             _flies[i].Position = position;
-            _flies[i].Direction = (Direction)(i % 4);
+            _flies[i].Direction = (Direction)(rand.Next(4)); // Random initial direction
             DecisionMaker.Entities.Add(_flies[i]);
         }
     }

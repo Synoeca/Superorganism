@@ -83,6 +83,7 @@ namespace Superorganism.AI
             float groundY = MapHelper.GetGroundYPosition(
                 map,
                 position.X,
+                position.Y,
                 textureInfo.UnitTextureWidth  // Remove scaling here - let MapHelper handle it
             );
 
@@ -147,54 +148,68 @@ namespace Superorganism.AI
                     break;
                 }
                 case Strategy.Random360FlyingMovement:
-                {
-                    if (velocity == Vector2.Zero)
                     {
-                        double angle = Rand.NextDouble() * Math.PI * 2;
-                        velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) *
-                                   (entityStatus.Agility * 100);
-                        directionInterval = GetNewDirectionInterval();
-                    }
+                        if (velocity == Vector2.Zero)
+                        {
+                            double angle = Rand.NextDouble() * Math.PI * 2;
+                            velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) *
+                                       (entityStatus.Agility * 100);
+                            directionInterval = GetNewDirectionInterval();
+                        }
 
-                    directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
-                    if (directionTimer > directionInterval)
-                    {
-                        double angle = Rand.NextDouble() * Math.PI * 2;
-                        velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) *
-                                   (entityStatus.Agility * 100);
-                        directionTimer -= directionInterval;
-                        directionInterval = GetNewDirectionInterval();
-                    }
+                        directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                        if (directionTimer > directionInterval)
+                        {
+                            double angle = Rand.NextDouble() * Math.PI * 2;
+                            velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) *
+                                       (entityStatus.Agility * 100);
+                            directionTimer -= directionInterval;
+                            directionInterval = GetNewDirectionInterval();
+                        }
 
-                    // Set direction based on highest velocity component
-                    float absVelX = Math.Abs(velocity.X);
-                    float absVelY = Math.Abs(velocity.Y);
+                        // Set direction based on highest velocity component
+                        float absVelX = Math.Abs(velocity.X);
+                        float absVelY = Math.Abs(velocity.Y);
+                        if (absVelX > absVelY)
+                        {
+                            direction = velocity.X > 0 ? Direction.Right : Direction.Left;
+                        }
+                        else
+                        {
+                            direction = velocity.Y > 0 ? Direction.Down : Direction.Up;
+                        }
 
-                    if (absVelX > absVelY)
-                    {
-                        direction = velocity.X > 0 ? Direction.Right : Direction.Left;
-                    }
-                    else
-                    {
-                        direction = velocity.Y > 0 ? Direction.Down : Direction.Up;
-                    }
+                        // Update position
+                        Vector2 newPosition = position + velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-                    position += velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                        // Check ground collision before applying position update
+                        float groundY = MapHelper.GetGroundYPosition(
+                            GameState.CurrentMap,
+                            newPosition.X,
+                            position.Y,
+                            textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                        );
 
-                    // Update bounds checking to use map coordinates
-                    if (position.X < 0 || position.X > mapBounds.Width)
-                    {
-                        velocity.X = -velocity.X;
-                        position.X = MathHelper.Clamp(position.X, 0, mapBounds.Width);
-                    }
+                        if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
+                        {
+                            velocity.Y = -velocity.Y;  // Just invert Y velocity on ground collision
+                        }
 
-                    if (position.Y < 0 || position.Y > mapBounds.Height)
-                    {
-                        velocity.Y = -velocity.Y;
-                        position.Y = MathHelper.Clamp(position.Y, 0, mapBounds.Height);
+                        // Update bounds checking to use map coordinates
+                        if (newPosition.X < 0 || newPosition.X > mapBounds.Width)
+                        {
+                            velocity.X = -velocity.X;
+                            newPosition.X = MathHelper.Clamp(newPosition.X, 0, mapBounds.Width);
+                        }
+                        if (newPosition.Y < 0)
+                        {
+                            velocity.Y = -velocity.Y;
+                            newPosition.Y = 0;
+                        }
+
+                        position = newPosition;
+                        break;
                     }
-                    break;
-                }
                 case Strategy.Patrol:
                 {
                     const float movementSpeed = 1.0f;
@@ -220,39 +235,26 @@ namespace Superorganism.AI
                     // Update position
                     Vector2 newPosition = position + velocity;
 
-                    //// Get ground level from map
-                    //float groundY = MapHelper.GetGroundYPosition(
-                    //    GameState.CurrentMap,
-                    //    newPosition.X,
-                    //    textureInfo.UnitTextureWidth * textureInfo.SizeScale  // Using scaled width for ground check
-                    //);
+                    // Check map bounds
+                    newPosition.X = MathHelper.Clamp(newPosition.X,
+                        (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
+                        mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
 
-                    (float groundY, Vector2 collisionCenter) = CalculateGroundAndCollision(
+                    // Get ground level at new position
+                    float groundY = MapHelper.GetGroundYPosition(
                         GameState.CurrentMap,
-                        newPosition,
-                        textureInfo
+                        newPosition.X,
+                        position.Y,
+                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
                     );
 
-                        if (newPosition.Y >= groundY - textureInfo.UnitTextureHeight / 2)  // Using half height for collision
+                    if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
                     {
-                        newPosition.Y = groundY - textureInfo.UnitTextureHeight / 2;
+                        newPosition.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
                         velocity.Y = 0;
                     }
 
-                    // Apply horizontal bounds
-                    if (newPosition.X <= 0)
-                    {
-                        velocity.X = Math.Abs(velocity.X);
-                        newPosition.X = 0;
-                    }
-                    else if (newPosition.X >= mapBounds.Width - textureInfo.UnitTextureWidth)
-                    {
-                        velocity.X = -Math.Abs(velocity.X);
-                        newPosition.X = mapBounds.Width - textureInfo.UnitTextureWidth;
-                    }
-
                     position = newPosition;
-                    collisionBounding.Center = collisionCenter;
 
                     // Check for transition to chase
                     foreach (Entity entity in Entities)
@@ -285,78 +287,84 @@ namespace Superorganism.AI
                     Vector2? targetPosition = null;
                     float closestDistance = float.MaxValue;
 
-                    // Find the closest controlled entity
                     foreach (Entity entity in Entities)
                     {
-                        switch (entity)
+                        if (entity is ControllableEntity { IsControlled: true } controllableEntity)
                         {
-                            case ControllableEntity { IsControlled: true } controllableEntity:
+                            float distance = Vector2.Distance(position, controllableEntity.Position);
+                            if (distance < closestDistance)
                             {
-                                float distance = Vector2.Distance(position, controllableEntity.Position);
-                                if (distance < closestDistance)
-                                {
-                                    closestDistance = distance;
-                                    targetPosition = controllableEntity.Position;
-                                    _lastKnownTargetPosition = controllableEntity.Position;
-                                }
-
-                                break;
+                                closestDistance = distance;
+                                targetPosition = controllableEntity.Position;
+                                _lastKnownTargetPosition = controllableEntity.Position;
                             }
                         }
                     }
 
-                    // Check if target is lost and duration threshold is met
                     if ((!targetPosition.HasValue || closestDistance > 200) && currentStrategyDuration >= 3.0)
                     {
                         targetPosition = GetLastTargetPosition(strategyHistory, gameTime);
                         if (!targetPosition.HasValue)
                         {
                             TransitionToStrategy(ref strategy, Strategy.Patrol, ref strategyHistory, gameTime);
-                            return; // Exit early during transition
+                            return;
                         }
                     }
 
-                    // Chase logic - will continue chasing last known position during minimum duration
                     Vector2 targetPos = targetPosition ?? _lastKnownTargetPosition;
                     Vector2 chaseDirection = Vector2.Normalize(targetPos - position);
                     velocity.X = chaseDirection.X * chaseSpeed;
 
-                    // Calculate new position with ground check
+                    // Calculate new position
                     Vector2 newPosition = position + velocity;
 
+                    // Check map bounds
+                    newPosition.X = MathHelper.Clamp(newPosition.X,
+                        (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
+                        mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
+
+                    // Get ground level at new position
                     float groundY = MapHelper.GetGroundYPosition(
                         GameState.CurrentMap,
                         newPosition.X,
-                        textureInfo.UnitTextureWidth * textureInfo.SizeScale
+                        position.Y,
+                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
                     );
 
-                    if (newPosition.Y >= groundY - textureInfo.UnitTextureHeight)
+                    // Handle ground collision
+                    if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
                     {
-                        newPosition.Y = groundY - textureInfo.UnitTextureHeight;
+                        newPosition.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
                         velocity.Y = 0;
                     }
 
                     position = newPosition;
-
                     break;
                 }
                 case Strategy.Transition:
                 {
                     velocity.X = 0;
-                    velocity.Y += 0.5f; // Keep gravity
+                    velocity.Y += 0.5f;
 
                     Vector2 newPosition = position + velocity;
 
-                    // Get ground level and apply collision
+                    // Check map bounds
+                    newPosition.X = MathHelper.Clamp(newPosition.X,
+                        (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
+                        mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
+
+                    // Get ground level at new position
                     float groundY = MapHelper.GetGroundYPosition(
                         GameState.CurrentMap,
                         newPosition.X,
-                        textureInfo.UnitTextureWidth * textureInfo.SizeScale
+                        position.Y,
+                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
                     );
 
-                    if (newPosition.Y >= groundY - textureInfo.UnitTextureHeight)
+                    // Handle ground collision
+                    if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
                     {
-                        newPosition.Y = groundY - textureInfo.UnitTextureHeight;
+                        newPosition.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
                         velocity.Y = 0;
                     }
 
