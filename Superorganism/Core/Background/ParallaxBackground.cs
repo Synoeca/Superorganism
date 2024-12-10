@@ -16,8 +16,8 @@ public class ParallaxBackground
     private readonly Layer[] _layers = new Layer[3];
     private const int MapWidth = 12800; // 200 * 64
     private const float TargetYPosition = -32f; // Base Y position for background
-    private const float MidgroundYOffset = 900; // Adjust this to move midground down
-    private const float ForegroundYOffset = 900f; // Adjust this to move foreground down
+    private const float MidgroundYOffset = 850; // Adjust this to move midground down
+    private const float ForegroundYOffset = 850f; // Adjust this to move foreground down
 
     public void LoadContent(ContentManager content)
     {
@@ -26,7 +26,7 @@ public class ParallaxBackground
         // Midground (7800x480)
         _layers[1] = new Layer(content.Load<Texture2D>("midground"), 0.055f);
         // Foreground (14000x480)
-        _layers[2] = new Layer(content.Load<Texture2D>("foreground"), 0.0880f);
+        _layers[2] = new Layer(content.Load<Texture2D>("foreground"), 0.1f);
     }
 
     public void Draw(SpriteBatch spriteBatch, Vector2 cameraPosition)
@@ -39,22 +39,18 @@ public class ParallaxBackground
 
             if (textureWidth == 1280) // Background
             {
-                // Calculate how many segments needed to cover entire map width
+                // Background logic remains the same
                 int totalSegmentsNeeded = (int)Math.Ceiling((float)MapWidth / textureWidth) + 2;
-
-                // Calculate the first visible texture position
                 float firstX = parallaxOffset;
                 firstX -= (textureWidth * (float)Math.Floor(firstX / textureWidth));
-                firstX -= textureWidth * 2; // Add buffer on the left
+                firstX -= textureWidth * 2;
 
-                // Draw all segments
                 for (int i = 0; i < totalSegmentsNeeded; i++)
                 {
                     Vector2 position = new(
                         firstX + (i * textureWidth),
                         yPosition
                     );
-
                     spriteBatch.Draw(
                         layer.Texture,
                         position,
@@ -70,18 +66,30 @@ public class ParallaxBackground
             }
             else // Midground and foreground
             {
-                // Adjust Y position for midground and foreground
+                // Adjust Y position
                 if (textureWidth == 7800) // Midground
                 {
                     yPosition += MidgroundYOffset;
                 }
-                else // Foreground
+                else // Foreground (14000px)
                 {
                     yPosition += ForegroundYOffset;
                 }
 
-                int segmentsNeeded = (textureWidth == 7800) ? 2 : 1;
-                float startX = (parallaxOffset % textureWidth) - textureWidth;
+                // Always use 2 segments for both midground and foreground
+                int segmentsNeeded = 2;
+
+                // Calculate starting position
+                float startX;
+                if (textureWidth == 14000) // Foreground
+                {
+                    // Adjust the starting position calculation for the wider foreground
+                    startX = (parallaxOffset % (textureWidth / 2)) - (textureWidth / 2);
+                }
+                else // Midground
+                {
+                    startX = (parallaxOffset % textureWidth) - textureWidth;
+                }
 
                 for (int i = 0; i < segmentsNeeded; i++)
                 {
