@@ -48,16 +48,13 @@ namespace Superorganism.Collisions
 		}
 
 		public bool CollidesWith(ICollisionBounding other)
-		{
-			if (other is BoundingRectangle otherRectangle)
-			{
-				return CollisionHelper.Collides(this, otherRectangle);
-			}
-			else if (other is BoundingCircle otherCircle)
-			{
-				return CollisionHelper.Collides(otherCircle, this);
-			}
-			return false;
-		}
+        {
+            return other switch
+            {
+                BoundingRectangle otherRectangle => CollisionHelper.Collides(this, otherRectangle),
+                BoundingCircle otherCircle => CollisionHelper.Collides(otherCircle, this),
+                _ => false
+            };
+        }
 	}
 }

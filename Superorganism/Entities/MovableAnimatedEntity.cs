@@ -14,7 +14,7 @@ namespace Superorganism.Entities
 {
     public class MovableAnimatedEntity : MovableEntity, IAnimated
 	{
-		protected bool _flipped;
+		protected bool Flipped;
 		public virtual bool IsSpriteAtlas { get; set; }
 		public virtual bool HasDirection { get; set; } = true;
 		public virtual double AnimationTimer { get; set; } = 0;
@@ -73,13 +73,6 @@ namespace Superorganism.Entities
                 }
             }
         }
-
-  //      protected ICollisionBounding _collisionBounding;
-		//public ICollisionBounding CollisionBounding
-		//{
-		//	get => _collisionBounding;
-		//	set => _collisionBounding = value;
-		//}
 
 		public virtual void UpdateAnimation(GameTime gameTime)
 		{
@@ -167,11 +160,11 @@ namespace Superorganism.Entities
 				// Use last movement direction for flipping when stopped
 				if (Math.Abs(_velocity.X) > 0.1f)
 				{
-					_flipped = _velocity.X < 0;
+					Flipped = _velocity.X < 0;
 				}
-				// else _flipped keeps its last value
+				// else Flipped keeps its last value
 
-				SpriteEffects effect = _flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+				SpriteEffects effect = Flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 
 				spriteBatch.Draw(Texture, Position, source, Color, 0f, Vector2.Zero,
 					TextureInfo.SizeScale, effect, 0f);
@@ -191,15 +184,6 @@ namespace Superorganism.Entities
 
             DecisionMaker.Action(ref _strategy, ref _strategyHistory, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
 				ref _velocity, 800, 420, TextureInfo, EntityStatus);
-
-			switch (CollisionBounding)
-            {
-                case BoundingRectangle br:
-                    br.X = Position.X - ((TextureInfo.UnitTextureWidth) * TextureInfo.SizeScale / 2.0f);
-                    br.Y = Position.Y - ((TextureInfo.UnitTextureHeight) * TextureInfo.SizeScale / 2.0f);
-                    CollisionBounding = br;
-                    break;
-            }
 		}
 	}
 }

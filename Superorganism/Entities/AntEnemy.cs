@@ -22,7 +22,6 @@ namespace Superorganism.Entities
 		{
 			Agility = 1
 		};
-		
 
 		public override bool IsSpriteAtlas { get; set; } = true;
 		public override bool HasDirection { get; set; } = false;

@@ -131,13 +131,13 @@ namespace Superorganism.Entities
             if (KeyboardState.IsKeyDown(Keys.Left) || KeyboardState.IsKeyDown(Keys.A))
             {
                 _velocity.X = -MovementSpeed;
-                _flipped = true;
+                Flipped = true;
                 if (!IsJumping) PlayMoveSound(gameTime);
             }
             else if (KeyboardState.IsKeyDown(Keys.Right) || KeyboardState.IsKeyDown(Keys.D))
             {
                 _velocity.X = MovementSpeed;
-                _flipped = false;
+                Flipped = false;
                 if (!IsJumping) PlayMoveSound(gameTime);
             }
             else if (IsOnGround)
@@ -201,7 +201,6 @@ namespace Superorganism.Entities
 		public override void Update(GameTime gameTime)
 		{
 			CollisionBounding ??= TextureInfo.CollisionType;
-			//EntityGroundY ??= GroundLevel - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale) + 6.0f;
 			HandleInput(KeyboardState, GamePadState, gameTime);
 		}
 	}
