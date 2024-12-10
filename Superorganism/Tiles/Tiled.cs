@@ -79,22 +79,6 @@ using GZipStream = System.IO.Compression.GZipStream;
 
 namespace Superorganism.Tiles
 {
-    public static class ContentPaths
-    {
-        public const string TilesetDir = "Tileset";
-        public const string MapDir = "Maps";
-
-        public static string GetTilesetPath(string filename)
-        {
-            return Path.Combine(TilesetDir, filename);
-        }
-
-        public static string GetMapPath(string filename)
-        {
-            return Path.Combine(TilesetDir, MapDir, filename);
-        }
-    }
-
     /// <summary>
     /// A class representing a TileSet created with the Tiled map editor.
     /// </summary>
