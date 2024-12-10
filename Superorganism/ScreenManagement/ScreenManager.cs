@@ -168,6 +168,13 @@ namespace Superorganism.ScreenManagement
             GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Width;
             GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Height;
 
+            if (screen is OptionsMenuScreen oms)
+            {
+                oms.GraphicsDeviceManager = GraphicsDeviceManager;
+                oms.GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Width;
+                oms.GraphicsDeviceManager.PreferredBackBufferHeight = DisplayMode.Height;
+            }
+
             // If we have a graphics device, tell the screen to load content
             if (_isInitialized) screen.Activate();
 
@@ -203,14 +210,19 @@ namespace Superorganism.ScreenManagement
 
             _screens.Remove(screen);
             _tmpScreensList.Remove(screen);
-            if (screen is PauseMenuScreen psm)
+            switch (screen)
             {
-                foreach (GameScreen gs in _screens)
+                case PauseMenuScreen:
                 {
-                    if (gs is GameplayScreen gps)
+                    foreach (GameScreen gs in _screens)
                     {
-                        gps.GameStateManager.ResumeMusic();
+                        if (gs is GameplayScreen gps)
+                        {
+                            gps.GameStateManager.ResumeMusic();
+                        }
                     }
+
+                    break;
                 }
             }
         }
