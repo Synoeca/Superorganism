@@ -4,14 +4,12 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.Core.Camera;
 using Superorganism.Core.Managers;
-using Superorganism.Common;
 using Microsoft.Xna.Framework.Content;
 using Superorganism.AI;
 using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
-using System.Reflection.Metadata;
 using Superorganism.Entities;
 
 namespace Superorganism.Screens
@@ -22,16 +20,16 @@ namespace Superorganism.Screens
         public GameStateManager GameStateManager;
         private GameUiManager _uiManager;
         private Camera2D _camera;
-        private GroundSprite _groundTexture;
         private ParallaxBackground _parallaxBackground;
         private Tilemap _tilemap;
         private Map _map;
 
         // Constants
-        private const int GroundY = 400;
         public readonly float Zoom = 1f;
         private float _pauseAlpha;
         private ContentManager _content;
+
+
 
         public GameplayScreen()
         {
@@ -77,15 +75,10 @@ namespace Superorganism.Screens
                 ScreenManager.SpriteBatch
             );
 
-            // Initialize ground
-            _groundTexture = new GroundSprite(ScreenManager.GraphicsDevice, GroundY, 100);
-            _groundTexture.LoadContent(_content);
-
             _parallaxBackground = new ParallaxBackground(ScreenManager.GraphicsDevice);
             _parallaxBackground.LoadContent(_content);
 
             _camera.Initialize(GameStateManager.GetPlayerPosition());
-            DecisionMaker.GroundY = GroundY;
         }
 
         public override void HandleInput(GameTime gameTime, InputState input)
@@ -113,7 +106,7 @@ namespace Superorganism.Screens
 
             GameStateManager.Update(gameTime);
             _camera.Update(GameStateManager.GetPlayerPosition(), gameTime);
-            UpdatePauseAlpha(gameTime, coveredByOtherScreen); // Pass coveredByOtherScreen
+            UpdatePauseAlpha(coveredByOtherScreen); // Pass coveredByOtherScreen
         }
 
         public override void Draw(GameTime gameTime)
@@ -212,19 +205,19 @@ namespace Superorganism.Screens
                                 crop.CollisionBounding
                             );
                         }
-
                         break;
-                    case Fly { Destroyed: true }:
-                        continue;
                     case Fly fly:
-                        _uiManager.DrawDebugInfo(
-                            fly.Position,
-                            _camera.TransformMatrix,
-                            fly.Strategy,
-                            GameStateManager.GetDistanceToPlayer(fly),
-                            fly.StrategyHistory,
-                            fly.CollisionBounding
-                        );
+                        if (!fly.Destroyed)
+                        {
+                            _uiManager.DrawDebugInfo(
+                                fly.Position,
+                                _camera.TransformMatrix,
+                                fly.Strategy,
+                                GameStateManager.GetDistanceToPlayer(fly),
+                                fly.StrategyHistory,
+                                fly.CollisionBounding
+                            );
+                        }
                         break;
                     case AntEnemy antEnemy:
                         _uiManager.DrawDebugInfo(
@@ -261,7 +254,7 @@ namespace Superorganism.Screens
             ScreenManager.FadeBackBufferToBlack(alpha);
         }
 
-        private void UpdatePauseAlpha(GameTime gameTime, bool coveredByOtherScreen)
+        private void UpdatePauseAlpha(bool coveredByOtherScreen)
         {
             _pauseAlpha = coveredByOtherScreen ? 
                 Math.Min(_pauseAlpha + 0.05f, 1.0f) : Math.Max(_pauseAlpha - 0.05f, 0f);
