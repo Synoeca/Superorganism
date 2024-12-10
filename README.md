@@ -1,5 +1,7 @@
 <img src="https://github.com/user-attachments/assets/c4e7bb92-4157-4906-b7e4-e0d3068f1463" width="500">
-<img src="https://github.com/user-attachments/assets/681ea080-1cd1-4613-97c8-2440e8b6d3d5" width="500">
+
+![ezgif-1-7b41c8ec53](https://github.com/user-attachments/assets/1ed7b7dc-bc0f-45ca-83bf-16d42e7b884b)
+
 
 ### How to Play:
 
