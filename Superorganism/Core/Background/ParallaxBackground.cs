@@ -21,11 +21,11 @@ public class ParallaxBackground
 
     public void LoadContent(ContentManager content)
     {
-        // Background (1280x1472) - stays at bottom
+        // Background (1280x1472)
         _layers[0] = new Layer(content.Load<Texture2D>("background"), 0.0250f);
-        // Midground (7800x480) - lifted by 10%
+        // Midground (7800x480)
         _layers[1] = new Layer(content.Load<Texture2D>("midground"), 0.055f);
-        // Foreground (14000x480) - lifted by 10%
+        // Foreground (14000x480)
         _layers[2] = new Layer(content.Load<Texture2D>("foreground"), 0.0880f);
     }
 
