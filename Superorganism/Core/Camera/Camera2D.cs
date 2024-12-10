@@ -6,13 +6,11 @@ namespace Superorganism.Core.Camera
 {
     public class Camera2D(GraphicsDevice graphicsDevice, float baseZoom)
     {
-        private Vector2 _position = Vector2.Zero;
         private readonly float _baseZoom = baseZoom;
         private float _currentZoom = InitialZoom;
         private float _targetZoom = baseZoom;
         private float _rotation;
         private float _shakeIntensity;
-        private float _shakeTimer;
         private bool _isShaking;
         private Vector2 _focusTarget = Vector2.Zero;
         private bool _isTransitioning;
@@ -33,7 +31,7 @@ namespace Superorganism.Core.Camera
 
         public void Initialize(Vector2 startPosition)
         {
-            _position = startPosition;
+            Position = startPosition;
             _focusTarget = startPosition;
             _currentZoom = InitialZoom;
             _targetZoom = _baseZoom;
@@ -44,10 +42,9 @@ namespace Superorganism.Core.Camera
         {
             _isShaking = true;
             _shakeIntensity = Math.Min(intensity * MaxShakeIntensity, MaxShakeIntensity);
-            _shakeTimer = 0;
         }
 
-        public Vector2 Position => _position;
+        public Vector2 Position { get; set; } = Vector2.Zero;
 
         public void TransitionToTarget(Vector2 target, float zoomLevel = 1.0f)
         {
@@ -92,7 +89,7 @@ namespace Superorganism.Core.Camera
                 _transitionTimer += deltaTime;
                 float progress = Math.Min(_transitionTimer * TransitionSpeed, 1f);
                 Vector2 clampedTarget = ClampCameraPosition(_focusTarget);
-                _position = Vector2.Lerp(_position, clampedTarget, progress);
+                Position = Vector2.Lerp(Position, clampedTarget, progress);
 
                 if (progress >= 1f)
                 {
@@ -104,14 +101,13 @@ namespace Superorganism.Core.Camera
             {
                 // Smooth follow player when not transitioning
                 Vector2 targetPos = ClampCameraPosition(playerPosition);
-                _position = Vector2.Lerp(_position, targetPos, 5f * deltaTime);
+                Position = Vector2.Lerp(Position, targetPos, 5f * deltaTime);
             }
 
             // Handle camera shake
             Vector2 shakeOffset = Vector2.Zero;
             if (_isShaking)
             {
-                _shakeTimer += deltaTime;
                 _shakeIntensity *= ShakeDecay;
 
                 if (_shakeIntensity > 0.1f)
@@ -131,7 +127,7 @@ namespace Superorganism.Core.Camera
             UpdateTransformMatrix(shakeOffset);
         }
 
-        private void UpdateTransformMatrix(Vector2 shakeOffset = default)
+        public void UpdateTransformMatrix(Vector2 shakeOffset = default)
         {
             Vector2 screenCenter = new(
                 graphicsDevice.Viewport.Width * 0.5f,
@@ -143,7 +139,7 @@ namespace Superorganism.Core.Camera
             Vector2 offsetScreenCenter = new(screenCenter.X, screenCenter.Y + verticalOffset);
 
             // Make sure position is in world coordinates (pixels) and clamped
-            Vector2 cameraPos = _position + shakeOffset;
+            Vector2 cameraPos = Position + shakeOffset;
 
             TransformMatrix =
                 Matrix.CreateTranslation(new Vector3(-cameraPos, 0.0f)) *
@@ -155,7 +151,7 @@ namespace Superorganism.Core.Camera
         // Helper method to reset camera
         public void Reset(Vector2 position)
         {
-            _position = position;
+            Position = position;
             _focusTarget = position;
             _currentZoom = _baseZoom;
             _targetZoom = _baseZoom;

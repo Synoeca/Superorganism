@@ -69,6 +69,7 @@ namespace Superorganism.Screens
             _parallaxBackground.LoadContent(_content);
 
             _camera.Initialize(GameStateManager.GetPlayerPosition());
+            ScreenManager.GameplayScreenCamera2D = _camera;
         }
 
         public override void HandleInput(GameTime gameTime, InputState input)

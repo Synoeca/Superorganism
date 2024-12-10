@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
 using System;
+using Assimp;
+using Superorganism.Core.Managers;
 
 namespace Superorganism.Screens
 {
@@ -138,7 +140,11 @@ namespace Superorganism.Screens
                 ScreenManager.GraphicsDeviceManager.PreferredBackBufferWidth = newResolution.X;
                 ScreenManager.GraphicsDeviceManager.PreferredBackBufferHeight = newResolution.Y;
                 ScreenManager.GraphicsDeviceManager.ApplyChanges();
-
+                if (ScreenManager.GameplayScreenCamera2D != null)
+                {
+                    ScreenManager.GameplayScreenCamera2D.Position = GameState.GetPlayerPosition();
+                    ScreenManager.GameplayScreenCamera2D.UpdateTransformMatrix();
+                }
                 SetMenuEntryText();
             }
         }

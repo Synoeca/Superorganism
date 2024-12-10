@@ -688,9 +688,6 @@
 /processorParam:TextureFormat=Color
 /build:tiles2.png
 
-#begin Tileset/Maps/map.txt
-/copy:Tileset/Maps/map.txt
-
 #begin Tileset/Maps/TestMapRev1.tmx
 /copy:Tileset/Maps/TestMapRev1.tmx
 

@@ -63,7 +63,6 @@ Copyright (C) 2009 Kevin Gadd
  */
 #endregion
 
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -535,7 +534,7 @@ namespace Superorganism.Tiles
                     }
 
                     int index = Tiles[i] - 1;
-                    if ((index >= 0) && (index < TileInfoCache!.Length))
+                    if (index >= 0 && index < TileInfoCache!.Length)
                     {
                         TileInfo info = TileInfoCache[index];
 
@@ -551,7 +550,7 @@ namespace Superorganism.Tiles
                             info.Rectangle,
                             Color.White * Opacity,
                             rotation,
-                            Vector2.Zero, // Don't use center origin since we're positioning manually
+                            Vector2.Zero, // Don't use center origin since it positions manually
                             1f,
                             flipEffect,
                             0
