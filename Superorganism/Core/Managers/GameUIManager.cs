@@ -24,6 +24,15 @@ namespace Superorganism.Core.Managers
         private const int ScreenMargin = 40; 
         private const int BarPadding = 10;
 
+        // Debug flags
+        private bool _showCollisionBounds;
+        private bool _showEntityInfo;
+        private bool _showMousePosition;
+
+        public void ToggleCollisionBounds() => _showCollisionBounds = !_showCollisionBounds;
+        public void ToggleEntityInfo() => _showEntityInfo = !_showEntityInfo;
+        public void ToggleMousePosition() => _showMousePosition = !_showMousePosition;
+
         public GameUiManager(SpriteFont gameFont, SpriteBatch spriteBatch)
         {
             _gameFont = gameFont;
@@ -380,6 +389,97 @@ namespace Superorganism.Core.Managers
             Texture2D texture = new(graphicsDevice, 1, 1);
             texture.SetData([color]);
             return texture;
+        }
+
+        public void DrawDebugInfo(GameTime gameTime, IEnumerable<Entity> entities, Matrix cameraMatrix, Vector2 playerPosition)
+        {
+            IEnumerable<Entity> enumerableEntity = entities as Entity[] ?? entities.ToArray();
+            if (_showCollisionBounds)
+            {
+                DrawCollisionBounds(enumerableEntity, cameraMatrix);
+            }
+
+            if (_showEntityInfo)
+            {
+                DrawEntityInfo(enumerableEntity, cameraMatrix, playerPosition);
+            }
+
+            if (_showMousePosition)
+            {
+                DrawMousePositionDebug(gameTime, cameraMatrix);
+            }
+        }
+
+        private void DrawCollisionBounds(IEnumerable<Entity> entities, Matrix cameraMatrix)
+        {
+            foreach (Entity entity in entities)
+            {
+                if (entity.CollisionBounding != null)
+                {
+                    switch (entity)
+                    {
+                        case Crop { Collected: false } crop:
+                            DrawCollisionBounds(crop, entity.CollisionBounding, cameraMatrix);
+                            break;
+                        case Fly { Destroyed: false } fly:
+                            DrawCollisionBounds(fly, entity.CollisionBounding, cameraMatrix);
+                            break;
+                        case Ant ant:
+                            DrawCollisionBounds(ant, entity.CollisionBounding, cameraMatrix);
+                            break;
+                        case AntEnemy antEnemy:
+                            DrawCollisionBounds(antEnemy, entity.CollisionBounding, cameraMatrix);
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void DrawEntityInfo(IEnumerable<Entity> entities, Matrix cameraMatrix, Vector2 playerPosition)
+        {
+            foreach (Entity entity in entities)
+            {
+                float distanceToPlayer = Vector2.Distance(playerPosition, entity.Position);
+                switch (entity)
+                {
+                    case Crop { Collected: false } crop:
+                        DrawDebugInfo(
+                            crop.Position,
+                            cameraMatrix,
+                            distanceToPlayer,
+                            crop.CollisionBounding
+                        );
+                        break;
+                    case Fly { Destroyed: false } fly:
+                        DrawDebugInfo(
+                            fly.Position,
+                            cameraMatrix,
+                            fly.Strategy,
+                            distanceToPlayer,
+                            fly.StrategyHistory,
+                            fly.CollisionBounding
+                        );
+                        break;
+                    case AntEnemy antEnemy:
+                        DrawDebugInfo(
+                            antEnemy.Position,
+                            cameraMatrix,
+                            antEnemy.Strategy,
+                            distanceToPlayer,
+                            antEnemy.StrategyHistory,
+                            antEnemy.CollisionBounding
+                        );
+                        break;
+                    case Ant ant:
+                        DrawDebugInfo(
+                            ant.Position,
+                            cameraMatrix,
+                            distanceToPlayer,
+                            ant.CollisionBounding
+                        );
+                        break;
+                }
+            }
         }
 
         public void Dispose()

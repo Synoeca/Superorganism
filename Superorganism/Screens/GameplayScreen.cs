@@ -10,7 +10,6 @@ using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
-using Superorganism.Entities;
 
 namespace Superorganism.Screens
 {
@@ -23,16 +22,11 @@ namespace Superorganism.Screens
         private ParallaxBackground _parallaxBackground;
         private Tilemap _tilemap;
         private Map _map;
+        private ContentManager _content;
 
         // Constants
         public readonly float Zoom = 1f;
         private float _pauseAlpha;
-        private ContentManager _content;
-
-        // Debugs
-        private bool _showCollisionBounds;
-        private bool _showEntityInfo;
-        private bool _showMousePosition;
 
         public GameplayScreen()
         {
@@ -68,7 +62,6 @@ namespace Superorganism.Screens
 
             GameState.Initialize(GameStateManager);
 
-
             // Initialize UI
             _uiManager = new GameUiManager(
                 _content.Load<SpriteFont>("gamefont"),
@@ -92,13 +85,13 @@ namespace Superorganism.Screens
 
             // Debug visualization toggles
             if (input.IsNewKeyPress(Keys.F1, ControllingPlayer, out _))
-                _showCollisionBounds = !_showCollisionBounds;
+                _uiManager.ToggleCollisionBounds();
 
             if (input.IsNewKeyPress(Keys.F2, ControllingPlayer, out _))
-                _showEntityInfo = !_showEntityInfo;
+                _uiManager.ToggleEntityInfo();
 
             if (input.IsNewKeyPress(Keys.F3, ControllingPlayer, out _))
-                _showMousePosition = !_showMousePosition;
+                _uiManager.ToggleMousePosition();
 
             if ((GameStateManager.IsGameOver || GameStateManager.IsGameWon) &&
                 input.IsNewKeyPress(Keys.R, ControllingPlayer, out playerIndex))
@@ -161,13 +154,9 @@ namespace Superorganism.Screens
                 RasterizerState.CullNone
             );
 
-            // Draw Health bar
-            int currentHealth = GameStateManager.GetPlayerHealth();
-            int maxHealth = GameStateManager.GetPlayerMaxHealth();
-            _uiManager.DrawHealthBar(currentHealth, maxHealth);
+            _uiManager.DrawHealthBar(GameStateManager.GetPlayerHealth(), GameStateManager.GetPlayerMaxHealth());
             _uiManager.DrawCropsLeft(GameStateManager.CropsLeft);
-
-            DrawDebugInfo(gameTime);
+            _uiManager.DrawDebugInfo(gameTime, DecisionMaker.Entities, _camera.TransformMatrix, GameStateManager.GetPlayerPosition());
 
             spriteBatch.End();
 
@@ -188,101 +177,6 @@ namespace Superorganism.Screens
             _parallaxBackground?.Unload();
             GameStateManager?.Unload();
             _content?.Unload();
-        }
-
-        private void DrawDebugInfo(GameTime gameTime)
-        {
-            // F1: Show collision bounds
-            if (_showCollisionBounds)
-            {
-                DrawCollisionBounds();
-            }
-
-            // F2: Show entity info
-            if (_showEntityInfo)
-            {
-                DrawEntityInfo();
-            }
-
-            // F3: Show mouse position
-            if (_showMousePosition)
-            {
-                _uiManager.DrawMousePositionDebug(gameTime, _camera.TransformMatrix);
-            }
-        }
-
-        private void DrawCollisionBounds()
-        {
-            foreach (Entity entity in DecisionMaker.Entities)
-            {
-                if (entity.CollisionBounding != null)
-                {
-                    switch (entity)
-                    {
-                        case Crop { Collected: false } crop:
-                            _uiManager.DrawCollisionBounds(crop, crop.CollisionBounding, _camera.TransformMatrix);
-                            break;
-                        case Fly { Destroyed: false } fly:
-                            _uiManager.DrawCollisionBounds(fly, fly.CollisionBounding, _camera.TransformMatrix);
-                            break;
-                        case Ant ant:
-                            _uiManager.DrawCollisionBounds(ant, ant.CollisionBounding, _camera.TransformMatrix);
-                            break;
-                        case AntEnemy antEnemy:
-                            _uiManager.DrawCollisionBounds(antEnemy, antEnemy.CollisionBounding, _camera.TransformMatrix);
-                            break;
-                        default:
-                            _uiManager.DrawCollisionBounds(entity, entity.CollisionBounding, _camera.TransformMatrix);
-                            break;
-                    }
-                }
-            }
-        }
-
-        private void DrawEntityInfo()
-        {
-            foreach (Entity entity in DecisionMaker.Entities)
-            {
-                switch (entity)
-                {
-                    case Crop { Collected: false } crop:
-                        _uiManager.DrawDebugInfo(
-                            crop.Position,
-                            _camera.TransformMatrix,
-                            GameStateManager.GetDistanceToPlayer(crop),
-                            crop.CollisionBounding
-                        );
-                        break;
-                    case Fly { Destroyed: false } fly:
-                        _uiManager.DrawDebugInfo(
-                            fly.Position,
-                            _camera.TransformMatrix,
-                            fly.Strategy,
-                            GameStateManager.GetDistanceToPlayer(fly),
-                            fly.StrategyHistory,
-                            fly.CollisionBounding
-                        );
-                        break;
-                    case AntEnemy antEnemy:
-                        _uiManager.DrawDebugInfo(
-                            antEnemy.Position,
-                            _camera.TransformMatrix,
-                            antEnemy.Strategy,
-                            GameStateManager.GetDistanceToPlayer(antEnemy),
-                            antEnemy.StrategyHistory,
-                            antEnemy.CollisionBounding
-                        );
-                        break;
-                    case Ant ant:
-                        _uiManager.DrawDebugInfo(
-                            ant.Position,
-                            _camera.TransformMatrix,
-                            GameStateManager.GetDistanceToPlayer(ant),
-                            ant.CollisionBounding
-                        );
-                        break;
-                }
-            }
         }
     }
 }

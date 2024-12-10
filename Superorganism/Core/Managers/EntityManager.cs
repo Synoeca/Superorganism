@@ -87,7 +87,7 @@ public class EntityManager
             DecisionMaker.Entities.Add(_crops[i]);
         }
 
-        _flies = new Fly[50];
+        _flies = new Fly[1];
         Random rand = new();
         for (int i = 0; i < _flies.Length; i++)
         {
@@ -259,8 +259,7 @@ public class EntityManager
         // Draw the player ant
         _ant.Draw(gameTime, spriteBatch);
 
-        // Draw enemy ant with slight transparency
-        _antEnemy.Color = Color.White * EnemyAlpha;
+        // Draw enemy ant
         _antEnemy.Draw(gameTime, spriteBatch);
     }
 
