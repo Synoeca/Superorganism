@@ -83,11 +83,10 @@ public class EntityManager
             _crops[i] = new Crop();
             Vector2 position = MapHelper.TileToWorld(10 + 8*i, 19);
             _crops[i].Position = position;  // Set position after creation
-            //_crops[i].CollisionBounding = new BoundingCircle(position, 80);
             DecisionMaker.Entities.Add(_crops[i]);
         }
 
-        _flies = new Fly[1];
+        _flies = new Fly[50];
         Random rand = new();
         for (int i = 0; i < _flies.Length; i++)
         {

@@ -12,7 +12,6 @@ namespace Superorganism.Screens
         private readonly MenuEntry _fullscreenEntry;
         private readonly MenuEntry _resolutionEntry;
 
-        public GraphicsDeviceManager GraphicsDeviceManager;
         private int _currentResolutionIndex;
 
         public static float BackgroundMusicVolume { get; private set; }
@@ -69,9 +68,9 @@ namespace Superorganism.Screens
             else if (entry.Text.Contains("Fullscreen"))
             {
                 // Toggle fullscreen and apply changes
-                GraphicsDeviceManager.IsFullScreen = !GraphicsDeviceManager.IsFullScreen;
-                GraphicsDeviceManager.HardwareModeSwitch = false;
-                GraphicsDeviceManager.ApplyChanges();
+                ScreenManager.GraphicsDeviceManager.IsFullScreen = !ScreenManager.GraphicsDeviceManager.IsFullScreen;
+                ScreenManager.GraphicsDeviceManager.HardwareModeSwitch = false;
+                ScreenManager.GraphicsDeviceManager.ApplyChanges();
                 SetMenuEntryText();
             }
             else
@@ -86,12 +85,12 @@ namespace Superorganism.Screens
             base.Activate();
 
             // Get GraphicsDeviceManager from ScreenManager
-            GraphicsDeviceManager = ScreenManager.GraphicsDeviceManager;
+            ScreenManager.GraphicsDeviceManager = ScreenManager.GraphicsDeviceManager;
 
             // Now we can safely initialize the current resolution index
             Point currentRes = new(
-                GraphicsDeviceManager.PreferredBackBufferWidth,
-                GraphicsDeviceManager.PreferredBackBufferHeight
+                ScreenManager.GraphicsDeviceManager.PreferredBackBufferWidth,
+                ScreenManager.GraphicsDeviceManager.PreferredBackBufferHeight
             );
 
             _currentResolutionIndex = Array.FindIndex(_availableResolutions, r => r.Equals(currentRes));
@@ -109,9 +108,9 @@ namespace Superorganism.Screens
             _soundEffectVolumeEntry.Text = $"Sound Effect Volume: {soundEffectVolumePercent}";
 
             // Only set graphics-related text if GraphicsDeviceManager is available
-            if (GraphicsDeviceManager != null)
+            if (ScreenManager != null)
             {
-                _fullscreenEntry.Text = $"Fullscreen: {(GraphicsDeviceManager.IsFullScreen ? "On" : "Off")}";
+                _fullscreenEntry.Text = $"Fullscreen: {(ScreenManager.GraphicsDeviceManager.IsFullScreen ? "On" : "Off")}";
 
                 if (_currentResolutionIndex >= 0 && _currentResolutionIndex < _availableResolutions.Length)
                 {
@@ -123,9 +122,9 @@ namespace Superorganism.Screens
 
         private void FullscreenEntrySelected(object sender, PlayerIndexEventArgs e)
         {
-            GraphicsDeviceManager.IsFullScreen = !GraphicsDeviceManager.IsFullScreen;
-            GraphicsDeviceManager.HardwareModeSwitch = false;
-            GraphicsDeviceManager.ApplyChanges();
+            ScreenManager.GraphicsDeviceManager.IsFullScreen = !ScreenManager.GraphicsDeviceManager.IsFullScreen;
+            ScreenManager.GraphicsDeviceManager.HardwareModeSwitch = false;
+            ScreenManager.GraphicsDeviceManager.ApplyChanges();
             SetMenuEntryText();
         }
 
@@ -136,9 +135,9 @@ namespace Superorganism.Screens
                 _currentResolutionIndex = (_currentResolutionIndex + (e.Direction > 0 ? 1 : -1) + _availableResolutions.Length) % _availableResolutions.Length;
 
                 Point newResolution = _availableResolutions[_currentResolutionIndex];
-                GraphicsDeviceManager.PreferredBackBufferWidth = newResolution.X;
-                GraphicsDeviceManager.PreferredBackBufferHeight = newResolution.Y;
-                GraphicsDeviceManager.ApplyChanges();
+                ScreenManager.GraphicsDeviceManager.PreferredBackBufferWidth = newResolution.X;
+                ScreenManager.GraphicsDeviceManager.PreferredBackBufferHeight = newResolution.Y;
+                ScreenManager.GraphicsDeviceManager.ApplyChanges();
 
                 SetMenuEntryText();
             }

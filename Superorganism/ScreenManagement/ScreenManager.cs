@@ -61,12 +61,21 @@ namespace Superorganism.ScreenManagement
             _content = new ContentManager(game.Services, "Content");
         }
 
+        public void SetDefaultGraphicsSettings()
+        {
+            GraphicsDeviceManager.IsFullScreen = true;
+            GraphicsDeviceManager.HardwareModeSwitch = false;
+            GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Width;
+            GraphicsDeviceManager.PreferredBackBufferHeight = DisplayMode.Height;
+        }
+
         /// <summary>
         /// Initializes the ScreenManager
         /// </summary>
         public override void Initialize()
         {
             base.Initialize();
+
             _isInitialized = true;
         }
 
@@ -163,16 +172,9 @@ namespace Superorganism.ScreenManagement
             screen.ScreenManager = this;
             screen.IsExiting = false;
 
-            GraphicsDeviceManager.IsFullScreen = true;
-            GraphicsDeviceManager.HardwareModeSwitch = false;
-            GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Width;
-            GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Height;
-
             if (screen is OptionsMenuScreen oms)
             {
-                oms.GraphicsDeviceManager = GraphicsDeviceManager;
-                oms.GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Width;
-                oms.GraphicsDeviceManager.PreferredBackBufferHeight = DisplayMode.Height;
+                oms.ScreenManager = this;
             }
 
             // If we have a graphics device, tell the screen to load content

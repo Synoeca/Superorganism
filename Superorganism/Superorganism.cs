@@ -33,6 +33,7 @@ public class Superorganism : Game
         _screenManager = new ScreenManager(this);
 		_screenManager.GraphicsDeviceManager = Graphics;
         _screenManager.DisplayMode = DisplayMode;
+		_screenManager.SetDefaultGraphicsSettings();
 
         GameAudioManager = new GameAudioManager(new ContentManager(_screenManager.Game.Services, "Content"));
         _screenManager.GameAudioManager = GameAudioManager;
