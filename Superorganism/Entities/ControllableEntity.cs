@@ -4,7 +4,9 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.Collisions;
+using Superorganism.Core.Managers;
 using Superorganism.Interfaces;
+using Superorganism.Tiles;
 
 namespace Superorganism.Entities
 {
@@ -28,9 +30,9 @@ namespace Superorganism.Entities
 
 		public float Gravity { get; set; } = 0.5f;
 
-		public float GroundLevel { get; set; } = 400f;
+		//public float GroundLevel { get; set; } = 400f;
 
-		public float? EntityGroundY { get; set; }
+		//public float? EntityGroundY { get; set; }
 
 		public SoundEffect MoveSound { get; set; }
 		public SoundEffect JumpSound { get; set; }
@@ -98,77 +100,99 @@ namespace Superorganism.Entities
 			}
 		}
 
-		public void HandleInput(KeyboardState keyboardState, GamePadState gamePadState, GameTime gameTime)
-		{
-			GamePadState = GamePad.GetState(0);
-			KeyboardState = Keyboard.GetState();
+        // Modify ControllableEntity.HandleInput
+        public void HandleInput(KeyboardState keyboardState, GamePadState gamePadState, GameTime gameTime)
+        {
+            GamePadState = GamePad.GetState(0);
+            KeyboardState = Keyboard.GetState();
 
-			if (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
-			{
-				MovementSpeed = 4.5f;
-				AnimationSpeed = 0.1f;
-			}
-			else
-			{
-				MovementSpeed = 1.0f;
-				AnimationSpeed = 0.15f;
-			}
+            // Update movement speed based on shift key
+            if (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
+            {
+                MovementSpeed = 4.5f;
+                AnimationSpeed = 0.1f;
+            }
+            else
+            {
+                MovementSpeed = 1.0f;
+                AnimationSpeed = 0.15f;
+            }
 
-			if (IsOnGround && KeyboardState.IsKeyDown(Keys.Space))
-			{
-				_velocity.Y = JumpStrength;
-				IsOnGround = false;
-				IsJumping = true;
-				JumpSound?.Play(); // Play jump sound
-			}
+            // Handle jumping
+            if (IsOnGround && KeyboardState.IsKeyDown(Keys.Space))
+            {
+                _velocity.Y = JumpStrength;
+                IsOnGround = false;
+                IsJumping = true;
+                JumpSound?.Play();
+            }
 
-			if (KeyboardState.IsKeyDown(Keys.Left) || KeyboardState.IsKeyDown(Keys.A))
-			{
-				_velocity.X = -MovementSpeed;
-				_flipped = true;
-				if (!IsJumping) PlayMoveSound(gameTime); // Play move sound when walking
-			}
-			else if (KeyboardState.IsKeyDown(Keys.Right) || KeyboardState.IsKeyDown(Keys.D))
-			{
-				_velocity.X = MovementSpeed;
-				_flipped = false;
-				if (!IsJumping) PlayMoveSound(gameTime); // Play move sound when walking
-			}
-			else
-			{
-				if (IsOnGround)
-				{
-					_velocity.X *= Friction;
-					if (Math.Abs(_velocity.X) < 0.1f)
-					{
-						_velocity.X = 0;
-						_soundTimer = 0f; // Reset sound timer when stopped
-					}
-				}
-			}
+            // Handle horizontal movement
+            if (KeyboardState.IsKeyDown(Keys.Left) || KeyboardState.IsKeyDown(Keys.A))
+            {
+                _velocity.X = -MovementSpeed;
+                _flipped = true;
+                if (!IsJumping) PlayMoveSound(gameTime);
+            }
+            else if (KeyboardState.IsKeyDown(Keys.Right) || KeyboardState.IsKeyDown(Keys.D))
+            {
+                _velocity.X = MovementSpeed;
+                _flipped = false;
+                if (!IsJumping) PlayMoveSound(gameTime);
+            }
+            else if (IsOnGround)
+            {
+                _velocity.X *= Friction;
+                if (Math.Abs(_velocity.X) < 0.1f)
+                {
+                    _velocity.X = 0;
+                    _soundTimer = 0f;
+                }
+            }
 
-			_velocity.Y += Gravity;
-			_position += _velocity;
+            // Apply gravity
+            _velocity.Y += Gravity;
 
-			if (_position.Y >= EntityGroundY)
-			{
-				_position.Y = (float)EntityGroundY;
-				_velocity.Y = 0;
-				IsOnGround = true;
+            // Calculate new position
+            Vector2 newPosition = _position + _velocity;
 
-				if (IsJumping) IsJumping = false;
-			}
+            // Check map bounds
+            Rectangle mapBounds = MapHelper.GetMapWorldBounds();
+            newPosition.X = MathHelper.Clamp(newPosition.X,
+                (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f,
+                mapBounds.Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
 
-			if (CollisionBounding is BoundingRectangle boundingRectangle)
-			{
-				boundingRectangle.X = _position.X - 16;
-				boundingRectangle.Y = _position.Y - 16;
-				CollisionBounding = boundingRectangle;
-			}
-			_velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
-		}
+            // Get ground level at new position
+            float groundY = MapHelper.GetGroundYPosition(
+                GameState.CurrentMap,
+                newPosition.X,
+                _position.Y,
+                TextureInfo.UnitTextureHeight * TextureInfo.SizeScale
+            );
 
-		public void LoadSound(ContentManager content)
+            // Update position and handle ground collision
+            if (newPosition.Y > groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale))
+            {
+                newPosition.Y = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                _velocity.Y = 0;
+                IsOnGround = true;
+                if (IsJumping) IsJumping = false;
+            }
+
+            _position = newPosition;
+
+            // Update collision bounds
+            if (CollisionBounding is BoundingRectangle boundingRectangle)
+            {
+                boundingRectangle.X = _position.X;
+                boundingRectangle.Y = _position.Y;
+                CollisionBounding = boundingRectangle;
+            }
+
+            _velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
+        }
+
+        public void LoadSound(ContentManager content)
 		{
 			MoveSound = content.Load<SoundEffect>("move");
 			JumpSound = content.Load<SoundEffect>("Jump");
@@ -177,7 +201,7 @@ namespace Superorganism.Entities
 		public override void Update(GameTime gameTime)
 		{
 			CollisionBounding ??= TextureInfo.CollisionType;
-			EntityGroundY ??= GroundLevel - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale) + 6.0f;
+			//EntityGroundY ??= GroundLevel - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale) + 6.0f;
 			HandleInput(KeyboardState, GamePadState, gameTime);
 		}
 	}

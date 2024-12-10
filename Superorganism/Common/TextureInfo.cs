@@ -5,17 +5,17 @@ namespace Superorganism.Common
 {
 	public class TextureInfo
 	{
-		public int TextureWidth {get; set; }
+		public float TextureWidth {get; set; }
 
-		public int TextureHeight { get; set; }
+		public float TextureHeight { get; set; }
 
 		public int NumOfSpriteCols { get; set; }
 
 		public int NumOfSpriteRows { get; set; }
 
-		public int UnitTextureWidth => TextureWidth / NumOfSpriteCols;
+		public float UnitTextureWidth => TextureWidth / NumOfSpriteCols;
 
-		public int UnitTextureHeight => TextureHeight / NumOfSpriteRows;
+		public float UnitTextureHeight => TextureHeight / NumOfSpriteRows;
 
 		public Vector2 Center { get; set; }
 

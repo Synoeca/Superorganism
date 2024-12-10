@@ -10,10 +10,9 @@ using Superorganism.Interfaces;
 
 namespace Superorganism.Entities
 {
-    public class StaticAnimatedCollectableEntity(Vector2 position) : StaticAnimatedEntity(position), ICollectable, ICollidable
+    public class StaticAnimatedCollectableEntity : StaticAnimatedEntity, ICollectable, ICollidable
 	{
 		public bool Collected { get; set; }
-		public virtual ICollisionBounding CollisionBounding { get; set; }
 
 		public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 		{

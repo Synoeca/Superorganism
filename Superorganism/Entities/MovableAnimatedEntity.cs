@@ -74,12 +74,12 @@ namespace Superorganism.Entities
             }
         }
 
-        protected ICollisionBounding _collisionBounding;
-		public ICollisionBounding CollisionBounding
-		{
-			get => _collisionBounding;
-			set => _collisionBounding = value;
-		}
+  //      protected ICollisionBounding _collisionBounding;
+		//public ICollisionBounding CollisionBounding
+		//{
+		//	get => _collisionBounding;
+		//	set => _collisionBounding = value;
+		//}
 
 		public virtual void UpdateAnimation(GameTime gameTime)
 		{
@@ -123,10 +123,10 @@ namespace Superorganism.Entities
             {
                 int directionIndex = (int)Direction;
                 Rectangle source = new(
-                    AnimationFrame * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols),
-                    directionIndex * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols),
-                    TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols,
-                    TextureInfo.TextureHeight / TextureInfo.NumOfSpriteRows
+                    (int)(AnimationFrame * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols)),
+                    (int)(directionIndex * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols)),
+                    (int)(TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols),
+                    (int)(TextureInfo.TextureHeight / TextureInfo.NumOfSpriteRows)
                 );
 
                 // Calculate origin for rotation
@@ -159,10 +159,10 @@ namespace Superorganism.Entities
             else
 			{
 				// Single row sprite with three frames (idle, walk1, walk2)
-				Rectangle source = new(AnimationFrame * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols),
+				Rectangle source = new((int)(AnimationFrame * (TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols)),
 					0,  // y is always 0 for single row
-					TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols,
-					TextureInfo.TextureHeight);
+					(int)(TextureInfo.TextureWidth / TextureInfo.NumOfSpriteCols),
+					(int)TextureInfo.TextureHeight);
 
 				// Use last movement direction for flipping when stopped
 				if (Math.Abs(_velocity.X) > 0.1f)
