@@ -45,24 +45,23 @@ namespace Superorganism.Core.Managers
 
             if (collisionBounds is BoundingRectangle rect)
             {
-                // Draw both the entity position and the collision bounds for debugging
-                Vector2 screenEntityPos = Vector2.Transform(entity.CollisionBounding.Center, cameraMatrix);
+                // Transform entity position to screen space, same as circle logic
+                Vector2 screenEntityPos = Vector2.Transform(entity.Position, cameraMatrix);
 
-                // Draw a small cross at the entity position
+                // Add half width/height offset (equivalent to adding radius for circle)
+                screenEntityPos.X += rect.Width / 2;
+                screenEntityPos.Y += rect.Height / 2;
+
+                // Draw entity position marker (yellow cross)
                 DrawLine(screenEntityPos - new Vector2(5, 0), screenEntityPos + new Vector2(5, 0), Color.Yellow, 1);
                 DrawLine(screenEntityPos - new Vector2(0, 5), screenEntityPos + new Vector2(0, 5), Color.Yellow, 1);
 
-                // Assume rect coordinates should be relative to entity position
-                Vector2 worldTopLeft = new Vector2(
-                    entity.Position.X + (rect.X % 1000), // Use modulo to handle potential world coordinates
-                    entity.Position.Y + (rect.Y % 1000)
-                );
-
+                // Create rectangle centered on screen position, compensating for border thickness
                 Rectangle screenBounds = new(
-                    (int)worldTopLeft.X,
-                    (int)worldTopLeft.Y,
-                    (int)rect.Width,
-                    (int)rect.Height
+                    (int)(screenEntityPos.X - rect.Width / 2) + borderThickness,  // Compensate for left border
+                    (int)(screenEntityPos.Y - rect.Height / 2) + borderThickness, // Compensate for top border
+                    (int)rect.Width - borderThickness * 2,  // Adjust width for both borders
+                    (int)rect.Height - borderThickness * 2  // Adjust height for both borders
                 );
 
                 DrawRectangleOutline(screenBounds, borderThickness, Color.Red);
@@ -71,8 +70,6 @@ namespace Superorganism.Core.Managers
             {
                 // Transform entity position to screen space
                 Vector2 screenEntityPos = Vector2.Transform(entity.Position, cameraMatrix);
-                //screenEntityPos.X += 5;
-                //screenEntityPos.Y += 5;
 
                 screenEntityPos.X += circle.Radius;
                 screenEntityPos.Y += circle.Radius;
@@ -83,23 +80,11 @@ namespace Superorganism.Core.Managers
 
                 if (entity is Crop crop)
                 {
-                    // For crops, draw the circle at the transformed entity position
                     DrawCircleOutline(screenEntityPos, circle.Radius, borderThickness, Color.Red);
-                    // Debug print
-                    System.Diagnostics.Debug.WriteLine($"Crop Position: {crop.Position}, Screen Pos: {screenEntityPos}, Radius: {circle.Radius}");
                 }
                 else
                 {
-                    // For other entities, use the relative center calculation
-                    Vector2 relativeCenter = new Vector2(
-                        circle.Center.X % MapHelper.TileSize, // Use TileSize instead of 1000
-                        circle.Center.Y % MapHelper.TileSize
-                    );
-
-                    Vector2 worldCenter = entity.Position + relativeCenter;
-                    Vector2 screenCenter = Vector2.Transform(worldCenter, cameraMatrix);
-
-                    DrawCircleOutline(screenCenter, circle.Radius, borderThickness, Color.Red);
+                    DrawCircleOutline(screenEntityPos, circle.Radius, borderThickness, Color.Red);
                 }
             }
         }
@@ -333,6 +318,12 @@ namespace Superorganism.Core.Managers
             (int tileX, int tileY) = MapHelper.WorldToTile(mouseWorldPosition);
             string tilePosText = $"Tile: {tileX}, {tileY}";
             DrawDebugText(tilePosText, textPosition + currentOffset, textScale);
+
+            System.Diagnostics.Debug.WriteLine("=== Mouse Debug Info ===");
+            System.Diagnostics.Debug.WriteLine($"Screen Position: ({mouseScreenPosition.X:0.0}, {mouseScreenPosition.Y:0.0})");
+            System.Diagnostics.Debug.WriteLine($"World Position: ({mouseWorldPosition.X:0.0}, {mouseWorldPosition.Y:0.0})");
+            System.Diagnostics.Debug.WriteLine($"Tile Position: ({tileX}, {tileY})");
+            System.Diagnostics.Debug.WriteLine("=========================");
         }
 
         private void DrawDebugText(string text, Vector2 position, float scale)

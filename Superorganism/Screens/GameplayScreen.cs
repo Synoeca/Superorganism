@@ -190,46 +190,46 @@ namespace Superorganism.Screens
 
             foreach (Entity entity in DecisionMaker.Entities)
             {
-                if (entity is Crop crop)
+                switch (entity)
                 {
-                    _uiManager.DrawDebugInfo(
-                        crop.Position,
-                        _camera.TransformMatrix,
-                        GameStateManager.GetDistanceToPlayer(crop),
-                        crop.CollisionBounding
-                    );
-                }
-                else if (entity is Fly fly)
-                {
-                    if (fly.Destroyed) continue;
-                    _uiManager.DrawDebugInfo(
-                        fly.Position,
-                        _camera.TransformMatrix,
-                        fly.Strategy,
-                        GameStateManager.GetDistanceToPlayer(fly),
-                        fly.StrategyHistory,
-                        fly.CollisionBounding
-                    );
-                }
-                else if (entity is AntEnemy antEnemy)
-                {
-                    _uiManager.DrawDebugInfo(
-                        antEnemy.Position,
-                        _camera.TransformMatrix,
-                        antEnemy.Strategy,
-                        GameStateManager.GetDistanceToPlayer(antEnemy),
-                        antEnemy.StrategyHistory,
-                        antEnemy.CollisionBounding
-                    );
-                }
-                else if (entity is Ant ant)
-                {
-                    _uiManager.DrawDebugInfo(
-                        ant.Position,
-                        _camera.TransformMatrix,
-                        GameStateManager.GetDistanceToPlayer(ant),
-                        ant.CollisionBounding
-                    );
+                    case Crop crop:
+                        _uiManager.DrawDebugInfo(
+                            crop.Position,
+                            _camera.TransformMatrix,
+                            GameStateManager.GetDistanceToPlayer(crop),
+                            crop.CollisionBounding
+                        );
+                        break;
+                    //case Fly { Destroyed: true }:
+                    //    continue;
+                    //case Fly fly:
+                    //    _uiManager.DrawDebugInfo(
+                    //        fly.Position,
+                    //        _camera.TransformMatrix,
+                    //        fly.Strategy,
+                    //        GameStateManager.GetDistanceToPlayer(fly),
+                    //        fly.StrategyHistory,
+                    //        fly.CollisionBounding
+                    //    );
+                    //    break;
+                    case AntEnemy antEnemy:
+                        _uiManager.DrawDebugInfo(
+                            antEnemy.Position,
+                            _camera.TransformMatrix,
+                            antEnemy.Strategy,
+                            GameStateManager.GetDistanceToPlayer(antEnemy),
+                            antEnemy.StrategyHistory,
+                            antEnemy.CollisionBounding
+                        );
+                        break;
+                    //case Ant ant:
+                    //    _uiManager.DrawDebugInfo(
+                    //        ant.Position,
+                    //        _camera.TransformMatrix,
+                    //        GameStateManager.GetDistanceToPlayer(ant),
+                    //        ant.CollisionBounding
+                    //    );
+                    //    break;
                 }
             }
 

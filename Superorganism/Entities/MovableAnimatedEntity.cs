@@ -74,12 +74,12 @@ namespace Superorganism.Entities
             }
         }
 
-        protected ICollisionBounding _collisionBounding;
-		public ICollisionBounding CollisionBounding
-		{
-			get => _collisionBounding;
-			set => _collisionBounding = value;
-		}
+  //      protected ICollisionBounding _collisionBounding;
+		//public ICollisionBounding CollisionBounding
+		//{
+		//	get => _collisionBounding;
+		//	set => _collisionBounding = value;
+		//}
 
 		public virtual void UpdateAnimation(GameTime gameTime)
 		{

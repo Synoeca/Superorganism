@@ -32,11 +32,11 @@ namespace Superorganism.Entities
 
             TextureInfo.CollisionType = collisionType switch
             {
-                BoundingCircle => new BoundingCircle(TextureInfo.Center,
+                BoundingCircle => new BoundingCircle(TextureInfo.Center * sizeScale,
                     TextureInfo.UnitTextureWidth / 2.0f * sizeScale),
 
 
-                BoundingRectangle => new BoundingRectangle(TextureInfo.Center, 
+                BoundingRectangle => new BoundingRectangle(TextureInfo.Center * sizeScale, 
                     TextureInfo.UnitTextureWidth * sizeScale,
                     TextureInfo.UnitTextureHeight * sizeScale),
 

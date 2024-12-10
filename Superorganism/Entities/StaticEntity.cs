@@ -36,7 +36,7 @@ namespace Superorganism.Entities
             switch (CollisionBounding)
             {
                 case BoundingCircle br:
-                    br.Center = new Vector2((Position.X + (br.Radius / 2)), Position.Y + (br.Radius / 2));
+                    br.Center = new Vector2(Position.X + br.Radius, Position.Y + br.Radius);
                     CollisionBounding = br;
                     break;
 

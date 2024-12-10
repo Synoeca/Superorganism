@@ -183,8 +183,10 @@ namespace Superorganism.Entities
             // Update collision bounds
             if (CollisionBounding is BoundingRectangle boundingRectangle)
             {
-                boundingRectangle.X = _position.X + (boundingRectangle.Width / 2f);
-                boundingRectangle.Y = _position.Y + (boundingRectangle.Height / 2f);
+                //boundingRectangle.X = _position.X + (boundingRectangle.Width / 2f);
+                //boundingRectangle.Y = _position.Y + (boundingRectangle.Height / 2f);
+                boundingRectangle.X = _position.X;
+                boundingRectangle.Y = _position.Y;
                 CollisionBounding = boundingRectangle;
             }
 

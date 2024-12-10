@@ -54,7 +54,7 @@ public class EntityManager
         _map = map;
         InitializeEntities(graphicsDevice);
         LoadContent(content);
-        _ant.CollisionBounding = (BoundingRectangle)_ant.TextureInfo.CollisionType;
+        //_ant.CollisionBounding = (BoundingRectangle)_ant.TextureInfo.CollisionType;
     }
 
     private void InitializeEntities(GraphicsDevice graphicsDevice)
