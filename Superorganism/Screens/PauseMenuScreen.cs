@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Superorganism.Screens
+﻿namespace Superorganism.Screens
 {
     // The pause menu comes up over the top of the game,
     // giving the player options to resume or quit.
