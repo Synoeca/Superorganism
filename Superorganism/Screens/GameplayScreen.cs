@@ -65,7 +65,7 @@ namespace Superorganism.Screens
                 ScreenManager.SpriteBatch
             );
 
-            _parallaxBackground = new ParallaxBackground(ScreenManager.GraphicsDevice);
+            _parallaxBackground = new ParallaxBackground();
             _parallaxBackground.LoadContent(_content);
 
             _camera.Initialize(GameStateManager.GetPlayerPosition());
