@@ -9,13 +9,21 @@ namespace Superorganism.Screens
         public PauseMenuScreen() : base("Paused")
         {
             MenuEntry resumeGameMenuEntry = new("Resume Game");
+            MenuEntry optionGameMenuEntry = new("Options");
             MenuEntry quitGameMenuEntry = new("Quit Game");
 
             resumeGameMenuEntry.Selected += OnCancel;
+            optionGameMenuEntry.Selected += OptionsMenuEntrySelected;
             quitGameMenuEntry.Selected += QuitGameMenuEntrySelected;
 
             MenuEntries.Add(resumeGameMenuEntry);
+            MenuEntries.Add(optionGameMenuEntry);
             MenuEntries.Add(quitGameMenuEntry);
+        }
+
+        private void OptionsMenuEntrySelected(object sender, PlayerIndexEventArgs e)
+        {
+            ScreenManager.AddScreen(new OptionsMenuScreen(), e.PlayerIndex);
         }
 
         private void QuitGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)
