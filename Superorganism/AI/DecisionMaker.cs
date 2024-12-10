@@ -74,36 +74,11 @@ namespace Superorganism.AI
             _targetStrategy = targetStrategy;
         }
 
-        // At the top of the Action method, create a helper method for consistent ground checking
-        private static (float groundY, Vector2 collisionCenter) CalculateGroundAndCollision(
-            Map map,
-            Vector2 position,
-            TextureInfo textureInfo)
-        {
-            float groundY = MapHelper.GetGroundYPosition(
-                map,
-                position.X,
-                position.Y,
-                textureInfo.UnitTextureWidth  // Remove scaling here - let MapHelper handle it
-            );
-
-            Vector2 collisionCenter = new(
-                position.X,
-                position.Y
-            );
-
-            return (groundY, collisionCenter);
-        }
-
         public static void Action(ref Strategy strategy,
-            ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, GameTime gameTime, ref Direction direction,
-            ref Vector2 position,
-            ref double directionTimer, ref double directionInterval, ref Vector2 velocity, int screenWidth,
-            int groundHeight,
-            TextureInfo textureInfo, EntityStatus entityStatus)
-		{
-            
-		}
+            ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, 
+            GameTime gameTime, ref Direction direction,ref Vector2 position, ref double directionTimer, 
+            ref double directionInterval, ref Vector2 velocity, int screenWidth, int groundHeight,
+            TextureInfo textureInfo, EntityStatus entityStatus) {}
 
         public static void Action(ref Strategy strategy, ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
         GameTime gameTime, ref Direction direction, ref Vector2 position,

@@ -29,7 +29,10 @@ namespace Superorganism.Screens
         private float _pauseAlpha;
         private ContentManager _content;
 
-
+        // Debugs
+        private bool _showCollisionBounds;
+        private bool _showEntityInfo;
+        private bool _showMousePosition;
 
         public GameplayScreen()
         {
@@ -86,6 +89,16 @@ namespace Superorganism.Screens
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
             }
+
+            // Debug visualization toggles
+            if (input.IsNewKeyPress(Keys.F1, ControllingPlayer, out _))
+                _showCollisionBounds = !_showCollisionBounds;
+
+            if (input.IsNewKeyPress(Keys.F2, ControllingPlayer, out _))
+                _showEntityInfo = !_showEntityInfo;
+
+            if (input.IsNewKeyPress(Keys.F3, ControllingPlayer, out _))
+                _showMousePosition = !_showMousePosition;
 
             if ((GameStateManager.IsGameOver || GameStateManager.IsGameWon) &&
                 input.IsNewKeyPress(Keys.R, ControllingPlayer, out playerIndex))
@@ -154,26 +167,63 @@ namespace Superorganism.Screens
             _uiManager.DrawHealthBar(currentHealth, maxHealth);
             _uiManager.DrawCropsLeft(GameStateManager.CropsLeft);
 
+            DrawDebugInfo(gameTime);
 
-            // Draw entity collision boundaries
+            spriteBatch.End();
+
+            if (!(TransitionPosition > 0) && !(_pauseAlpha > 0)) return;
+            float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
+            ScreenManager.FadeBackBufferToBlack(alpha);
+        }
+
+        private void UpdatePauseAlpha(bool coveredByOtherScreen)
+        {
+            _pauseAlpha = coveredByOtherScreen ? 
+                Math.Min(_pauseAlpha + 0.05f, 1.0f) : Math.Max(_pauseAlpha - 0.05f, 0f);
+        }
+
+        public override void Unload()
+        {
+            _uiManager?.Dispose();
+            _parallaxBackground?.Unload();
+            GameStateManager?.Unload();
+            _content?.Unload();
+        }
+
+        private void DrawDebugInfo(GameTime gameTime)
+        {
+            // F1: Show collision bounds
+            if (_showCollisionBounds)
+            {
+                DrawCollisionBounds();
+            }
+
+            // F2: Show entity info
+            if (_showEntityInfo)
+            {
+                DrawEntityInfo();
+            }
+
+            // F3: Show mouse position
+            if (_showMousePosition)
+            {
+                _uiManager.DrawMousePositionDebug(gameTime, _camera.TransformMatrix);
+            }
+        }
+
+        private void DrawCollisionBounds()
+        {
             foreach (Entity entity in DecisionMaker.Entities)
             {
                 if (entity.CollisionBounding != null)
                 {
                     switch (entity)
                     {
-                        case Crop crop:
-                            if (!crop.Collected)
-                            {
-                                _uiManager.DrawCollisionBounds(crop, crop.CollisionBounding, _camera.TransformMatrix);
-                            }
-
+                        case Crop { Collected: false } crop:
+                            _uiManager.DrawCollisionBounds(crop, crop.CollisionBounding, _camera.TransformMatrix);
                             break;
-                        case Fly fly:
-                            if (!fly.Destroyed)
-                            {
-                                _uiManager.DrawCollisionBounds(fly, fly.CollisionBounding, _camera.TransformMatrix);
-                            }
+                        case Fly { Destroyed: false } fly:
+                            _uiManager.DrawCollisionBounds(fly, fly.CollisionBounding, _camera.TransformMatrix);
                             break;
                         case Ant ant:
                             _uiManager.DrawCollisionBounds(ant, ant.CollisionBounding, _camera.TransformMatrix);
@@ -187,34 +237,31 @@ namespace Superorganism.Screens
                     }
                 }
             }
+        }
 
+        private void DrawEntityInfo()
+        {
             foreach (Entity entity in DecisionMaker.Entities)
             {
                 switch (entity)
                 {
-                    case Crop crop:
-                        if (!crop.Collected)
-                        {
-                            _uiManager.DrawDebugInfo(
-                                crop.Position,
-                                _camera.TransformMatrix,
-                                GameStateManager.GetDistanceToPlayer(crop),
-                                crop.CollisionBounding
-                            );
-                        }
+                    case Crop { Collected: false } crop:
+                        _uiManager.DrawDebugInfo(
+                            crop.Position,
+                            _camera.TransformMatrix,
+                            GameStateManager.GetDistanceToPlayer(crop),
+                            crop.CollisionBounding
+                        );
                         break;
-                    case Fly fly:
-                        if (!fly.Destroyed)
-                        {
-                            _uiManager.DrawDebugInfo(
-                                fly.Position,
-                                _camera.TransformMatrix,
-                                fly.Strategy,
-                                GameStateManager.GetDistanceToPlayer(fly),
-                                fly.StrategyHistory,
-                                fly.CollisionBounding
-                            );
-                        }
+                    case Fly { Destroyed: false } fly:
+                        _uiManager.DrawDebugInfo(
+                            fly.Position,
+                            _camera.TransformMatrix,
+                            fly.Strategy,
+                            GameStateManager.GetDistanceToPlayer(fly),
+                            fly.StrategyHistory,
+                            fly.CollisionBounding
+                        );
                         break;
                     case AntEnemy antEnemy:
                         _uiManager.DrawDebugInfo(
@@ -236,33 +283,6 @@ namespace Superorganism.Screens
                         break;
                 }
             }
-
-            _uiManager.DrawMousePositionDebug(gameTime, _camera.TransformMatrix);
-
-            if (GameStateManager.IsGameOver)
-                _uiManager.DrawGameOverScreen();
-            else if (GameStateManager.IsGameWon)
-                _uiManager.DrawWinScreen();
-
-            spriteBatch.End();
-
-            if (!(TransitionPosition > 0) && !(_pauseAlpha > 0)) return;
-            float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
-            ScreenManager.FadeBackBufferToBlack(alpha);
-        }
-
-        private void UpdatePauseAlpha(bool coveredByOtherScreen)
-        {
-            _pauseAlpha = coveredByOtherScreen ? 
-                Math.Min(_pauseAlpha + 0.05f, 1.0f) : Math.Max(_pauseAlpha - 0.05f, 0f);
-        }
-
-        public override void Unload()
-        {
-            _uiManager?.Dispose();
-            _parallaxBackground?.Unload();
-            GameStateManager?.Unload();
-            _content?.Unload();
         }
     }
 }
