@@ -293,7 +293,7 @@ namespace Superorganism.Core.Managers
         {
             // Get current mouse state
             MouseState mouseState = Mouse.GetState();
-            Vector2 mouseScreenPosition = new Vector2(mouseState.X, mouseState.Y);
+            Vector2 mouseScreenPosition = new(mouseState.X, mouseState.Y);
 
             // Convert screen position to world position
             Matrix invertedMatrix = Matrix.Invert(cameraMatrix);

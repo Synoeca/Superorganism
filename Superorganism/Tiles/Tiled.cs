@@ -1,4 +1,5 @@
-﻿/*
+﻿#region Credit
+/*
 Squared.Tiled
 Copyright (C) 2009 Kevin Gadd
 
@@ -54,6 +55,14 @@ Copyright (C) 2009 Kevin Gadd
  * 
  * Nathan Bean nhbean@ksu.edu
  */
+ /* Modifications by Synoeca - December 2024.
+ *
+ * - Added support for ground level collision detection in tilemap
+ *
+ * Synoeca synoeca523@ksu.edu
+ */
+#endregion
+
 
 using System;
 using System.Collections.Generic;
@@ -70,6 +79,22 @@ using GZipStream = System.IO.Compression.GZipStream;
 
 namespace Superorganism.Tiles
 {
+    public static class ContentPaths
+    {
+        public const string TilesetDir = "Tileset";
+        public const string MapDir = "Maps";
+
+        public static string GetTilesetPath(string filename)
+        {
+            return Path.Combine(TilesetDir, filename);
+        }
+
+        public static string GetMapPath(string filename)
+        {
+            return Path.Combine(TilesetDir, MapDir, filename);
+        }
+    }
+
     /// <summary>
     /// A class representing a TileSet created with the Tiled map editor.
     /// </summary>
@@ -81,21 +106,19 @@ namespace Superorganism.Tiles
         /// <remarks>
         /// Essentially, a &lt;string, string&gt; dictionary
         /// </remarks>
-        public class TilePropertyList : Dictionary<string, string>
-        {
-        }
+        public class TilePropertyList : Dictionary<string, string>;
 
         public string Name;
-        public int FirstTileID;
+        public int FirstTileId;
         public int TileWidth;
         public int TileHeight;
         public int Spacing;
         public int Margin;
         public Dictionary<int, TilePropertyList> TileProperties = new();
         public string Image;
-        protected Texture2D _Texture;
-        protected int _TexWidth;
-        protected int _TexHeight;
+        protected Texture2D Texture;
+        protected int TexWidth;
+        protected int TexHeight;
 
         // Helper method to parse integer attributes
         private static int ParseIntAttribute(XmlReader reader, string attributeName, int defaultValue = 0)
@@ -114,7 +137,7 @@ namespace Superorganism.Tiles
             Tileset result = new()
             {
                 Name = reader.GetAttribute("name"),
-                FirstTileID = ParseIntAttribute(reader, "firstgid"),
+                FirstTileId = ParseIntAttribute(reader, "firstgid"),
                 TileWidth = ParseIntAttribute(reader, "tilewidth"),
                 TileHeight = ParseIntAttribute(reader, "tileheight"),
                 Margin = ParseIntAttribute(reader, "margin"),
@@ -136,7 +159,7 @@ namespace Superorganism.Tiles
                                 result.Image = reader.GetAttribute("source");
                                 break;
                             case "tile":
-                                currentTileId = int.Parse(reader.GetAttribute("id"));
+                                currentTileId = int.Parse(reader.GetAttribute("id") ?? throw new InvalidOperationException());
                                 break;
                             case "property":
                                 {
@@ -146,7 +169,7 @@ namespace Superorganism.Tiles
                                         result.TileProperties[currentTileId] = props;
                                     }
 
-                                    props[reader.GetAttribute("name")] = reader.GetAttribute("value");
+                                    props[reader.GetAttribute("name") ?? throw new InvalidOperationException()] = reader.GetAttribute("value");
                                 }
                                 break;
                         }
@@ -167,7 +190,7 @@ namespace Superorganism.Tiles
         /// <returns>A TilePropertyList for the tile</returns>
         public TilePropertyList GetTileProperties(int index)
         {
-            index -= FirstTileID;
+            index -= FirstTileId;
 
             if (index < 0)
                 return null;
@@ -180,14 +203,14 @@ namespace Superorganism.Tiles
         /// <summary>
         /// Gets the texture of this Tileset
         /// </summary>
-        public Texture2D Texture
+        public Texture2D TileTexture
         {
-            get => _Texture;
+            get => Texture;
             set
             {
-                _Texture = value;
-                _TexWidth = value.Width;
-                _TexHeight = value.Height;
+                Texture = value;
+                TexWidth = value.Width;
+                TexHeight = value.Height;
             }
         }
 
@@ -200,14 +223,14 @@ namespace Superorganism.Tiles
         /// <returns>True if the tile index exists in the tileset</returns>
         internal bool MapTileToRect(int index, ref Rectangle rect)
         {
-            index -= FirstTileID;
+            index -= FirstTileId;
 
             if (index < 0)
                 return false;
 
-            int rowSize = _TexWidth / (TileWidth + Spacing);
+            int rowSize = TexWidth / (TileWidth + Spacing);
             int row = index / rowSize;
-            int numRows = _TexHeight / (TileHeight + Spacing);
+            int numRows = TexHeight / (TileHeight + Spacing);
             if (row >= numRows)
                 return false;
 
@@ -254,7 +277,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// Loads the layer from a TMX file
         /// </summary>
-        /// <param name="reader">A reader to the TMX file currenlty being processed</param>
+        /// <param name="reader">A reader to the TMX file currently being processed</param>
         /// <returns>An initialized Layer object</returns>
         internal static Layer Load(XmlReader reader)
         {
@@ -268,15 +291,15 @@ namespace Superorganism.Tiles
             }
             if (reader.GetAttribute("width") != null)
             {
-                result.Width = int.Parse(reader.GetAttribute("width"));
+                result.Width = int.Parse(reader.GetAttribute("width") ?? throw new InvalidOperationException());
             }
             if (reader.GetAttribute("height") != null)
             {
-                result.Height = int.Parse(reader.GetAttribute("height"));
+                result.Height = int.Parse(reader.GetAttribute("height") ?? throw new InvalidOperationException());
             }
             if (reader.GetAttribute("opacity") != null)
             {
-                result.Opacity = float.Parse(reader.GetAttribute("opacity"), NumberStyles.Any, ci);
+                result.Opacity = float.Parse(reader.GetAttribute("opacity") ?? throw new InvalidOperationException(), NumberStyles.Any, ci);
             }
             result.Tiles = new int[result.Width * result.Height];
             result.FlipAndRotate = new byte[result.Width * result.Height];
@@ -305,10 +328,15 @@ namespace Superorganism.Tiles
                                                     reader.ReadElementContentAsBase64(buffer, 0, dataSize);
 
                                                     Stream stream = new MemoryStream(buffer, false);
-                                                    if (compressor == "gzip")
-                                                        stream = new GZipStream(stream, CompressionMode.Decompress, false);
-                                                    if (compressor == "zlib")
-                                                        stream = new ZlibStream(stream, (MonoGame.Framework.Utilities.Deflate.CompressionMode)CompressionMode.Decompress, false);
+                                                    switch (compressor)
+                                                    {
+                                                        case "gzip":
+                                                            stream = new GZipStream(stream, CompressionMode.Decompress, false);
+                                                            break;
+                                                        case "zlib":
+                                                            stream = new ZlibStream(stream, (MonoGame.Framework.Utilities.Deflate.CompressionMode)CompressionMode.Decompress, false);
+                                                            break;
+                                                    }
 
                                                     using (stream)
                                                     using (BinaryReader br = new(stream))
@@ -342,12 +370,13 @@ namespace Superorganism.Tiles
                                                     }
 
                                                     continue;
-                                                };
+                                                }
 
                                             default:
                                                 throw new Exception("Unrecognized encoding.");
                                         }
                                     }
+                                    // ReSharper disable once RedundantIfElseBlock
                                     else
                                     {
                                         using XmlReader st = reader.ReadSubtree();
@@ -450,7 +479,7 @@ namespace Superorganism.Tiles
                 {
                     cache.Add(new TileInfo
                     {
-                        Texture = ts.Texture,
+                        Texture = ts.TileTexture,
                         Rectangle = rect
                     });
                     i += 1;
@@ -517,12 +546,12 @@ namespace Superorganism.Tiles
                     }
 
                     int index = Tiles[i] - 1;
-                    if ((index >= 0) && (index < TileInfoCache.Length))
+                    if ((index >= 0) && (index < TileInfoCache!.Length))
                     {
                         TileInfo info = TileInfoCache[index];
 
                         // Position tiles relative to ground level
-                        Vector2 position = new Vector2(
+                        Vector2 position = new(
                             x * tileWidth,    // X position is straightforward left-to-right
                             y * tileHeight    // Y position is top-to-bottom
                         );
@@ -570,15 +599,15 @@ namespace Superorganism.Tiles
             if (reader.GetAttribute("name") != null)
                 result.Name = reader.GetAttribute("name");
             if (reader.GetAttribute("width") != null)
-                result.Width = int.Parse(reader.GetAttribute("width"));
+                result.Width = int.Parse(reader.GetAttribute("width") ?? throw new InvalidOperationException());
             if (reader.GetAttribute("height") != null)
-                result.Height = int.Parse(reader.GetAttribute("height"));
+                result.Height = int.Parse(reader.GetAttribute("height") ?? throw new InvalidOperationException());
             if (reader.GetAttribute("x") != null)
-                result.X = int.Parse(reader.GetAttribute("x"));
+                result.X = int.Parse(reader.GetAttribute("x") ?? throw new InvalidOperationException());
             if (reader.GetAttribute("y") != null)
-                result.Y = int.Parse(reader.GetAttribute("y"));
+                result.Y = int.Parse(reader.GetAttribute("y") ?? throw new InvalidOperationException());
             if (reader.GetAttribute("opacity") != null)
-                result._opacity = float.Parse(reader.GetAttribute("opacity"), NumberStyles.Any, ci);
+                result._opacity = float.Parse(reader.GetAttribute("opacity") ?? throw new InvalidOperationException(), NumberStyles.Any, ci);
 
             while (!reader.EOF)
             {
@@ -613,7 +642,7 @@ namespace Superorganism.Tiles
                                             {
                                                 if (st.GetAttribute("name") != null)
                                                 {
-                                                    result.Properties.Add(st.GetAttribute("name"), st.GetAttribute("value"));
+                                                    result.Properties.Add(st.GetAttribute("name") ?? throw new InvalidOperationException(), st.GetAttribute("value"));
                                                 }
                                             }
 
@@ -643,7 +672,7 @@ namespace Superorganism.Tiles
         {
             foreach (Object objects in Objects.Values)
             {
-                if (objects.Texture != null)
+                if (objects.TileTexture != null)
                 {
                     objects.Draw(batch, rectangle, new Vector2(X * result.TileWidth, Y * result.TileHeight), viewportPosition, _opacity);
                 }
@@ -667,8 +696,9 @@ namespace Superorganism.Tiles
         public string Name, Image;
         public int Width, Height, X, Y;
 
-        protected Texture2D _Texture;
-        protected int _TexWidth, _TexHeight;
+        protected Texture2D Texture;
+        protected int TexWidth;
+        protected int TexHeight;
 
         /// <summary>
         /// The texture of the Object
@@ -676,14 +706,14 @@ namespace Superorganism.Tiles
         /// <remarks>
         /// This is not supplied by Tiled, and must be set manually!
         /// </remarks>
-        public Texture2D Texture
+        public Texture2D TileTexture
         {
-            get => _Texture;
+            get => Texture;
             set
             {
-                _Texture = value;
-                _TexWidth = value.Width;
-                _TexHeight = value.Height;
+                Texture = value;
+                TexWidth = value.Width;
+                TexHeight = value.Height;
             }
         }
 
@@ -694,11 +724,12 @@ namespace Superorganism.Tiles
         /// <returns>An anonymous object representing the map</returns>
         internal static Object Load(XmlReader reader)
         {
-            Object result = new();
-
-            result.Name = reader.GetAttribute("name");
-            result.X = int.Parse(reader.GetAttribute("x"));
-            result.Y = int.Parse(reader.GetAttribute("y"));
+            Object result = new()
+            {
+                Name = reader.GetAttribute("name"),
+                X = int.Parse(reader.GetAttribute("x") ?? throw new InvalidOperationException()),
+                Y = int.Parse(reader.GetAttribute("y") ?? throw new InvalidOperationException())
+            };
 
             /*
              * Height and width are optional on objects
@@ -730,7 +761,7 @@ namespace Superorganism.Tiles
                                         {
                                             if (st.GetAttribute("name") != null)
                                             {
-                                                result.Properties.Add(st.GetAttribute("name"), st.GetAttribute("value"));
+                                                result.Properties.Add(st.GetAttribute("name") ?? throw new InvalidOperationException(), st.GetAttribute("value"));
                                             }
                                         }
 
@@ -768,20 +799,18 @@ namespace Superorganism.Tiles
         /// <param name="opacity">An opacity value for making the object semi-transparent (1.0=fully opaque)</param>
         public void Draw(SpriteBatch batch, Rectangle rectangle, Vector2 offset, Vector2 viewportPosition, float opacity)
         {
-            Vector2 viewPos = viewportPosition;
-
             int minX = (int)Math.Floor(viewportPosition.X);
             int minY = (int)Math.Floor(viewportPosition.Y);
             int maxX = (int)Math.Ceiling((rectangle.Width + viewportPosition.X));
             int maxY = (int)Math.Ceiling((rectangle.Height + viewportPosition.Y));
 
-            if (X + offset.X + Width > minX && X + offset.X < maxX)
-                if (Y + offset.Y + Height > minY && Y + offset.Y < maxY)
-                {
-                    int x = (int)(X + offset.X - viewportPosition.X);
-                    int y = (int)(Y + offset.Y - viewportPosition.Y);
-                    batch.Draw(_Texture, new Rectangle(x, y, Width, Height), new Rectangle(0, 0, _Texture.Width, _Texture.Height), Color.White * opacity);
-                }
+            if (X + offset.X + Width > minX && X + offset.X < maxX 
+                                            && Y + offset.Y + Height > minY && Y + offset.Y < maxY)
+            {
+                int x = (int)(X + offset.X - viewportPosition.X);
+                int y = (int)(Y + offset.Y - viewportPosition.Y);
+                batch.Draw(Texture, new Rectangle(x, y, Width, Height), new Rectangle(0, 0, Texture.Width, Texture.Height), Color.White * opacity);
+            }
         }
     }
 
@@ -801,7 +830,7 @@ namespace Superorganism.Tiles
         public SortedList<string, Layer> Layers = new();
 
         /// <summary>
-        /// The Map's Ojbect Groups
+        /// The Map's Object Groups
         /// </summary>
         public SortedList<string, ObjectGroup> ObjectGroups = new();
 
@@ -834,9 +863,6 @@ namespace Superorganism.Tiles
                 DtdProcessing = DtdProcessing.Parse
             };
 
-            // Get the directory where the TMX file is located
-            string tmxDirectory = Path.GetDirectoryName(filename);
-
             using (StreamReader stream = File.OpenText(filename))
             using (XmlReader reader = XmlReader.Create(stream, settings))
                 while (reader.Read())
@@ -854,10 +880,10 @@ namespace Superorganism.Tiles
                             {
                                 case "map":
                                     {
-                                        result.Width = int.Parse(reader.GetAttribute("width"));
-                                        result.Height = int.Parse(reader.GetAttribute("height"));
-                                        result.TileWidth = int.Parse(reader.GetAttribute("tilewidth"));
-                                        result.TileHeight = int.Parse(reader.GetAttribute("tileheight"));
+                                        result.Width = int.Parse(reader.GetAttribute("width") ?? throw new InvalidOperationException());
+                                        result.Height = int.Parse(reader.GetAttribute("height") ?? throw new InvalidOperationException());
+                                        result.TileWidth = int.Parse(reader.GetAttribute("tilewidth") ?? throw new InvalidOperationException());
+                                        result.TileHeight = int.Parse(reader.GetAttribute("tileheight") ?? throw new InvalidOperationException());
                                     }
                                     break;
                                 case "tileset":
@@ -899,7 +925,7 @@ namespace Superorganism.Tiles
                                                 {
                                                     if (st.GetAttribute("name") != null)
                                                     {
-                                                        result.Properties.Add(st.GetAttribute("name"), st.GetAttribute("value"));
+                                                        result.Properties.Add(st.GetAttribute("name") ?? throw new InvalidOperationException(), st.GetAttribute("value"));
                                                     }
                                                 }
 
@@ -923,9 +949,8 @@ namespace Superorganism.Tiles
 
             foreach (Tileset tileset in result.Tilesets.Values)
             {
-                // Combine the paths properly to find the texture
-                string relativePath = "Tileset/" + Path.GetFileNameWithoutExtension(tileset.Image);
-                tileset.Texture = content.Load<Texture2D>(relativePath);
+                string relativePath = ContentPaths.GetTilesetPath(Path.GetFileNameWithoutExtension(tileset.Image));
+                tileset.TileTexture = content.Load<Texture2D>(relativePath);
             }
 
             foreach (ObjectGroup objects in result.ObjectGroups.Values)
@@ -934,8 +959,8 @@ namespace Superorganism.Tiles
                 {
                     if (item.Image != null)
                     {
-                        string relativePath = "Tileset/" + Path.GetFileNameWithoutExtension(item.Image);
-                        item.Texture = content.Load<Texture2D>(relativePath);
+                        string relativePath = ContentPaths.GetTilesetPath(Path.GetFileNameWithoutExtension(item.Image));
+                        item.TileTexture = content.Load<Texture2D>(relativePath);
                     }
                 }
             }
@@ -952,7 +977,7 @@ namespace Superorganism.Tiles
         public void Draw(SpriteBatch batch, Rectangle viewport, Vector2 cameraPosition)
         {
             // Calculate the visible area in world coordinates
-            Rectangle visibleArea = new Rectangle(
+            Rectangle visibleArea = new(
                 (int)cameraPosition.X - viewport.Width / 2,  // Left edge
                 (int)cameraPosition.Y - viewport.Height / 2, // Top edge
                 viewport.Width,

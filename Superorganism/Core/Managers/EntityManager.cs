@@ -96,7 +96,7 @@ public class EntityManager
             // Spread flies across a wider X range (50 to 100 tiles)
             int spreadX = 50 + rand.Next(50);
             // Vary Y position between tiles 10 and 20
-            int spreadY = 10 + rand.Next(11);
+            int spreadY = 7 + rand.Next(11);
 
             Vector2 position = MapHelper.TileToWorld(spreadX, spreadY);
 
