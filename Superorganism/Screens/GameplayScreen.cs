@@ -46,9 +46,6 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            //_tilemap = new Tilemap("Tileset/map.txt");
-            //_map = Map.Load(Path.Combine(_content.RootDirectory, "Tileset/TestMapRev1.tmx"), _content);
-
             _tilemap = new Tilemap(ContentPaths.GetMapPath("map.txt"));
             _map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
 

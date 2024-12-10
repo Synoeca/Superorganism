@@ -201,7 +201,6 @@ namespace Superorganism.Entities
 		public override void Update(GameTime gameTime)
 		{
 			CollisionBounding ??= TextureInfo.CollisionType;
-			//EntityGroundY ??= GroundLevel - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale) + 6.0f;
 			HandleInput(KeyboardState, GamePadState, gameTime);
 		}
 	}
