@@ -107,13 +107,16 @@ namespace Superorganism.Core.Camera
             UpdateTransformMatrix(shakeOffset);
         }
 
-        // In your camera class
         private void UpdateTransformMatrix(Vector2 shakeOffset = default)
         {
             Vector2 screenCenter = new(
                 graphicsDevice.Viewport.Width * 0.5f,
                 graphicsDevice.Viewport.Height * 0.5f
             );
+
+            // Calculate vertical offset to show more area above the player
+            float verticalOffset = graphicsDevice.Viewport.Height * 0.1f; // Moves focus point up by 1/4 screen height
+            Vector2 offsetScreenCenter = new(screenCenter.X, screenCenter.Y + verticalOffset);
 
             // Make sure position is in world coordinates (pixels)
             Vector2 cameraPos = _position + shakeOffset;
@@ -122,7 +125,7 @@ namespace Superorganism.Core.Camera
                 Matrix.CreateTranslation(new Vector3(-cameraPos, 0.0f)) *
                 Matrix.CreateRotationZ(_rotation) *
                 Matrix.CreateScale(_currentZoom) *
-                Matrix.CreateTranslation(new Vector3(screenCenter, 0.0f));
+                Matrix.CreateTranslation(new Vector3(offsetScreenCenter, 0.0f));
         }
 
         // Helper method to reset camera

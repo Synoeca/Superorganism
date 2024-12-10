@@ -77,7 +77,7 @@ public class EntityManager
 
     private void InitializeCropsAndFlies(GraphicsDevice graphicsDevice)
     {
-        _crops = new Crop[12];
+        _crops = new Crop[1];
         for (int i = 0; i < _crops.Length; i++)
         {
             _crops[i] = new Crop();
@@ -87,7 +87,7 @@ public class EntityManager
             DecisionMaker.Entities.Add(_crops[i]);
         }
 
-        _flies = new Fly[20];
+        _flies = new Fly[1];
         Random rand = new();
         for (int i = 0; i < _flies.Length; i++)
         {
