@@ -9,7 +9,7 @@ using Superorganism.Interfaces;
 
 namespace Superorganism.Entities
 {
-    public class StaticAnimatedEntity(Vector2 position) : StaticEntity(position), IAnimated
+    public class StaticAnimatedEntity : StaticEntity, IAnimated
 	{
 		public virtual bool IsSpriteAtlas { get; set; }
 		public virtual bool HasDirection { get; set; }
@@ -36,7 +36,7 @@ namespace Superorganism.Entities
             {
                 case true:
                 {
-                    Rectangle source = new((AnimationFrame * TextureInfo.TextureWidth) / TextureInfo.NumOfSpriteCols, DirectionIndex, TextureInfo.UnitTextureWidth, TextureInfo.UnitTextureHeight);
+                    Rectangle source = new((int)((AnimationFrame * TextureInfo.TextureWidth) / TextureInfo.NumOfSpriteCols), DirectionIndex, (int)TextureInfo.UnitTextureWidth, (int)TextureInfo.UnitTextureHeight);
                     spriteBatch.Draw(Texture, Position, source, Color.White);
                     break;
                 }

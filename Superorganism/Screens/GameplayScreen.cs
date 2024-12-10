@@ -10,18 +10,22 @@ using Superorganism.AI;
 using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
+using System.IO;
+using System.Reflection.Metadata;
+using Superorganism.Entities;
 
 namespace Superorganism.Screens
 {
     public class GameplayScreen : GameScreen
     {
         // Core components
-        public GameStateManager GameState;
+        public GameStateManager GameStateManager;
         private GameUiManager _uiManager;
         private Camera2D _camera;
         private GroundSprite _groundTexture;
         private ParallaxBackground _parallaxBackground;
         private Tilemap _tilemap;
+        private Map _map;
 
         // Constants
         private const int GroundY = 400;
@@ -44,20 +48,25 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            _tilemap = new Tilemap("Tiles/map.txt");
+            _tilemap = new Tilemap("Tileset/map.txt");
+            _map = Map.Load(Path.Combine(_content.RootDirectory, "Tileset/TestMapRev1.tmx"), _content);
 
             // Initialize camera
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
             // Initialize core managers
-            GameState = new GameStateManager(
+            GameStateManager = new GameStateManager(
                 ScreenManager.Game,
                 _content,
                 ScreenManager.GraphicsDevice,
                 _camera,
                 ScreenManager.GameAudioManager,
-                _tilemap
+                _tilemap,
+                _map
             );
+
+            GameState.Initialize(GameStateManager);
+
 
             // Initialize UI
             _uiManager = new GameUiManager(
@@ -72,23 +81,23 @@ namespace Superorganism.Screens
             _parallaxBackground = new ParallaxBackground(ScreenManager.GraphicsDevice);
             _parallaxBackground.LoadContent(_content);
 
-            _camera.Initialize(GameState.GetPlayerPosition());
+            _camera.Initialize(GameStateManager.GetPlayerPosition());
             DecisionMaker.GroundY = GroundY;
         }
 
         public override void HandleInput(GameTime gameTime, InputState input)
         {
-            if (GameState.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
+            if (GameStateManager.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
             {
-                //GameState.PauseMusic();
+                //GameStateManager.PauseMusic();
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
             }
 
-            if ((GameState.IsGameOver || GameState.IsGameWon) &&
+            if ((GameStateManager.IsGameOver || GameStateManager.IsGameWon) &&
                 input.IsNewKeyPress(Keys.R, ControllingPlayer, out playerIndex))
             {
-                GameState.Reset();
+                GameStateManager.Reset();
                 ScreenManager.ResetScreen(this);
             }
         }
@@ -99,8 +108,8 @@ namespace Superorganism.Screens
 
             if (!IsActive) return;
 
-            GameState.Update(gameTime);
-            _camera.Update(GameState.GetPlayerPosition(), gameTime);
+            GameStateManager.Update(gameTime);
+            _camera.Update(GameStateManager.GetPlayerPosition(), gameTime);
             UpdatePauseAlpha(gameTime, coveredByOtherScreen); // Pass coveredByOtherScreen
         }
 
@@ -123,10 +132,17 @@ namespace Superorganism.Screens
             // Draw parallax background first
             _parallaxBackground.Draw(spriteBatch, _camera.Position);
 
-            // Draw other game elements
-            _groundTexture.Draw(spriteBatch);
-            _tilemap.Draw(gameTime, spriteBatch);
-            GameState.Draw(gameTime, spriteBatch);
+            // In GameplayScreen.Draw
+            _map.Draw(
+                spriteBatch,
+                new Rectangle(0, 0,
+                    ScreenManager.GraphicsDevice.Viewport.Width,
+                    ScreenManager.GraphicsDevice.Viewport.Height
+                ),
+                Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
+            );
+
+            GameStateManager.Draw(gameTime, spriteBatch);
 
             spriteBatch.End();
 
@@ -140,23 +156,99 @@ namespace Superorganism.Screens
             );
 
             // Draw Health bar
-            int currentHealth = GameState.GetPlayerHealth();
-            int maxHealth = GameState.GetPlayerMaxHealth();
+            int currentHealth = GameStateManager.GetPlayerHealth();
+            int maxHealth = GameStateManager.GetPlayerMaxHealth();
             _uiManager.DrawHealthBar(currentHealth, maxHealth);
-            _uiManager.DrawCropsLeft(GameState.CropsLeft);
+            _uiManager.DrawCropsLeft(GameStateManager.CropsLeft);
 
-            // Add enemy debug info
-            _uiManager.DrawEnemyDebugInfo(
-                GameState.GetEnemyPosition(),
-                _camera.TransformMatrix,
-                GameState.GetEnemyStrategy(),
-                GameState.GetDistanceToPlayer(),
-                GameState.GetEnemyStrategyHistory()
-            );
 
-            if (GameState.IsGameOver)
+            // Draw entity collision boundaries
+            foreach (Entity entity in DecisionMaker.Entities)
+            {
+                if (entity.CollisionBounding != null)
+                {
+                    switch (entity)
+                    {
+                        case Crop crop:
+                            if (!crop.Collected)
+                            {
+                                _uiManager.DrawCollisionBounds(crop, crop.CollisionBounding, _camera.TransformMatrix);
+                            }
+
+                            break;
+                        case Fly fly:
+                            if (!fly.Destroyed)
+                            {
+                                _uiManager.DrawCollisionBounds(fly, fly.CollisionBounding, _camera.TransformMatrix);
+                            }
+                            break;
+                        case Ant ant:
+                            _uiManager.DrawCollisionBounds(ant, ant.CollisionBounding, _camera.TransformMatrix);
+                            break;
+                        case AntEnemy antEnemy:
+                            _uiManager.DrawCollisionBounds(antEnemy, antEnemy.CollisionBounding, _camera.TransformMatrix);
+                            break;
+                        default:
+                            _uiManager.DrawCollisionBounds(entity, entity.CollisionBounding, _camera.TransformMatrix);
+                            break;
+                    }
+                }
+            }
+
+            foreach (Entity entity in DecisionMaker.Entities)
+            {
+                switch (entity)
+                {
+                    case Crop crop:
+                        if (!crop.Collected)
+                        {
+                            _uiManager.DrawDebugInfo(
+                                crop.Position,
+                                _camera.TransformMatrix,
+                                GameStateManager.GetDistanceToPlayer(crop),
+                                crop.CollisionBounding
+                            );
+                        }
+
+                        break;
+                    case Fly { Destroyed: true }:
+                        continue;
+                    case Fly fly:
+                        _uiManager.DrawDebugInfo(
+                            fly.Position,
+                            _camera.TransformMatrix,
+                            fly.Strategy,
+                            GameStateManager.GetDistanceToPlayer(fly),
+                            fly.StrategyHistory,
+                            fly.CollisionBounding
+                        );
+                        break;
+                    case AntEnemy antEnemy:
+                        _uiManager.DrawDebugInfo(
+                            antEnemy.Position,
+                            _camera.TransformMatrix,
+                            antEnemy.Strategy,
+                            GameStateManager.GetDistanceToPlayer(antEnemy),
+                            antEnemy.StrategyHistory,
+                            antEnemy.CollisionBounding
+                        );
+                        break;
+                    case Ant ant:
+                        _uiManager.DrawDebugInfo(
+                            ant.Position,
+                            _camera.TransformMatrix,
+                            GameStateManager.GetDistanceToPlayer(ant),
+                            ant.CollisionBounding
+                        );
+                        break;
+                }
+            }
+
+            _uiManager.DrawMousePositionDebug(gameTime, _camera.TransformMatrix);
+
+            if (GameStateManager.IsGameOver)
                 _uiManager.DrawGameOverScreen();
-            else if (GameState.IsGameWon)
+            else if (GameStateManager.IsGameWon)
                 _uiManager.DrawWinScreen();
 
             spriteBatch.End();
@@ -176,7 +268,7 @@ namespace Superorganism.Screens
         {
             _uiManager?.Dispose();
             _parallaxBackground?.Unload();
-            GameState?.Unload();
+            GameStateManager?.Unload();
             _content?.Unload();
         }
     }

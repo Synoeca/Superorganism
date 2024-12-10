@@ -5,7 +5,9 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
+using Superorganism.Collisions;
 using Superorganism.Core.Camera;
+using Superorganism.Entities;
 using Superorganism.ScreenManagement;
 using Superorganism.Tiles;
 
@@ -18,6 +20,9 @@ namespace Superorganism.Core.Managers
         private readonly InputAction _pauseAction;
         private readonly Camera2D _camera;
         private readonly Tilemap _tilemap;
+        private readonly Map _map;
+
+        public Map CurrentMap => _map;
 
         public bool IsGameOver { get; private set; }
         public bool IsGameWon { get; private set; }
@@ -28,13 +33,15 @@ namespace Superorganism.Core.Managers
         private const double EnemyCollisionInterval = 0.2;
 
         public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera,
-            GameAudioManager audio, Tilemap tilemap)
+            GameAudioManager audio, Tilemap tilemap, Map map)
         {
             DecisionMaker.Entities.Clear();
-            _entityManager = new EntityManager(game, content, graphicsDevice);
             _audioManager = audio;
             _camera = camera;
             _tilemap = tilemap;
+            _map = map;
+
+            _entityManager = new EntityManager(game, content, graphicsDevice, map);
 
             _pauseAction = new InputAction(
                 [Buttons.Start, Buttons.Back],
@@ -63,7 +70,19 @@ namespace Superorganism.Core.Managers
 
         public Strategy GetEnemyStrategy() => _entityManager.EnemyStrategy;
 
-        public float GetDistanceToPlayer() => Vector2.Distance(
+        public ICollisionBounding GetEnemyBounding => _entityManager.EnemyCollisionBounding;
+
+        public float GetEntityDistance(Entity entity1, Entity entity2) => Vector2.Distance(
+            entity1.Position,
+            entity2.Position
+        );
+
+        public float GetDistanceToPlayer(Entity entity) => Vector2.Distance(
+            _entityManager.PlayerPosition,
+            entity.Position
+        );
+
+        public float GetEnemyDistanceToPlayer() => Vector2.Distance(
             _entityManager.PlayerPosition,
             _entityManager.EnemyPosition
         );

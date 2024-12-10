@@ -4,8 +4,10 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Superorganism.Collisions;
 using Superorganism.Common;
+using Superorganism.Core.Managers;
 using Superorganism.Entities;
 using Superorganism.Enums;
+using Superorganism.Tiles;
 
 namespace Superorganism.AI
 {
@@ -72,6 +74,27 @@ namespace Superorganism.AI
             _targetStrategy = targetStrategy;
         }
 
+        // At the top of the Action method, create a helper method for consistent ground checking
+        private static (float groundY, Vector2 collisionCenter) CalculateGroundAndCollision(
+            Map map,
+            Vector2 position,
+            TextureInfo textureInfo)
+        {
+            float groundY = MapHelper.GetGroundYPosition(
+                map,
+                position.X,
+                position.Y,
+                textureInfo.UnitTextureWidth  // Remove scaling here - let MapHelper handle it
+            );
+
+            Vector2 collisionCenter = new(
+                position.X,
+                position.Y
+            );
+
+            return (groundY, collisionCenter);
+        }
+
         public static void Action(ref Strategy strategy,
             ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, GameTime gameTime, ref Direction direction,
             ref Vector2 position,
@@ -87,9 +110,9 @@ namespace Superorganism.AI
         ref double directionTimer, ref double directionInterval, ref ICollisionBounding collisionBounding,
         ref Vector2 velocity, int screenWidth, int groundHeight, TextureInfo textureInfo, EntityStatus entityStatus)
         {
-            float entityGroundY;
             GameTime = gameTime;
             double currentStrategyDuration = GetStrategyDuration(strategyHistory, gameTime);
+            Rectangle mapBounds = MapHelper.GetMapWorldBounds();
 
             switch (strategy)
             {
@@ -125,57 +148,68 @@ namespace Superorganism.AI
                     break;
                 }
                 case Strategy.Random360FlyingMovement:
-                {
-                    if (velocity == Vector2.Zero)
                     {
-                        double angle = Rand.NextDouble() * Math.PI * 2;
-                        velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) *
-                                   (entityStatus.Agility * 100);
-                        directionInterval = GetNewDirectionInterval();
+                        if (velocity == Vector2.Zero)
+                        {
+                            double angle = Rand.NextDouble() * Math.PI * 2;
+                            velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) *
+                                       (entityStatus.Agility * 100);
+                            directionInterval = GetNewDirectionInterval();
+                        }
+
+                        directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                        if (directionTimer > directionInterval)
+                        {
+                            double angle = Rand.NextDouble() * Math.PI * 2;
+                            velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) *
+                                       (entityStatus.Agility * 100);
+                            directionTimer -= directionInterval;
+                            directionInterval = GetNewDirectionInterval();
+                        }
+
+                        // Set direction based on highest velocity component
+                        float absVelX = Math.Abs(velocity.X);
+                        float absVelY = Math.Abs(velocity.Y);
+                        if (absVelX > absVelY)
+                        {
+                            direction = velocity.X > 0 ? Direction.Right : Direction.Left;
+                        }
+                        else
+                        {
+                            direction = velocity.Y > 0 ? Direction.Down : Direction.Up;
+                        }
+
+                        // Update position
+                        Vector2 newPosition = position + velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+                        // Check ground collision before applying position update
+                        float groundY = MapHelper.GetGroundYPosition(
+                            GameState.CurrentMap,
+                            newPosition.X,
+                            position.Y,
+                            textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                        );
+
+                        if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
+                        {
+                            velocity.Y = -velocity.Y;  // Just invert Y velocity on ground collision
+                        }
+
+                        // Update bounds checking to use map coordinates
+                        if (newPosition.X < 0 || newPosition.X > mapBounds.Width)
+                        {
+                            velocity.X = -velocity.X;
+                            newPosition.X = MathHelper.Clamp(newPosition.X, 0, mapBounds.Width);
+                        }
+                        if (newPosition.Y < 0)
+                        {
+                            velocity.Y = -velocity.Y;
+                            newPosition.Y = 0;
+                        }
+
+                        position = newPosition;
+                        break;
                     }
-
-                    directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
-                    if (directionTimer > directionInterval)
-                    {
-                        double angle = Rand.NextDouble() * Math.PI * 2;
-                        velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) *
-                                   (entityStatus.Agility * 100);
-                        directionTimer -= directionInterval;
-                        directionInterval = GetNewDirectionInterval();
-                    }
-
-                    // Set direction based on highest velocity component
-                    float absVelX = Math.Abs(velocity.X);
-                    float absVelY = Math.Abs(velocity.Y);
-
-                    if (absVelX > absVelY)
-                    {
-                        direction = velocity.X > 0 ? Direction.Right : Direction.Left;
-                    }
-                    else
-                    {
-                        direction = velocity.Y > 0 ? Direction.Down : Direction.Up;
-                    }
-
-                    position += velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-                    if (position.X < 0 || position.X > screenWidth - textureInfo.UnitTextureWidth)
-                    {
-                        velocity.X = -velocity.X;
-                        position = new Vector2(
-                            Math.Clamp(position.X, 0, screenWidth - textureInfo.UnitTextureWidth),
-                            position.Y);
-                    }
-
-                    if (position.Y < 0 || position.Y > groundHeight - textureInfo.UnitTextureHeight)
-                    {
-                        velocity.Y = -velocity.Y;
-                        position = new Vector2(position.X,
-                            Math.Clamp(position.Y, 0, groundHeight - textureInfo.UnitTextureHeight));
-                    }
-
-                    break;
-                }
                 case Strategy.Patrol:
                 {
                     const float movementSpeed = 1.0f;
@@ -199,28 +233,28 @@ namespace Superorganism.AI
                     }
 
                     // Update position
-                    position += velocity;
+                    Vector2 newPosition = position + velocity;
 
-                    entityGroundY = GroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale) + 6.0f;
+                    // Check map bounds
+                    newPosition.X = MathHelper.Clamp(newPosition.X,
+                        (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
+                        mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
 
-                    if (position.Y >= entityGroundY)
+                    // Get ground level at new position
+                    float groundY = MapHelper.GetGroundYPosition(
+                        GameState.CurrentMap,
+                        newPosition.X,
+                        position.Y,
+                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                    );
+
+                    if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
                     {
-                        position.Y = entityGroundY;
+                        newPosition.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
                         velocity.Y = 0;
                     }
 
-                    switch (position.X)
-                    {
-                        // Handle screen bounds
-                        case <= 100:
-                            velocity.X = Math.Abs(velocity.X);
-                            position.X = 100;
-                            break;
-                        case >= 700:
-                            velocity.X = -Math.Abs(velocity.X);
-                            position.X = 700;
-                            break;
-                    }
+                    position = newPosition;
 
                     // Check for transition to chase
                     foreach (Entity entity in Entities)
@@ -244,6 +278,7 @@ namespace Superorganism.AI
 
                     break;
                 }
+
                 case Strategy.ChaseEnemy:
                 {
                     const float chaseSpeed = 3.0f;
@@ -252,70 +287,97 @@ namespace Superorganism.AI
                     Vector2? targetPosition = null;
                     float closestDistance = float.MaxValue;
 
-                    // Find the closest controlled entity
                     foreach (Entity entity in Entities)
                     {
-                        switch (entity)
+                        if (entity is ControllableEntity { IsControlled: true } controllableEntity)
                         {
-                            case ControllableEntity { IsControlled: true } controllableEntity:
+                            float distance = Vector2.Distance(position, controllableEntity.Position);
+                            if (distance < closestDistance)
                             {
-                                float distance = Vector2.Distance(position, controllableEntity.Position);
-                                if (distance < closestDistance)
-                                {
-                                    closestDistance = distance;
-                                    targetPosition = controllableEntity.Position;
-                                    _lastKnownTargetPosition = controllableEntity.Position;
-                                }
-
-                                break;
+                                closestDistance = distance;
+                                targetPosition = controllableEntity.Position;
+                                _lastKnownTargetPosition = controllableEntity.Position;
                             }
                         }
                     }
 
-                    // Check if target is lost and duration threshold is met
                     if ((!targetPosition.HasValue || closestDistance > 200) && currentStrategyDuration >= 3.0)
                     {
                         targetPosition = GetLastTargetPosition(strategyHistory, gameTime);
                         if (!targetPosition.HasValue)
                         {
                             TransitionToStrategy(ref strategy, Strategy.Patrol, ref strategyHistory, gameTime);
-                            return; // Exit early during transition
+                            return;
                         }
                     }
 
-                    // Chase logic - will continue chasing last known position during minimum duration
                     Vector2 targetPos = targetPosition ?? _lastKnownTargetPosition;
                     Vector2 chaseDirection = Vector2.Normalize(targetPos - position);
                     velocity.X = chaseDirection.X * chaseSpeed;
 
-                    // Update position
-                    position += velocity;
+                    // Calculate new position
+                    Vector2 newPosition = position + velocity;
 
-                    entityGroundY = GroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale) + 6.0f;
-                    if (position.Y >= entityGroundY)
+                    // Check map bounds
+                    newPosition.X = MathHelper.Clamp(newPosition.X,
+                        (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
+                        mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
+
+                    // Get ground level at new position
+                    float groundY = MapHelper.GetGroundYPosition(
+                        GameState.CurrentMap,
+                        newPosition.X,
+                        position.Y,
+                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                    );
+
+                    // Handle ground collision
+                    if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
                     {
-                        position.Y = entityGroundY;
+                        newPosition.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
                         velocity.Y = 0;
                     }
 
+                    position = newPosition;
                     break;
                 }
                 case Strategy.Transition:
                 {
-                    // Pause horizontal movement during transition
                     velocity.X = 0;
-                    velocity.Y += 0.5f; // Keep gravity
+                    velocity.Y += 0.5f;
 
-                    // After 1 second, change to target strategy
+                    Vector2 newPosition = position + velocity;
+
+                    // Check map bounds
+                    newPosition.X = MathHelper.Clamp(newPosition.X,
+                        (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
+                        mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
+
+                    // Get ground level at new position
+                    float groundY = MapHelper.GetGroundYPosition(
+                        GameState.CurrentMap,
+                        newPosition.X,
+                        position.Y,
+                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                    );
+
+                    // Handle ground collision
+                    if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
+                    {
+                        newPosition.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        velocity.Y = 0;
+                    }
+
+                    position = newPosition;
+
                     if (currentStrategyDuration >= TransitionDuration)
                     {
                         AddStrategyToHistory(ref strategy, _targetStrategy, ref strategyHistory, gameTime);
                         if (_targetStrategy == Strategy.Patrol)
                         {
-                            velocity.X = 1.0f; // Initialize patrol movement
+                            velocity.X = 1.0f;
                         }
                     }
-
                     break;
                 }
                 case Strategy.Idle:

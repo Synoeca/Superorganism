@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
+using Superorganism.Collisions;
 using Superorganism.Entities;
 using Superorganism.Enums;
+using Superorganism.Tiles;
 
 namespace Superorganism.Core.Managers
 {
@@ -15,6 +18,7 @@ namespace Superorganism.Core.Managers
         private readonly SpriteBatch _spriteBatch;
         private Texture2D _grayTexture;
         private Texture2D _redTexture;
+        private Texture2D _borderTexture;
 
         // UI Constants
         private const int ScreenMargin = 40; 
@@ -30,12 +34,99 @@ namespace Superorganism.Core.Managers
         private void InitializeTextures()
         {
             // Create textures once and store them
-            _grayTexture = new Texture2D(_spriteBatch.GraphicsDevice, 1, 1);
-            _grayTexture.SetData([Color.Gray]);
-
-            _redTexture = new Texture2D(_spriteBatch.GraphicsDevice, 1, 1);
-            _redTexture.SetData([Color.Red]);
+            _grayTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Gray);
+            _redTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Red);
+            _borderTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Red);
         }
+
+        public void DrawCollisionBounds(Entity entity, ICollisionBounding collisionBounds, Matrix cameraMatrix)
+        {
+            const int borderThickness = 2;
+
+            if (collisionBounds is BoundingRectangle rect)
+            {
+                // Transform entity position to screen space, same as circle logic
+                Vector2 screenEntityPos = Vector2.Transform(entity.Position, cameraMatrix);
+
+                // Add half width/height offset (equivalent to adding radius for circle)
+                screenEntityPos.X += rect.Width / 2;
+                screenEntityPos.Y += rect.Height / 2;
+
+                // Draw entity position marker (yellow cross)
+                DrawLine(screenEntityPos - new Vector2(5, 0), screenEntityPos + new Vector2(5, 0), Color.Yellow, 1);
+                DrawLine(screenEntityPos - new Vector2(0, 5), screenEntityPos + new Vector2(0, 5), Color.Yellow, 1);
+
+                // Create rectangle centered on screen position, compensating for border thickness
+                Rectangle screenBounds = new(
+                    (int)(screenEntityPos.X - rect.Width / 2) + borderThickness,  // Compensate for left border
+                    (int)(screenEntityPos.Y - rect.Height / 2) + borderThickness, // Compensate for top border
+                    (int)rect.Width - borderThickness * 2,  // Adjust width for both borders
+                    (int)rect.Height - borderThickness * 2  // Adjust height for both borders
+                );
+
+                DrawRectangleOutline(screenBounds, borderThickness, Color.Red);
+            }
+            else if (collisionBounds is BoundingCircle circle)
+            {
+                // Transform entity position to screen space
+                Vector2 screenEntityPos = Vector2.Transform(entity.Position, cameraMatrix);
+
+                screenEntityPos.X += circle.Radius;
+                screenEntityPos.Y += circle.Radius;
+
+                // Draw entity position marker (yellow cross)
+                DrawLine(screenEntityPos - new Vector2(5, 0), screenEntityPos + new Vector2(5, 0), Color.Yellow, 1);
+                DrawLine(screenEntityPos - new Vector2(0, 5), screenEntityPos + new Vector2(0, 5), Color.Yellow, 1);
+
+                if (entity is Crop crop)
+                {
+                    DrawCircleOutline(screenEntityPos, circle.Radius, borderThickness, Color.Red);
+                }
+                else
+                {
+                    DrawCircleOutline(screenEntityPos, circle.Radius, borderThickness, Color.Red);
+                }
+            }
+        }
+
+        private void DrawRectangleOutline(Rectangle rect, int thickness, Color color)
+        {
+            _spriteBatch.Draw(_redTexture, new Rectangle(rect.X, rect.Y, rect.Width, thickness), color);
+            _spriteBatch.Draw(_redTexture, new Rectangle(rect.X, rect.Bottom - thickness, rect.Width, thickness), color);
+            _spriteBatch.Draw(_redTexture, new Rectangle(rect.X, rect.Y, thickness, rect.Height), color);
+            _spriteBatch.Draw(_redTexture, new Rectangle(rect.Right - thickness, rect.Y, thickness, rect.Height), color);
+        }
+
+        private void DrawCircleOutline(Vector2 center, float radius, int thickness, Color color)
+        {
+            const int segments = 32;
+            Vector2 prevPoint = center + new Vector2(radius, 0);
+            for (int i = 1; i <= segments; i++)
+            {
+                float angle = i * MathHelper.TwoPi / segments;
+                Vector2 newPoint = center + radius * new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
+                DrawLine(prevPoint, newPoint, color, thickness);
+                prevPoint = newPoint;
+            }
+        }
+
+        private void DrawLine(Vector2 start, Vector2 end, Color color, int thickness)
+        {
+            Vector2 edge = end - start;
+            float angle = (float)Math.Atan2(edge.Y, edge.X);
+            float length = edge.Length();
+            _spriteBatch.Draw(
+                _redTexture,
+                new Rectangle((int)start.X, (int)start.Y, (int)length, thickness),
+                null,
+                color,
+                angle,
+                Vector2.Zero,
+                SpriteEffects.None,
+                0
+            );
+        }
+
 
         public void DrawHealthBar(int currentHealth, int maxHealth)
         {
@@ -79,45 +170,117 @@ namespace Superorganism.Core.Managers
             DrawTextWithShadow(cropsLeftText, textPosition, Color.White, textScale);
         }
 
-        public void DrawEnemyDebugInfo(
-            Vector2 enemyPosition,
-            Matrix cameraMatrix,
-            Strategy currentStrategy,
-            float distanceToPlayer,
-            List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory)
+        public void DrawDebugInfo(Vector2 position, Matrix cameraMatrix,
+    float distanceToPlayer, ICollisionBounding collisionBounding)
         {
-            // Transform enemy position to screen coordinates
-            Vector2 enemyScreenPosition = Vector2.Transform(enemyPosition, cameraMatrix);
-
-            // Add padding to the debug info position
+            Vector2 enemyScreenPosition = Vector2.Transform(position, cameraMatrix);
             Vector2 textOffset = new(BarPadding, -40);
             Vector2 textPosition = enemyScreenPosition + textOffset;
-
-            // Text scaling factor for reduced size
             const float textScale = 0.4f;
             Vector2 currentOffset = Vector2.Zero;
 
-            // Draw current strategy
-            string currentStrategyText = $"Current: {currentStrategy}";
-            DrawDebugText(currentStrategyText, textPosition + currentOffset, textScale);
-            currentOffset.Y += _gameFont.MeasureString(currentStrategyText).Y * textScale;
-
-            // Draw position
-            string positionText = $"Position: {enemyPosition.X:0.0}, {enemyPosition.Y:0.0}";
+            string positionText = $"Position: {position.X:0.0}, {position.Y:0.0}";
             DrawDebugText(positionText, textPosition + currentOffset, textScale);
             currentOffset.Y += _gameFont.MeasureString(positionText).Y * textScale;
 
-            // Draw distance
+            string screenPosText = $"Screen Position: {enemyScreenPosition.X:0.0}, {enemyScreenPosition.Y:0.0}";
+            DrawDebugText(screenPosText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(screenPosText).Y * textScale;
+
             string distanceText = $"Distance: {distanceToPlayer:0.0}";
             DrawDebugText(distanceText, textPosition + currentOffset, textScale);
             currentOffset.Y += _gameFont.MeasureString(distanceText).Y * textScale;
 
-            // Draw history header
+            // Add collision bounding information
+            string boundingText = "Bounding: ";
+            if (collisionBounding is BoundingCircle circle)
+            {
+                boundingText += $"Circle (Center: {circle.Center.X:0.0}, {circle.Center.Y:0.0}, Radius: {circle.Radius:0.0})";
+                DrawDebugText(boundingText, textPosition + currentOffset, textScale);
+            }
+            else if (collisionBounding is BoundingRectangle rect)
+            {
+                boundingText += $"Rectangle (X: {rect.X:0.0}, Y: {rect.Y:0.0}, W: {rect.Width:0.0}, H: {rect.Height:0.0})";
+                string leftRightText = $"Left: {rect.Left:0.0}, Right: {rect.Right:0.0}";
+                string topBottomText = $"Top: {rect.Top:0.0}, Bottom: {rect.Bottom:0.0}";
+                string rectCenterText = $"  Center: {rect.X + (rect.Width / 2):0.0}, {rect.Y + (rect.Height / 2):0.0}";
+
+                DrawDebugText(boundingText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(leftRightText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(topBottomText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(rectCenterText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(rectCenterText).Y * textScale;
+            }
+
+            currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+
+            const string historyHeader = "History:";
+            DrawDebugText(historyHeader, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(historyHeader).Y * textScale;
+        }
+
+        public void DrawDebugInfo(
+            Vector2 position,
+            Matrix cameraMatrix,
+            Strategy currentStrategy,
+            float distanceToPlayer,
+            List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
+            ICollisionBounding collisionBounding)
+        {
+            Vector2 screenPosition = Vector2.Transform(position, cameraMatrix);
+            Vector2 textOffset = new(BarPadding, -40);
+            Vector2 textPosition = screenPosition + textOffset;
+            const float textScale = 0.4f;
+            Vector2 currentOffset = Vector2.Zero;
+
+            string currentStrategyText = $"Current: {currentStrategy}";
+            DrawDebugText(currentStrategyText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(currentStrategyText).Y * textScale;
+
+            string positionText = $"Position: {position.X:0.0}, {position.Y:0.0}";
+            DrawDebugText(positionText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(positionText).Y * textScale;
+
+            string screenPosText = $"Screen Position: {screenPosition.X:0.0}, {screenPosition.Y:0.0}";
+            DrawDebugText(screenPosText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(screenPosText).Y * textScale;
+
+            string distanceText = $"Distance: {distanceToPlayer:0.0}";
+            DrawDebugText(distanceText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(distanceText).Y * textScale;
+
+            // Enhanced collision bounding information
+            string boundingText = "Bounding: ";
+            if (collisionBounding is BoundingCircle circle)
+            {
+                boundingText += $"Circle (Center: {circle.Center.X:0.0}, {circle.Center.Y:0.0}, Radius: {circle.Radius:0.0})";
+                DrawDebugText(boundingText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+            }
+            else if (collisionBounding is BoundingRectangle rect)
+            {
+                boundingText += $"Rectangle (X: {rect.X:0.0}, Y: {rect.Y:0.0}, W: {rect.Width:0.0}, H: {rect.Height:0.0})";
+                string leftRightText = $"Left: {rect.Left:0.0}, Right: {rect.Right:0.0}";
+                string topBottomText = $"Top: {rect.Top:0.0}, Bottom: {rect.Bottom:0.0}";
+                string rectCenterText = $"  Center: {rect.Center.X:0.0}, {rect.Center.Y:0.0}";
+
+                DrawDebugText(boundingText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(leftRightText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(topBottomText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(rectCenterText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(rectCenterText).Y * textScale;
+            }
+
             const string historyHeader = "History:";
             DrawDebugText(historyHeader, textPosition + currentOffset, textScale);
             currentOffset.Y += _gameFont.MeasureString(historyHeader).Y * textScale;
 
-            // Draw strategy history
             foreach ((Strategy strategy, double startTime, double lastActionTime) in strategyHistory.Skip(Math.Max(0, strategyHistory.Count - 3)))
             {
                 string historyText = $"- {strategy} Start: {startTime:0.0}s Last: {lastActionTime:0.0}s";
@@ -126,10 +289,57 @@ namespace Superorganism.Core.Managers
             }
         }
 
+        public void DrawMousePositionDebug(GameTime gameTime, Matrix cameraMatrix)
+        {
+            // Get current mouse state
+            MouseState mouseState = Mouse.GetState();
+            Vector2 mouseScreenPosition = new Vector2(mouseState.X, mouseState.Y);
+
+            // Convert screen position to world position
+            Matrix invertedMatrix = Matrix.Invert(cameraMatrix);
+            Vector2 mouseWorldPosition = Vector2.Transform(mouseScreenPosition, invertedMatrix);
+
+            // Setup text position and scale
+            Vector2 textPosition = mouseScreenPosition + new Vector2(20, 20); // Offset from cursor
+            const float textScale = 0.4f;
+            Vector2 currentOffset = Vector2.Zero;
+
+            // Draw screen coordinates
+            string screenPosText = $"Screen: {mouseScreenPosition.X:0.0}, {mouseScreenPosition.Y:0.0}";
+            DrawDebugText(screenPosText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(screenPosText).Y * textScale;
+
+            // Draw world coordinates
+            string worldPosText = $"World: {mouseWorldPosition.X:0.0}, {mouseWorldPosition.Y:0.0}";
+            DrawDebugText(worldPosText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(worldPosText).Y * textScale;
+
+            // Draw tile coordinates
+            (int tileX, int tileY) = MapHelper.WorldToTile(mouseWorldPosition);
+            string tilePosText = $"Tile: {tileX}, {tileY}";
+            DrawDebugText(tilePosText, textPosition + currentOffset, textScale);
+
+            System.Diagnostics.Debug.WriteLine("=== Mouse Debug Info ===");
+            System.Diagnostics.Debug.WriteLine($"Screen Position: ({mouseScreenPosition.X:0.0}, {mouseScreenPosition.Y:0.0})");
+            System.Diagnostics.Debug.WriteLine($"World Position: ({mouseWorldPosition.X:0.0}, {mouseWorldPosition.Y:0.0})");
+            System.Diagnostics.Debug.WriteLine($"Tile Position: ({tileX}, {tileY})");
+            System.Diagnostics.Debug.WriteLine("=========================");
+        }
+
         private void DrawDebugText(string text, Vector2 position, float scale)
         {
             DrawTextWithShadow(text, position, Color.White, scale);
         }
+
+        private void DrawTextWithShadow(string text, Vector2 position, Color color, float scale = 1.0f)
+        {
+            string adjustedText = text.Replace(" ", "   ");
+
+            Vector2 shadowOffset = new(2, 2);
+            _spriteBatch.DrawString(_gameFont, adjustedText, position + shadowOffset, Color.Black * 0.5f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
+            _spriteBatch.DrawString(_gameFont, adjustedText, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
+        }
+
 
         public void DrawGameOverScreen()
         {
@@ -164,14 +374,6 @@ namespace Superorganism.Core.Managers
             DrawTextWithShadow(restartMessage, position, Color.White);
         }
 
-        private void DrawTextWithShadow(string text, Vector2 position, Color color, float scale = 1.0f)
-        {
-            string adjustedText = text.Replace(" ", "   ");
-
-            Vector2 shadowOffset = new(2, 2);
-            _spriteBatch.DrawString(_gameFont, adjustedText, position + shadowOffset, Color.Black * 0.5f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
-            _spriteBatch.DrawString(_gameFont, adjustedText, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0);
-        }
 
         private static Texture2D CreateTexture(GraphicsDevice graphicsDevice, Color color)
         {
@@ -184,6 +386,7 @@ namespace Superorganism.Core.Managers
         {
             _grayTexture?.Dispose();
             _redTexture?.Dispose();
+            _borderTexture?.Dispose();
         }
     }
 }
