@@ -22,18 +22,18 @@ public class ParallaxBackground
     public void LoadContent(ContentManager content)
     {
         // Background (1280x1472)
-        _layers[0] = new Layer(content.Load<Texture2D>("background"), 0.0250f);
+        _layers[0] = new Layer(content.Load<Texture2D>("background"), 0.25f);
         // Midground (7800x480)
-        _layers[1] = new Layer(content.Load<Texture2D>("midground"), 0.055f);
+        _layers[1] = new Layer(content.Load<Texture2D>("midground"), 0.50f);
         // Foreground (14000x480)
-        _layers[2] = new Layer(content.Load<Texture2D>("foreground"), 0.1f);
+        _layers[2] = new Layer(content.Load<Texture2D>("foreground"), 0.75f);
     }
 
     public void Draw(SpriteBatch spriteBatch, Vector2 cameraPosition)
     {
         foreach (Layer layer in _layers)
         {
-            float parallaxOffset = -cameraPosition.X * layer.ScrollSpeed;
+            float parallaxOffset = cameraPosition.X * (1 - layer.ScrollSpeed);
             int textureWidth = layer.Texture.Width;
             float yPosition = TargetYPosition;
 
