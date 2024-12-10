@@ -400,8 +400,6 @@ namespace Superorganism.AI
                 br = new BoundingRectangle(position, br.Width, br.Height);
                 collisionBounding = br;
             }
-
-            //collisionBounding.Center = position + textureInfo.Center;
         }
     }
 }
