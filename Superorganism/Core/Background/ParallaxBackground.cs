@@ -84,7 +84,7 @@ public class ParallaxBackground
                 if (textureWidth == 14000) // Foreground
                 {
                     // Adjust the starting position calculation for the wider foreground
-                    startX = (parallaxOffset % (textureWidth / 2)) - (textureWidth / 2);
+                    startX = (parallaxOffset % (textureWidth / 2f)) - (textureWidth / 2f);
                 }
                 else // Midground
                 {

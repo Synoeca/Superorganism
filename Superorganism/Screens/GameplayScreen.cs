@@ -68,7 +68,7 @@ namespace Superorganism.Screens
             _parallaxBackground = new ParallaxBackground();
             _parallaxBackground.LoadContent(_content);
 
-            _camera.Initialize(GameStateManager.GetPlayerPosition());
+            _camera.Initialize(GameStateManager.GetPlayerPosition(), ScreenManager);
             ScreenManager.GameplayScreenCamera2D = _camera;
         }
 
