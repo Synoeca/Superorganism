@@ -10,7 +10,7 @@
 
 #-------------------------------- References --------------------------------#
 
-/reference:..\..\Pipeline\bin\Debug\net6.0\Pipeline.dll
+/reference:..\..\Pipeline\bin\Debug\net8.0-windows7.0\Pipeline.dll
 
 #---------------------------------- Content ---------------------------------#
 
@@ -690,9 +690,7 @@
 /build:tiles2.png
 
 #begin Tileset/Maps/TestMapRev1.tmx
-/importer:TiledMapImporter
-/processor:TiledMapProcessor
-/build:Tileset/Maps/TestMapRev1.tmx
+/copy:Tileset/Maps/TestMapRev1.tmx
 
 #begin Tileset/TestMap.tmx
 /copy:Tileset/TestMap.tmx

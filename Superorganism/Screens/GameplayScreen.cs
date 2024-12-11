@@ -10,6 +10,7 @@ using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
+#pragma warning disable CA1416
 
 namespace Superorganism.Screens
 {
@@ -42,8 +43,8 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            //_map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
-            _map = _content.Load<Map>("Tileset/Maps/TestMapRev1");
+            _map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
+            //_map = _content.Load<Map>("Tileset/Maps/TestMapRev1");
             // Initialize camera
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
