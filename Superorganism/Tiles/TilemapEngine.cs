@@ -72,7 +72,6 @@ using System.Xml;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Framework.Utilities.Deflate;
 using CompressionMode = System.IO.Compression.CompressionMode;
 using GZipStream = System.IO.Compression.GZipStream;
 
@@ -343,9 +342,7 @@ namespace Superorganism.Tiles
                                                     stream = new GZipStream(stream, CompressionMode.Decompress, false);
                                                     break;
                                                 case "zlib":
-                                                    stream = new ZlibStream(stream,
-                                                        (MonoGame.Framework.Utilities.Deflate.CompressionMode)
-                                                        CompressionMode.Decompress, false);
+                                                    stream = new GZipStream(stream, CompressionMode.Decompress, false);
                                                     break;
                                             }
 

@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
+using TInput = System.String;
+using TOutput = System.String;
 
-
-namespace Superorganism.ContentPipeline
+namespace Pipeline
 {
     [ContentProcessor(DisplayName = "Tiled Map Processor")]
     public class TiledMapProcessor : ContentProcessor<BasicTilemapContent, BasicTilemapContent>

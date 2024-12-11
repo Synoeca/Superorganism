@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<!-- Change from Exe to Library since this is a pipeline extension -->
+		<OutputType>Library</OutputType>
+		<TargetFramework>net8.0-windows7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<!-- Add these properties for Windows forms which pipeline tools need -->
+		<UseWindowsForms>true</UseWindowsForms>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Keep only the pipeline and WindowsDX references, remove DesktopGL -->
+		<PackageReference Include="MonoGame.Framework.Content.Pipeline" Version="3.8.2.1105" />
+		<PackageReference Include="MonoGame.Extended.Content.Pipeline" Version="4.0.3" />
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.2.1105" />
+		<!-- Add SharpZipLib if you're using it for compression -->
+		<PackageReference Include="SharpZipLib" Version="1.4.2" />
+		<!-- Keep the reference to your main project -->
+		<ProjectReference Include="..\Superorganism\Superorganism.csproj" />
+	</ItemGroup>
+</Project>

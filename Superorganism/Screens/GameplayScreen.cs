@@ -42,8 +42,8 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            _map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
-
+            //_map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
+            _map = _content.Load<Map>("Tileset/Maps/TestMapRev1");
             // Initialize camera
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 

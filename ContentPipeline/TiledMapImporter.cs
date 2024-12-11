@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
+﻿using System.Xml;
 using Microsoft.Xna.Framework.Content.Pipeline;
+using MonoGame.Extended.Content.Pipeline;
 
-namespace Superorganism.ContentPipeline
+namespace ContentPipeline
 {
     [ContentImporter(".tmx", DisplayName = "Tiled Map Importer", DefaultProcessor = "TiledMapProcessor")]
     public class TiledMapImporter : ContentImporter<BasicTilemapContent>
@@ -34,10 +29,10 @@ namespace Superorganism.ContentPipeline
                         switch (reader.Name)
                         {
                             case "map":
-                                map.Width = int.Parse(reader.GetAttribute("width"));
-                                map.Height = int.Parse(reader.GetAttribute("height"));
-                                map.TileWidth = int.Parse(reader.GetAttribute("tilewidth"));
-                                map.TileHeight = int.Parse(reader.GetAttribute("tileheight"));
+                                map.Width = int.Parse(reader.GetAttribute("width") ?? throw new InvalidOperationException());
+                                map.Height = int.Parse(reader.GetAttribute("height") ?? throw new InvalidOperationException());
+                                map.TileWidth = int.Parse(reader.GetAttribute("tilewidth") ?? throw new InvalidOperationException());
+                                map.TileHeight = int.Parse(reader.GetAttribute("tileheight") ?? throw new InvalidOperationException());
                                 break;
 
                             case "tileset":
@@ -74,17 +69,17 @@ namespace Superorganism.ContentPipeline
         {
             Tileset tileset = new()
             {
-                Name = reader.GetAttribute("name"),
-                FirstTileId = int.Parse(reader.GetAttribute("firstgid")),
-                TileWidth = int.Parse(reader.GetAttribute("tilewidth")),
-                TileHeight = int.Parse(reader.GetAttribute("tileheight"))
+                Name = reader.GetAttribute("name") ?? throw new InvalidOperationException(),
+                FirstTileId = int.Parse(reader.GetAttribute("firstgid") ?? throw new InvalidOperationException()),
+                TileWidth = int.Parse(reader.GetAttribute("tilewidth") ?? throw new InvalidOperationException()),
+                TileHeight = int.Parse(reader.GetAttribute("tileheight") ?? throw new InvalidOperationException())
             };
 
             while (reader.Read())
             {
                 if (reader.NodeType == XmlNodeType.Element && reader.Name == "image")
                 {
-                    tileset.ImagePath = reader.GetAttribute("source");
+                    tileset.ImagePath = reader.GetAttribute("source") ?? throw new InvalidOperationException();
                 }
             }
 
@@ -95,10 +90,10 @@ namespace Superorganism.ContentPipeline
         {
             Layer layer = new()
             {
-                Name = reader.GetAttribute("name"),
-                Width = int.Parse(reader.GetAttribute("width")),
-                Height = int.Parse(reader.GetAttribute("height")),
-                Opacity = reader.GetAttribute("opacity") != null ? float.Parse(reader.GetAttribute("opacity")) : 1.0f
+                Name = reader.GetAttribute("name") ?? throw new InvalidOperationException(),
+                Width = int.Parse(reader.GetAttribute("width") ?? throw new InvalidOperationException()),
+                Height = int.Parse(reader.GetAttribute("height") ?? throw new InvalidOperationException()),
+                Opacity = reader.GetAttribute("opacity") != null ? float.Parse(reader.GetAttribute("opacity") ?? throw new InvalidOperationException()) : 1.0f
             };
 
             while (reader.Read())
@@ -125,8 +120,8 @@ namespace Superorganism.ContentPipeline
 
         private void ImportLayerData(XmlReader reader, Layer layer)
         {
-            string encoding = reader.GetAttribute("encoding");
-            string compression = reader.GetAttribute("compression");
+            string encoding = reader.GetAttribute("encoding") ?? throw new InvalidOperationException();
+            string compression = reader.GetAttribute("compression") ?? throw new InvalidOperationException();
 
             if (encoding == "base64")
             {
@@ -138,7 +133,7 @@ namespace Superorganism.ContentPipeline
                 Stream decompStream = compression switch
                 {
                     "gzip" => new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Decompress),
-                    "zlib" => new MonoGame.Framework.Utilities.Deflate.ZlibStream(stream, MonoGame.Framework.Utilities.Deflate.CompressionMode.Decompress),
+                    "zlib" => new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Decompress),
                     _ => stream
                 };
 
@@ -168,8 +163,8 @@ namespace Superorganism.ContentPipeline
             {
                 if (reader.NodeType == XmlNodeType.Element && reader.Name == "property")
                 {
-                    string name = reader.GetAttribute("name");
-                    string value = reader.GetAttribute("value");
+                    string name = reader.GetAttribute("name") ?? throw new InvalidOperationException();
+                    string value = reader.GetAttribute("value") ?? throw new InvalidOperationException();
                     if (name != null && value != null)
                     {
                         properties.Add(name, value);
