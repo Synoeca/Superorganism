@@ -16,7 +16,12 @@ namespace ContentPipeline
             {
                 if (subtree.NodeType == XmlNodeType.Element && subtree.Name == "property")
                 {
-                    string name = subtree.GetAttribute("name") ?? throw new ContentLoadException("Property missing name attribute");
+                    string? name = subtree.GetAttribute("name");
+                    if (name == null)
+                    {
+                        throw new ContentLoadException("Property missing name attribute");
+                    }
+
                     string value = subtree.GetAttribute("value") ?? string.Empty;
                     properties[name] = value;
                 }

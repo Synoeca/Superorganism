@@ -9,7 +9,7 @@ namespace Superorganism.Content.PipelineReaders
         protected override Dictionary<int, Tileset.TilePropertyList> Read(ContentReader input, Dictionary<int, Tileset.TilePropertyList> existingInstance)
         {
             int count = input.ReadInt32();
-            var dictionary = new Dictionary<int, Tileset.TilePropertyList>(count);
+            Dictionary<int, Tileset.TilePropertyList> dictionary = new Dictionary<int, Tileset.TilePropertyList>(count);
 
             for (int i = 0; i < count; i++)
             {

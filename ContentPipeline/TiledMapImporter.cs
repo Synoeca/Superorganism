@@ -3,61 +3,60 @@ using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
 using MonoGame.Extended.Content.Pipeline.Tiled;
 using System.Xml;
+using static ContentPipeline.BasicTileset;
 
 namespace ContentPipeline
 {
-    [ContentImporter(".tmx", DefaultProcessor = "TiledMapProcessor", DisplayName = "Tiled Map Importer - MonoGame.Extended")]
+    [ContentImporter(".tmx", DefaultProcessor = "TilemapProcessor", DisplayName = "Tiled Map Importer")]
     public class TiledMapImporter : ContentImporter<BasicMap>
     {
         public override BasicMap Import(string filename, ContentImporterContext context)
         {
-            BasicMap map = new() { Filename = filename };
+            BasicMap map = new() { Filename = Path.GetFullPath(filename) };
 
             XmlReaderSettings settings = new()
             {
                 DtdProcessing = DtdProcessing.Parse
             };
 
-            using (StreamReader stream = File.OpenText(filename))
-            using (XmlReader reader = XmlReader.Create(stream, settings))
+            using StreamReader stream = File.OpenText(filename);
+            using XmlReader reader = XmlReader.Create(stream, settings);
+            while (reader.Read())
             {
-                while (reader.Read())
+                switch (reader.NodeType)
                 {
-                    switch (reader.NodeType)
-                    {
-                        case XmlNodeType.Element:
-                            switch (reader.Name)
-                            {
-                                case "map":
-                                    ImportMapAttributes(reader, map);
-                                    break;
-                                case "tileset":
-                                    using (XmlReader? st = reader.ReadSubtree())
-                                    {
-                                        st.Read();
-                                        ImportTileset(st, map);
-                                    }
-                                    break;
-                                case "layer":
-                                    using (XmlReader? st = reader.ReadSubtree())
-                                    {
-                                        st.Read();
-                                        ImportLayer(st, map);
-                                    }
-                                    break;
-                                case "objectgroup":
-                                    using (XmlReader? st = reader.ReadSubtree())
-                                    {
-                                        st.Read();
-                                        ImportObjectGroup(st, map);
-                                    }
-                                    break;
-                                case "properties":
-                                    ImportProperties(reader, map.Properties);
-                                    break;
-                            }
-                            break;
-                    }
+                    case XmlNodeType.Element:
+                        switch (reader.Name)
+                        {
+                            case "map":
+                                ImportMapAttributes(reader, map);
+                                break;
+                            case "tileset":
+                                using (XmlReader? st = reader.ReadSubtree())
+                                {
+                                    st.Read();
+                                    ImportTileset(st, map);
+                                }
+                                break;
+                            case "layer":
+                                using (XmlReader? st = reader.ReadSubtree())
+                                {
+                                    st.Read();
+                                    ImportLayer(st, map);
+                                }
+                                break;
+                            case "objectgroup":
+                                using (XmlReader? st = reader.ReadSubtree())
+                                {
+                                    st.Read();
+                                    ImportObjectGroup(st, map);
+                                }
+                                break;
+                            case "properties":
+                                ImportProperties(reader, map.Properties);
+                                break;
+                        }
+                        break;
                 }
             }
 
@@ -74,7 +73,7 @@ namespace ContentPipeline
 
         private void ImportTileset(XmlReader reader, BasicMap map)
         {
-            TilesetContent? tileset = new TilesetContent
+            BasicTileset tileset = new()
             {
                 Name = reader.GetAttribute("name") ?? "",
                 FirstTileId = int.Parse(reader.GetAttribute("firstgid") ?? "1"),
@@ -91,7 +90,7 @@ namespace ContentPipeline
                     switch (reader.Name)
                     {
                         case "image":
-                            tileset.ImageSource = reader.GetAttribute("source") ?? "";
+                            tileset.Image = reader.GetAttribute("source") ?? "";
                             break;
 
                         case "tile":
@@ -104,13 +103,13 @@ namespace ContentPipeline
                                     if (tileReader.NodeType == XmlNodeType.Element &&
                                         tileReader.Name == "properties")
                                     {
-                                        var properties = PropertyImporter.ImportProperties(tileReader);
-                                        if (!tileset.TileProperties.TryGetValue(id, out var tilePropertyList))
+                                        SortedList<string, string> properties = PropertyImporter.ImportProperties(tileReader);
+                                        if (!tileset.TileProperties.TryGetValue(id, out BasicTileset.BasicTilePropertyList? tilePropertyList))
                                         {
-                                            tilePropertyList = new TilePropertyListContent();
+                                            tilePropertyList = new BasicTilePropertyList();
                                             tileset.TileProperties[id] = tilePropertyList;
                                         }
-                                        foreach (var kvp in properties)
+                                        foreach (KeyValuePair<string, string> kvp in properties)
                                         {
                                             tilePropertyList[kvp.Key] = kvp.Value;
                                         }
@@ -127,7 +126,7 @@ namespace ContentPipeline
 
         private void ImportObjectGroup(XmlReader reader, BasicMap map)
         {
-            ObjectGroupContent? objectGroup = new ObjectGroupContent
+            BasicObjectGroup objectGroup = new()
             {
                 Name = reader.GetAttribute("name") ?? ""
             };
@@ -152,9 +151,9 @@ namespace ContentPipeline
             map.ObjectGroups.Add(objectGroup.Name, objectGroup);
         }
 
-        private void ImportObject(XmlReader reader, ObjectGroupContent objectGroup)
+        private void ImportObject(XmlReader reader, BasicObjectGroup objectGroup)
         {
-            ObjectContent? obj = new ObjectContent
+            BasicObject obj = new()
             {
                 Name = reader.GetAttribute("name") ?? "",
                 X = int.Parse(reader.GetAttribute("x") ?? "0"),
@@ -179,7 +178,7 @@ namespace ContentPipeline
                             break;
 
                         case "image":
-                            obj.ImageSource = reader.GetAttribute("source");
+                            obj.Image = reader.GetAttribute("source") ?? throw new InvalidOperationException();
                             break;
                     }
                 }
@@ -190,7 +189,7 @@ namespace ContentPipeline
 
         private void ImportLayer(XmlReader reader, BasicMap map)
         {
-            LayerContent? layer = new LayerContent
+            BasicLayer layer = new()
             {
                 Name = reader.GetAttribute("name") ?? "",
                 Width = int.Parse(reader.GetAttribute("width") ?? "0"),
@@ -218,7 +217,7 @@ namespace ContentPipeline
             map.Layers.Add(layer.Name, layer);
         }
 
-        private void ImportProperties(XmlReader reader, Dictionary<string, string> properties)
+        private void ImportProperties(XmlReader reader, SortedList<string, string> properties)
         {
             using XmlReader? subtree = reader.ReadSubtree();
             while (subtree.Read())

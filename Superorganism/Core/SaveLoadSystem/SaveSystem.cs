@@ -15,7 +15,7 @@ namespace Superorganism.Core.SaveLoadSystem
             Directory.CreateDirectory(directory);
 
             string filePath = Path.Combine(directory, saveName + SaveExtension);
-            var options = new JsonSerializerOptions
+            JsonSerializerOptions options = new JsonSerializerOptions
             {
                 WriteIndented = true,
                 IncludeFields = true
@@ -31,7 +31,7 @@ namespace Superorganism.Core.SaveLoadSystem
             if (!File.Exists(filePath)) return null;
 
             string jsonString = File.ReadAllText(filePath);
-            var options = new JsonSerializerOptions
+            JsonSerializerOptions options = new JsonSerializerOptions
             {
                 IncludeFields = true
             };

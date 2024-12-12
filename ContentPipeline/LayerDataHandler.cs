@@ -12,7 +12,7 @@ namespace ContentPipeline
         private const uint FLIPPED_VERTICALLY_FLAG = 0x40000000;
         private const uint FLIPPED_DIAGONALLY_FLAG = 0x20000000;
 
-        public static void DecodeLayerData(XmlReader reader, LayerContent layer)
+        public static void DecodeLayerData(XmlReader reader, BasicLayer layer)
         {
             string? encoding = reader.GetAttribute("encoding");
             string? compression = reader.GetAttribute("compression");
@@ -39,13 +39,13 @@ namespace ContentPipeline
             }
         }
 
-        private static void ProcessDecodedData(byte[] data, LayerContent layer)
+        private static void ProcessDecodedData(byte[] data, BasicLayer layer)
         {
-            layer.TileIndices = new int[layer.Width * layer.Height];
+            layer.Tiles = new int[layer.Width * layer.Height];
             layer.FlipAndRotateFlags = new byte[layer.Width * layer.Height];
 
             using BinaryReader reader = new BinaryReader(new MemoryStream(data));
-            for (int i = 0; i < layer.TileIndices.Length; i++)
+            for (int i = 0; i < layer.Tiles.Length; i++)
             {
                 uint tileData = reader.ReadUInt32();
                 byte flipAndRotate = 0;
@@ -63,14 +63,14 @@ namespace ContentPipeline
                             FLIPPED_VERTICALLY_FLAG |
                             FLIPPED_DIAGONALLY_FLAG);
 
-                layer.TileIndices[i] = (int)tileData;
+                layer.Tiles[i] = (int)tileData;
                 layer.FlipAndRotateFlags[i] = flipAndRotate;
             }
         }
 
-        private static void ProcessXmlData(XmlReader reader, LayerContent layer)
+        private static void ProcessXmlData(XmlReader reader, BasicLayer layer)
         {
-            layer.TileIndices = new int[layer.Width * layer.Height];
+            layer.Tiles = new int[layer.Width * layer.Height];
             layer.FlipAndRotateFlags = new byte[layer.Width * layer.Height];
 
             int i = 0;
@@ -95,7 +95,7 @@ namespace ContentPipeline
                             FLIPPED_VERTICALLY_FLAG |
                             FLIPPED_DIAGONALLY_FLAG);
 
-                    layer.TileIndices[i] = (int)gid;
+                    layer.Tiles[i] = (int)gid;
                     layer.FlipAndRotateFlags[i] = flipAndRotate;
                     i++;
                 }

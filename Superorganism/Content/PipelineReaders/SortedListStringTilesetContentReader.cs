@@ -9,7 +9,7 @@ namespace ContentPipeline
         protected override SortedList<string, Tileset> Read(ContentReader input, SortedList<string, Tileset> existingInstance)
         {
             int count = input.ReadInt32();
-            var sortedList = new SortedList<string, Tileset>(count);
+            SortedList<string, Tileset> sortedList = new SortedList<string, Tileset>(count);
 
             for (int i = 0; i < count; i++)
             {

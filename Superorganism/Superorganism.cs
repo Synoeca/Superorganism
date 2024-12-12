@@ -59,7 +59,7 @@ public class Superorganism : Game
     protected override void LoadContent()
     {
         // Register custom content readers
-        ContentReaders.Register(Content);
+        //ContentReaders.Register(Content);
     }
 
     protected override void Update(GameTime gameTime)

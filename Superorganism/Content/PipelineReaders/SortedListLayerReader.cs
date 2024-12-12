@@ -9,7 +9,7 @@ namespace Superorganism.Content.PipelineReaders
         protected override SortedList<string, Layer> Read(ContentReader input, SortedList<string, Layer> existingInstance)
         {
             int count = input.ReadInt32();
-            var sortedList = new SortedList<string, Layer>(count);
+            SortedList<string, Layer> sortedList = new SortedList<string, Layer>(count);
 
             for (int i = 0; i < count; i++)
             {

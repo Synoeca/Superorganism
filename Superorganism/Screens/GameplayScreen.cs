@@ -39,13 +39,24 @@ namespace Superorganism.Screens
         {
             DecisionMaker.GameStartTime = DateTime.Now;
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
-            ContentReaders.Register(_content); // Register content readers
+            //ContentReaders.Register(_content); // Register content readers
             InitializeComponents();
         }
 
         private void InitializeComponents()
         {
             //_map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
+
+            string mapPath = Path.Combine(_content.RootDirectory, "Tileset/Maps/TestMapRev1.xnb");
+            if (File.Exists(mapPath))
+            {
+                Console.WriteLine($"Map file exists at: {mapPath}");
+            }
+            else
+            {
+                Console.WriteLine($"Map file not found at: {mapPath}");
+            }
+
             _map = _content.Load<Map>("Tileset/Maps/TestMapRev1");
             // Initialize camera
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);

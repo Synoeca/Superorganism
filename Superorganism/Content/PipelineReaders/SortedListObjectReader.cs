@@ -10,7 +10,7 @@ namespace Superorganism.Content.PipelineReaders
         protected override SortedList<string, Object> Read(ContentReader input, SortedList<string, Object> existingInstance)
         {
             int count = input.ReadInt32();
-            var sortedList = new SortedList<string, Object>(count);
+            SortedList<string, Object> sortedList = new SortedList<string, Object>(count);
 
             for (int i = 0; i < count; i++)
             {

@@ -692,13 +692,10 @@
 
 #begin Tileset/Maps/TestMapRev1.tmx
 /importer:TiledMapImporter
-/processor:TiledMapProcessor
+/processor:TilemapProcessor
 /build:Tileset/Maps/TestMapRev1.tmx
 
-#begin Tileset/TestMap.tmx
-/copy:Tileset/TestMap.tmx
-
-#begin Tileset/tileset64.png
+#begin Tileset/Maps/tileset64.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -708,5 +705,5 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Tileset/tileset64.png
+/build:Tileset/Maps/tileset64.png
 

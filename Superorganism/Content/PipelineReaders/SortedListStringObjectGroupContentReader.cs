@@ -9,7 +9,7 @@ namespace ContentPipeline
         protected override SortedList<string, ObjectGroup> Read(ContentReader input, SortedList<string, ObjectGroup> existingInstance)
         {
             int count = input.ReadInt32();
-            var sortedList = new SortedList<string, ObjectGroup>(count);
+            SortedList<string, ObjectGroup> sortedList = new SortedList<string, ObjectGroup>(count);
 
             for (int i = 0; i < count; i++)
             {
