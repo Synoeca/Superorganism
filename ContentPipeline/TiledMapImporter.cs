@@ -80,7 +80,8 @@ namespace ContentPipeline
                 TileWidth = int.Parse(reader.GetAttribute("tilewidth") ?? "0"),
                 TileHeight = int.Parse(reader.GetAttribute("tileheight") ?? "0"),
                 Spacing = int.Parse(reader.GetAttribute("spacing") ?? "0"),
-                Margin = int.Parse(reader.GetAttribute("margin") ?? "0")
+                Margin = int.Parse(reader.GetAttribute("margin") ?? "0"),
+                TileProperties = new Dictionary<int, Dictionary<string, string>>()  // Initialize explicitly
             };
 
             while (reader.Read())
@@ -194,7 +195,10 @@ namespace ContentPipeline
                 Name = reader.GetAttribute("name") ?? "",
                 Width = int.Parse(reader.GetAttribute("width") ?? "0"),
                 Height = int.Parse(reader.GetAttribute("height") ?? "0"),
-                Opacity = float.Parse(reader.GetAttribute("opacity") ?? "1.0")
+                Opacity = float.Parse(reader.GetAttribute("opacity") ?? "1.0"),
+                Properties = new Dictionary<string, string>(),
+                Tiles = null!,  // Will be set by LayerDataHandler
+                FlipAndRotateFlags = null!  // Will be set by LayerDataHandler
             };
 
             while (reader.Read())

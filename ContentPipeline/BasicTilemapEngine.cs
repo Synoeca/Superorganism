@@ -15,42 +15,51 @@ namespace ContentPipeline
     [ContentSerializerRuntimeType("Superorganism.Tiles.Tileset, Superorganism")]
     public class BasicTileset
     {
-        [ContentSerializerRuntimeType("Superorganism.Tiles.Tileset.TilePropertyList, Superorganism")]
-        public class BasicTilePropertyList : Dictionary<string, string> { }
-
         [ContentSerializerIgnore]
         public string Name;
+
+        [ContentSerializer(ElementName = "FirstTileId")]
         public int FirstTileId;
+
+        [ContentSerializer(ElementName = "TileWidth")]
         public int TileWidth;
+
+        [ContentSerializer(ElementName = "TileHeight")]
         public int TileHeight;
+
+        [ContentSerializer(ElementName = "Spacing")]
         public int Spacing;
+
+        [ContentSerializer(ElementName = "Margin")]
         public int Margin;
 
-        [ContentSerializer]
-        public Dictionary<int, Dictionary<string, string>> TileProperties { get; set; } = new();
+        // This is the key change - make it more explicit
+        [ContentSerializer(ElementName = "Properties", Optional = true)]
+        private Dictionary<int, Dictionary<string, string>> _tileProperties = new();
+
+        [ContentSerializerIgnore]
+        public Dictionary<int, Dictionary<string, string>> TileProperties
+        {
+            get => _tileProperties;
+            set => _tileProperties = value ?? new Dictionary<int, Dictionary<string, string>>();
+        }
 
         [ContentSerializerIgnore]
         public string Image;
 
-        public Texture2DContent Texture;
-
-        public int TexWidth;
-        public int TexHeight;
-
+        [ContentSerializer(ElementName = "Texture")]
         public Texture2DContent TileTexture { get; set; }
+
+        [ContentSerializer(ElementName = "TexWidth")]
+        public int TexWidth { get; set; }
+
+        [ContentSerializer(ElementName = "TexHeight")]
+        public int TexHeight { get; set; }
     }
 
     [ContentSerializerRuntimeType("Superorganism.Tiles.Layer, Superorganism")]
     public class BasicLayer
     {
-        public const uint FlippedHorizontallyFlag = 0x80000000;
-        public const uint FlippedVerticallyFlag = 0x40000000;
-        public const uint FlippedDiagonallyFlag = 0x20000000;
-
-        public const byte HorizontalFlipDrawFlag = 1;
-        public const byte VerticalFlipDrawFlag = 2;
-        public const byte DiagonallyFlipDrawFlag = 4;
-
         [ContentSerializer]
         public Dictionary<string, string> Properties { get; set; } = new();
 
@@ -64,14 +73,19 @@ namespace ContentPipeline
         [ContentSerializerIgnore]
         public string Name;
 
-        public int Width;
-        public int Height;
-        public float Opacity;
+        [ContentSerializer]
+        public int Width { get; set; }
+        [ContentSerializer]
+        public int Height { get; set; }
+        [ContentSerializer]
+        public float Opacity { get; set; }
+
         [ContentSerializer]
         public int[] Tiles;
         [ContentSerializer]
         public byte[] FlipAndRotateFlags;
-        [ContentSerializer]
+
+        [ContentSerializerIgnore]
         public TileInfo[] TileInfoCache;
     }
 

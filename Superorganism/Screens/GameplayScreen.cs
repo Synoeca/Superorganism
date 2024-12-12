@@ -44,7 +44,7 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            //_map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
+           //_map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
 
             string mapPath = Path.Combine(_content.RootDirectory, "Tileset/Maps/TestMapRev1.xnb");
             if (File.Exists(mapPath))

@@ -21,15 +21,15 @@ namespace ContentPipeline
             try
             {
                 // Process each tileset
-                foreach (var tilesetEntry in input.Tilesets)
+                foreach (KeyValuePair<string, BasicTileset> tilesetEntry in input.Tilesets)
                 {
                     ProcessTileset(tilesetEntry.Value, context, input.Filename);
                 }
 
                 // Process each object group's objects
-                foreach (var objectGroup in input.ObjectGroups.Values)
+                foreach (BasicObjectGroup objectGroup in input.ObjectGroups.Values)
                 {
-                    foreach (var obj in objectGroup.Objects.Values)
+                    foreach (BasicObject obj in objectGroup.Objects.Values)
                     {
                         if (!string.IsNullOrEmpty(obj.Image))
                         {
@@ -50,29 +50,49 @@ namespace ContentPipeline
 
         private void ProcessTileset(BasicTileset tileset, ContentProcessorContext context, string mapFilename)
         {
-            if (string.IsNullOrEmpty(tileset.Image)) return;
-
             try
             {
-                string texturePath = GetTexturePath(tileset.Image, mapFilename, context);
-                context.Logger.LogMessage($"Processing tileset texture: {texturePath}");
+                // Store tile properties temporarily
+                var tempProperties = tileset.TileProperties;
 
-                ExternalReference<TextureContent> textureReference = new(texturePath);
-                tileset.TileTexture = context.BuildAndLoadAsset<TextureContent, Texture2DContent>(
-                    textureReference,
-                    "TextureProcessor"
-                );
+                // Clear existing properties to avoid serialization issues
+                tileset.TileProperties = null;
 
-                if (tileset.TileTexture.Mipmaps.Count > 0)
+                // Process texture
+                if (!string.IsNullOrEmpty(tileset.Image))
                 {
-                    tileset.TexWidth = tileset.TileTexture.Mipmaps[0].Width;
-                    tileset.TexHeight = tileset.TileTexture.Mipmaps[0].Height;
+                    string texturePath = GetTexturePath(tileset.Image, mapFilename, context);
+                    context.Logger.LogMessage($"Processing tileset texture: {texturePath}");
+
+                    ExternalReference<TextureContent> textureReference = new(texturePath);
+
+                    // Process texture first
+                    var textureContent = context.BuildAndLoadAsset<TextureContent, Texture2DContent>(
+                        textureReference,
+                        "TextureProcessor"
+                    );
+
+                    // Set texture and dimensions
+                    if (textureContent?.Mipmaps.Count > 0)
+                    {
+                        tileset.TileTexture = textureContent;
+                        tileset.TexWidth = textureContent.Mipmaps[0].Width;
+                        tileset.TexHeight = textureContent.Mipmaps[0].Height;
+                    }
                 }
+
+                // Restore properties after texture processing
+                tileset.TileProperties = tempProperties ?? new Dictionary<int, Dictionary<string, string>>();
+
+                context.Logger.LogMessage($"Processed tileset {tileset.Name} successfully");
+                context.Logger.LogMessage($"TileProperties count: {tileset.TileProperties.Count}");
+                context.Logger.LogMessage($"Texture dimensions: {tileset.TexWidth}x{tileset.TexHeight}");
             }
             catch (Exception ex)
             {
-                context.Logger.LogWarning("", new ContentIdentity(),
-                    $"Failed to process tileset {tileset.Name}: {ex.Message}");
+                context.Logger.LogImportantMessage($"Error details for tileset {tileset.Name}:");
+                context.Logger.LogImportantMessage($"Image path: {tileset.Image}");
+                context.Logger.LogImportantMessage($"Exception: {ex}");
                 throw;
             }
         }

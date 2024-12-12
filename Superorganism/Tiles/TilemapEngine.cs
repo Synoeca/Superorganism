@@ -100,6 +100,7 @@ namespace Superorganism.Tiles
         public int Margin;
         public Dictionary<int, Dictionary<string, string>> TileProperties = new();
         public string Image;
+
         protected Texture2D Texture;
         protected int TexWidth;
         protected int TexHeight;

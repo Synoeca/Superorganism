@@ -17,6 +17,9 @@ namespace ContentPipeline
             string? encoding = reader.GetAttribute("encoding");
             string? compression = reader.GetAttribute("compression");
 
+            layer.Tiles = new int[layer.Width * layer.Height];
+            layer.FlipAndRotateFlags = new byte[layer.Width * layer.Height];
+
             if (encoding == "base64")
             {
                 byte[] decodedData = Convert.FromBase64String(reader.ReadElementContentAsString().Trim());

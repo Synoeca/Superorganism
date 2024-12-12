@@ -9,7 +9,7 @@ namespace ContentPipeline
     {
         public static Dictionary<string, string> ImportProperties(XmlReader reader)
         {
-            Dictionary<string, string> properties = new Dictionary<string, string>();
+            Dictionary<string, string> properties = new();
 
             using XmlReader? subtree = reader.ReadSubtree();
             while (subtree.Read())
