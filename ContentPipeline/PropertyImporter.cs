@@ -7,21 +7,16 @@ namespace ContentPipeline
 {
     public static class PropertyImporter
     {
-        public static SortedList<string, string> ImportProperties(XmlReader reader)
+        public static Dictionary<string, string> ImportProperties(XmlReader reader)
         {
-            SortedList<string, string> properties = new SortedList<string, string>();
+            Dictionary<string, string> properties = new Dictionary<string, string>();
 
             using XmlReader? subtree = reader.ReadSubtree();
             while (subtree.Read())
             {
                 if (subtree.NodeType == XmlNodeType.Element && subtree.Name == "property")
                 {
-                    string? name = subtree.GetAttribute("name");
-                    if (name == null)
-                    {
-                        throw new ContentLoadException("Property missing name attribute");
-                    }
-
+                    string name = subtree.GetAttribute("name") ?? throw new ContentLoadException("Property missing name attribute");
                     string value = subtree.GetAttribute("value") ?? string.Empty;
                     properties[name] = value;
                 }

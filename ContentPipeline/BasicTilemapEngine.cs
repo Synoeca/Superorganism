@@ -25,15 +25,18 @@ namespace ContentPipeline
         public int TileHeight;
         public int Spacing;
         public int Margin;
+
         [ContentSerializer]
-        public Dictionary<int, BasicTilePropertyList> TileProperties = new();
+        public Dictionary<int, Dictionary<string, string>> TileProperties { get; set; } = new();
 
         [ContentSerializerIgnore]
         public string Image;
 
         public Texture2DContent Texture;
+
         public int TexWidth;
         public int TexHeight;
+
         public Texture2DContent TileTexture { get; set; }
     }
 
@@ -48,10 +51,13 @@ namespace ContentPipeline
         public const byte VerticalFlipDrawFlag = 2;
         public const byte DiagonallyFlipDrawFlag = 4;
 
-        public SortedList<string, string> Properties = new();
+        [ContentSerializer]
+        public Dictionary<string, string> Properties { get; set; } = new();
+
+        [ContentSerializerRuntimeType("Superorganism.Tiles.Layer+TileInfo, Superorganism")]
         public struct TileInfo
         {
-            public Texture2D Texture;
+            public Texture2DContent Texture;
             public Rectangle Rectangle;
         }
 
@@ -61,8 +67,11 @@ namespace ContentPipeline
         public int Width;
         public int Height;
         public float Opacity;
+        [ContentSerializer]
         public int[] Tiles;
+        [ContentSerializer]
         public byte[] FlipAndRotateFlags;
+        [ContentSerializer]
         public TileInfo[] TileInfoCache;
     }
 
@@ -70,9 +79,9 @@ namespace ContentPipeline
     public class BasicObjectGroup
     {
         [ContentSerializer]
-        public SortedList<string, BasicObject> Objects = new();
+        public Dictionary<string, BasicObject> Objects { get; set; } = new();
         [ContentSerializer]
-        public SortedList<string, string> Properties = new();
+        public Dictionary<string, string> Properties { get; set; } = new();
 
         [ContentSerializerIgnore]
         public string Name;
@@ -88,7 +97,7 @@ namespace ContentPipeline
     public class BasicObject
     {
         [ContentSerializer]
-        public SortedList<string, string> Properties = new();
+        public Dictionary<string, string> Properties = new();
 
         [ContentSerializerIgnore]
         public string Name;
@@ -112,17 +121,27 @@ namespace ContentPipeline
     public class BasicMap
     {
         [ContentSerializer]
-        public SortedList<string, BasicTileset> Tilesets = new();
-        [ContentSerializer]
-        public SortedList<string, BasicLayer> Layers = new();
-        [ContentSerializer]
-        public SortedList<string, BasicObjectGroup> ObjectGroups = new();
-        [ContentSerializer]
-        public SortedList<string, string> Properties = new();
+        public Dictionary<string, BasicTileset> Tilesets { get; set; } = new();
 
-        public int Width; 
+        [ContentSerializer]
+        public Dictionary<string, BasicLayer> Layers { get; set; } = new();
+
+        [ContentSerializer]
+        public Dictionary<string, BasicObjectGroup> ObjectGroups { get; set; } = new();
+
+        [ContentSerializer]
+        public Dictionary<string, string> Properties { get; set; } = new();
+
+        [ContentSerializer]
+        public int Width;
+
+        [ContentSerializer]
         public int Height;
+
+        [ContentSerializer]
         public int TileWidth;
+
+        [ContentSerializer]
         public int TileHeight;
 
         [ContentSerializerIgnore]

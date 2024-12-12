@@ -103,15 +103,15 @@ namespace ContentPipeline
                                     if (tileReader.NodeType == XmlNodeType.Element &&
                                         tileReader.Name == "properties")
                                     {
-                                        SortedList<string, string> properties = PropertyImporter.ImportProperties(tileReader);
-                                        if (!tileset.TileProperties.TryGetValue(id, out BasicTileset.BasicTilePropertyList? tilePropertyList))
+                                        Dictionary<string, string> properties = PropertyImporter.ImportProperties(tileReader);
+                                        if (!tileset.TileProperties.TryGetValue(id, out Dictionary<string, string> tilePropertyDict))
                                         {
-                                            tilePropertyList = new BasicTilePropertyList();
-                                            tileset.TileProperties[id] = tilePropertyList;
+                                            tilePropertyDict = new Dictionary<string, string>();
+                                            tileset.TileProperties[id] = tilePropertyDict;
                                         }
                                         foreach (KeyValuePair<string, string> kvp in properties)
                                         {
-                                            tilePropertyList[kvp.Key] = kvp.Value;
+                                            tilePropertyDict[kvp.Key] = kvp.Value;
                                         }
                                     }
                                 }
@@ -217,7 +217,7 @@ namespace ContentPipeline
             map.Layers.Add(layer.Name, layer);
         }
 
-        private void ImportProperties(XmlReader reader, SortedList<string, string> properties)
+        private void ImportProperties(XmlReader reader, Dictionary<string, string> properties)
         {
             using XmlReader? subtree = reader.ReadSubtree();
             while (subtree.Read())
