@@ -10,7 +10,8 @@
 
 #-------------------------------- References --------------------------------#
 
-/reference:..\..\Pipeline\bin\Debug\net8.0-windows7.0\Pipeline.dll
+/reference:..\bin\Debug\net8.0-windows7.0\Superorganism.dll
+/reference:..\..\ContentPipeline\bin\Debug\net8.0-windows7.0\ContentPipeline.dll
 
 #---------------------------------- Content ---------------------------------#
 
@@ -690,7 +691,9 @@
 /build:tiles2.png
 
 #begin Tileset/Maps/TestMapRev1.tmx
-/copy:Tileset/Maps/TestMapRev1.tmx
+/importer:TiledMapImporter
+/processor:TiledMapProcessor
+/build:Tileset/Maps/TestMapRev1.tmx
 
 #begin Tileset/TestMap.tmx
 /copy:Tileset/TestMap.tmx

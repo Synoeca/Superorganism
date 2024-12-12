@@ -10,6 +10,7 @@ using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
+using Superorganism.Content.PipelineReaders; // Ensure this namespace is included
 #pragma warning disable CA1416
 
 namespace Superorganism.Screens
@@ -38,13 +39,14 @@ namespace Superorganism.Screens
         {
             DecisionMaker.GameStartTime = DateTime.Now;
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
+            ContentReaders.Register(_content); // Register content readers
             InitializeComponents();
         }
 
         private void InitializeComponents()
         {
-            _map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
-            //_map = _content.Load<Map>("Tileset/Maps/TestMapRev1");
+            //_map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
+            _map = _content.Load<Map>("Tileset/Maps/TestMapRev1");
             // Initialize camera
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
@@ -166,7 +168,7 @@ namespace Superorganism.Screens
 
         private void UpdatePauseAlpha(bool coveredByOtherScreen)
         {
-            _pauseAlpha = coveredByOtherScreen ? 
+            _pauseAlpha = coveredByOtherScreen ?
                 Math.Min(_pauseAlpha + 0.05f, 1.0f) : Math.Max(_pauseAlpha - 0.05f, 0f);
         }
 

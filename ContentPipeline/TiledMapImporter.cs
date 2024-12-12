@@ -7,11 +7,11 @@ using System.Xml;
 namespace ContentPipeline
 {
     [ContentImporter(".tmx", DefaultProcessor = "TiledMapProcessor", DisplayName = "Tiled Map Importer - MonoGame.Extended")]
-    public class TiledMapImporter : ContentImporter<TiledMapContent>
+    public class TiledMapImporter : ContentImporter<BasicMap>
     {
-        public override TiledMapContent Import(string filename, ContentImporterContext context)
+        public override BasicMap Import(string filename, ContentImporterContext context)
         {
-            TiledMapContent map = new() { Filename = filename };
+            BasicMap map = new() { Filename = filename };
 
             XmlReaderSettings settings = new()
             {
@@ -64,7 +64,7 @@ namespace ContentPipeline
             return map;
         }
 
-        private void ImportMapAttributes(XmlReader reader, TiledMapContent map)
+        private void ImportMapAttributes(XmlReader reader, BasicMap map)
         {
             map.Width = int.Parse(reader.GetAttribute("width") ?? "0");
             map.Height = int.Parse(reader.GetAttribute("height") ?? "0");
@@ -72,7 +72,7 @@ namespace ContentPipeline
             map.TileHeight = int.Parse(reader.GetAttribute("tileheight") ?? "0");
         }
 
-        private void ImportTileset(XmlReader reader, TiledMapContent map)
+        private void ImportTileset(XmlReader reader, BasicMap map)
         {
             TilesetContent? tileset = new TilesetContent
             {
@@ -105,10 +105,14 @@ namespace ContentPipeline
                                         tileReader.Name == "properties")
                                     {
                                         var properties = PropertyImporter.ImportProperties(tileReader);
+                                        if (!tileset.TileProperties.TryGetValue(id, out var tilePropertyList))
+                                        {
+                                            tilePropertyList = new TilePropertyListContent();
+                                            tileset.TileProperties[id] = tilePropertyList;
+                                        }
                                         foreach (var kvp in properties)
                                         {
-                                            string compositeKey = $"{id}:{kvp.Key}";
-                                            tileset.TileProperties[compositeKey] = kvp.Value;
+                                            tilePropertyList[kvp.Key] = kvp.Value;
                                         }
                                     }
                                 }
@@ -118,10 +122,10 @@ namespace ContentPipeline
                 }
             }
 
-            map.Tilesets.Add(tileset);
+            map.Tilesets.Add(tileset.Name, tileset);
         }
 
-        private void ImportObjectGroup(XmlReader reader, TiledMapContent map)
+        private void ImportObjectGroup(XmlReader reader, BasicMap map)
         {
             ObjectGroupContent? objectGroup = new ObjectGroupContent
             {
@@ -145,7 +149,7 @@ namespace ContentPipeline
                 }
             }
 
-            map.ObjectGroups.Add(objectGroup);
+            map.ObjectGroups.Add(objectGroup.Name, objectGroup);
         }
 
         private void ImportObject(XmlReader reader, ObjectGroupContent objectGroup)
@@ -181,10 +185,10 @@ namespace ContentPipeline
                 }
             }
 
-            objectGroup.Objects.Add(obj);
+            objectGroup.Objects.Add(obj.Name, obj);
         }
 
-        private void ImportLayer(XmlReader reader, TiledMapContent map)
+        private void ImportLayer(XmlReader reader, BasicMap map)
         {
             LayerContent? layer = new LayerContent
             {
@@ -211,7 +215,7 @@ namespace ContentPipeline
                 }
             }
 
-            map.Layers.Add(layer);
+            map.Layers.Add(layer.Name, layer);
         }
 
         private void ImportProperties(XmlReader reader, Dictionary<string, string> properties)

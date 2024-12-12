@@ -1,8 +1,9 @@
-﻿using Microsoft.Xna.Framework.Content;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.Tiles;
 
-namespace ContentPipeline
+namespace Superorganism.Content.PipelineReaders
 {
     public class TilesetReader : ContentTypeReader<Tileset>
     {
@@ -15,7 +16,8 @@ namespace ContentPipeline
             int spacing = input.ReadInt32();
             int margin = input.ReadInt32();
             string image = input.ReadString();
-            Dictionary<string, string> tileProperties = input.ReadObject<Dictionary<string, string>>();
+            Dictionary<int, Tileset.TilePropertyList> tileProperties =
+                input.ReadObject<Dictionary<int, Tileset.TilePropertyList>>();
 
             Texture2D texture = input.ReadExternalReference<Texture2D>();
 

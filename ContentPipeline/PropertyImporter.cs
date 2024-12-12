@@ -7,9 +7,9 @@ namespace ContentPipeline
 {
     public static class PropertyImporter
     {
-        public static Dictionary<string, string> ImportProperties(XmlReader reader)
+        public static SortedList<string, string> ImportProperties(XmlReader reader)
         {
-            Dictionary<string, string> properties = new Dictionary<string, string>();
+            SortedList<string, string> properties = new SortedList<string, string>();
 
             using XmlReader? subtree = reader.ReadSubtree();
             while (subtree.Read())

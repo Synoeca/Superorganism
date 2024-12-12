@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Content;
 using Superorganism.Tiles;
 
-namespace ContentPipeline
+namespace Superorganism.Content.PipelineReaders
 {
     public class MapReader : ContentTypeReader<Map>
     {

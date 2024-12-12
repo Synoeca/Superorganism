@@ -1,15 +1,16 @@
 ﻿using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
+using System.IO;
 
 namespace ContentPipeline
 {
     [ContentProcessor(DisplayName = "Tiled Map Processor")]
-    public class TiledMapProcessor : ContentProcessor<TiledMapContent, TiledMapContent>
+    public class TiledMapProcessor : ContentProcessor<BasicMap, BasicMap>
     {
-        public override TiledMapContent Process(TiledMapContent input, ContentProcessorContext context)
+        public override BasicMap Process(BasicMap input, ContentProcessorContext context)
         {
             // Process tilesets and their textures
-            foreach (TilesetContent? tileset in input.Tilesets)
+            foreach (var tileset in input.Tilesets.Values)
             {
                 if (!string.IsNullOrEmpty(tileset.ImageSource))
                 {
@@ -27,9 +28,9 @@ namespace ContentPipeline
             }
 
             // Process object textures
-            foreach (ObjectGroupContent? objectGroup in input.ObjectGroups)
+            foreach (var objectGroup in input.ObjectGroups.Values)
             {
-                foreach (ObjectContent? obj in objectGroup.Objects)
+                foreach (var obj in objectGroup.Objects.Values)
                 {
                     if (!string.IsNullOrEmpty(obj.ImageSource))
                     {

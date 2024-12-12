@@ -1,9 +1,9 @@
-﻿using Microsoft.Xna.Framework.Content;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Superorganism.Tiles;
 using Object = Superorganism.Tiles.Object;
 
-namespace ContentPipeline
+namespace Superorganism.Content.PipelineReaders
 {
     public class ObjectReader : ContentTypeReader<Object>
     {
@@ -14,7 +14,7 @@ namespace ContentPipeline
             int height = input.ReadInt32();
             int x = input.ReadInt32();
             int y = input.ReadInt32();
-            Dictionary<string, string> properties = input.ReadObject<Dictionary<string, string>>();
+            SortedList<string, string> properties = input.ReadObject<SortedList<string, string>>();
             Texture2D texture = input.ReadExternalReference<Texture2D>();
 
             return new Object

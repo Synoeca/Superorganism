@@ -1,7 +1,8 @@
-﻿using Microsoft.Xna.Framework.Content;
-using System;
+﻿using System;
+using ContentPipeline;
+using Microsoft.Xna.Framework.Content;
 
-namespace ContentPipeline
+namespace Superorganism.Content.PipelineReaders
 {
     public static class ContentReaders
     {
@@ -12,11 +13,9 @@ namespace ContentPipeline
 
         public static void Register(ContentManager contentManager)
         {
-            AddTypeReader(typeof(MapReader));
-            AddTypeReader(typeof(TilesetReader));
-            AddTypeReader(typeof(LayerReader));
-            AddTypeReader(typeof(ObjectGroupReader));
-            AddTypeReader(typeof(ObjectReader));
+            AddTypeReader(typeof(SortedListStringTilesetContentReader));
+            AddTypeReader(typeof(SortedListStringLayerContentReader));
+            AddTypeReader(typeof(SortedListStringObjectGroupContentReader));
         }
 
         private static void AddTypeReader(Type readerType)

@@ -1,8 +1,9 @@
-﻿using Microsoft.Xna.Framework.Content;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework.Content;
 using Superorganism.Tiles;
 using Object = Superorganism.Tiles.Object;
 
-namespace ContentPipeline
+namespace Superorganism.Content.PipelineReaders
 {
     public class ObjectGroupReader : ContentTypeReader<ObjectGroup>
     {
@@ -14,8 +15,8 @@ namespace ContentPipeline
             int x = input.ReadInt32();
             int y = input.ReadInt32();
             float opacity = input.ReadSingle();
-            Dictionary<string, string> properties = input.ReadObject<Dictionary<string, string>>();
-            List<Object> objects = input.ReadObject<List<Object>>();
+            SortedList<string, string> properties = input.ReadObject<SortedList<string, string>>();
+            SortedList<string, Object> objects = input.ReadObject<SortedList<string, Object>>();
 
             return new ObjectGroup
             {

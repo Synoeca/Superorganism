@@ -2,11 +2,14 @@
 using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
 using MonoGame.Extended.Content.Pipeline;
+using System.Collections.Generic;
 
 namespace ContentPipeline
 {
+
+
     [ContentSerializerRuntimeType("Superorganism.Tiles.Map, Superorganism")]
-    public class TiledMapContent
+    public class BasicMap
     {
         public int Width { get; set; }
         public int Height { get; set; }
@@ -14,9 +17,9 @@ namespace ContentPipeline
         public int TileHeight { get; set; }
 
         public Dictionary<string, string> Properties { get; set; } = new();
-        public List<TilesetContent> Tilesets { get; set; } = new();
-        public List<LayerContent> Layers { get; set; } = new();
-        public List<ObjectGroupContent> ObjectGroups { get; set; } = new();
+        public Dictionary<string, TilesetContent> Tilesets { get; set; } = new();
+        public Dictionary<string, LayerContent> Layers { get; set; } = new();
+        public Dictionary<string, ObjectGroupContent> ObjectGroups { get; set; } = new();
 
         [ContentSerializerIgnore]
         public string Filename { get; set; }
@@ -32,7 +35,7 @@ namespace ContentPipeline
         public int Spacing { get; set; }
         public int Margin { get; set; }
 
-        public Dictionary<string, string> TileProperties { get; set; } = new();
+        public Dictionary<int, TilePropertyListContent> TileProperties { get; set; } = new();
         public Texture2DContent Texture { get; set; }
 
         [ContentSerializerIgnore]
@@ -46,7 +49,7 @@ namespace ContentPipeline
         public int Width { get; set; }
         public int Height { get; set; }
         public float Opacity { get; set; }
-        public Dictionary<string, string> Properties { get; set; } = new();
+        public SortedList<string, string> Properties { get; set; } = new();
         public int[] TileIndices { get; set; }
         public byte[] FlipAndRotateFlags { get; set; }
     }
@@ -55,8 +58,8 @@ namespace ContentPipeline
     public class ObjectGroupContent
     {
         public string Name { get; set; }
-        public List<ObjectContent> Objects { get; set; } = new();
-        public Dictionary<string, string> Properties { get; set; } = new();
+        public Dictionary<string, ObjectContent> Objects { get; set; } = new();
+        public SortedList<string, string> Properties { get; set; } = new();
         public int Width { get; set; }
         public int Height { get; set; }
         public int X { get; set; }
@@ -71,10 +74,15 @@ namespace ContentPipeline
         public int Height { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
-        public Dictionary<string, string> Properties { get; set; } = new();
+        public SortedList<string, string> Properties { get; set; } = new();
         public Texture2DContent Texture { get; set; }
 
         [ContentSerializerIgnore]
         public string ImageSource { get; set; }
+    }
+
+    [ContentSerializerRuntimeType("Superorganism.Tiles.Tileset+TilePropertyList, Superorganism")]
+    public class TilePropertyListContent : Dictionary<string, string>
+    {
     }
 }
