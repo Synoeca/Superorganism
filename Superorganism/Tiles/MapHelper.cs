@@ -13,11 +13,11 @@ namespace Superorganism.Tiles
         public const int MapWidth = 200; // Width in tiles
         public const int MapHeight = 50; // Height in tiles
 
-        private static Dictionary<int, int> _groundLevels = new();
+        private static readonly Dictionary<int, int> GroundLevels = new();
 
         public static void AnalyzeMapGround(Map map)
         {
-            _groundLevels.Clear();
+            GroundLevels.Clear();
 
             // Scan each column from top to bottom to find first ground tile
             for (int x = 0; x < MapWidth; x++)
@@ -29,7 +29,7 @@ namespace Superorganism.Tiles
                     {
                         if (layer.GetTile(x, y) != 0)
                         {
-                            _groundLevels[x] = y;
+                            GroundLevels[x] = y;
                             foundGround = true;
                             break;
                         }
@@ -68,7 +68,7 @@ namespace Superorganism.Tiles
             int tileX = (int)(worldX / TileSize);
             tileX = Math.Clamp(tileX, 0, MapWidth - 1);
 
-            if (_groundLevels.TryGetValue(tileX, out int groundY))
+            if (GroundLevels.TryGetValue(tileX, out int groundY))
             {
                 return groundY * TileSize;
             }
@@ -131,14 +131,14 @@ namespace Superorganism.Tiles
                     {
                         if (layer.GetTile(x, y) != 0) // Non-empty tile
                         {
-                            Rectangle tileRect = new Rectangle(
+                            Rectangle tileRect = new(
                                 x * TileSize,
                                 y * TileSize,
                                 TileSize,
                                 TileSize
                             );
 
-                            Rectangle entityRect = new Rectangle(
+                            Rectangle entityRect = new(
                                 (int)(position.X - size.X / 2),
                                 (int)(position.Y - size.Y / 2),
                                 (int)size.X,

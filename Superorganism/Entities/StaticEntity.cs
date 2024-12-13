@@ -81,6 +81,16 @@ namespace Superorganism.Entities
             }
 
             Position = newPosition;
+            if (CollisionBounding is BoundingCircle bc)
+            {
+                bc.Center = new Vector2(Position.X + (bc.Radius / 2), Position.Y + (bc.Radius / 2));
+                CollisionBounding = bc;
+            }
+            else if (CollisionBounding is BoundingRectangle br)
+            {
+                br = new BoundingRectangle(Position, br.Width, br.Height);
+                CollisionBounding = br;
+            }
         }
     }
 }

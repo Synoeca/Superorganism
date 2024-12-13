@@ -10,6 +10,8 @@
 
 #-------------------------------- References --------------------------------#
 
+/reference:..\bin\Debug\net8.0-windows7.0\Superorganism.dll
+/reference:..\..\ContentPipeline\bin\Debug\net8.0-windows7.0\ContentPipeline.dll
 
 #---------------------------------- Content ---------------------------------#
 
@@ -628,6 +630,36 @@
 /processorParam:Quality=Best
 /build:Pickup_Coin4.wav
 
+#begin Saves/Save1.sav
+/importer:GameStateImporter
+/processor:GameStateProcessor
+/build:Saves/Save1.sav
+
+#begin Saves/Save2.sav
+/importer:GameStateImporter
+/processor:GameStateProcessor
+/build:Saves/Save2.sav
+
+#begin Saves/Save3.sav
+/importer:GameStateImporter
+/processor:GameStateProcessor
+/build:Saves/Save3.sav
+
+#begin Saves/Save4.sav
+/importer:GameStateImporter
+/processor:GameStateProcessor
+/build:Saves/Save4.sav
+
+#begin Saves/Save5.sav
+/importer:GameStateImporter
+/processor:GameStateProcessor
+/build:Saves/Save5.sav
+
+#begin Saves/Save6.sav
+/importer:GameStateImporter
+/processor:GameStateProcessor
+/build:Saves/Save6.sav
+
 #begin smoke.bmp
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -688,19 +720,10 @@
 /processorParam:TextureFormat=Color
 /build:tiles2.png
 
-#begin Tileset/MapTest.tmx
-/copy:Tileset/MapTest.tmx
+#begin Tileset/Maps/TestMapRev1.tmx
+/copy:Tileset/Maps/TestMapRev1.tmx
 
-#begin Tileset/MapTestRev1.tmx
-/copy:Tileset/MapTestRev1.tmx
-
-#begin Tileset/TestMap.tmx
-/copy:Tileset/TestMap.tmx
-
-#begin Tileset/TestMapRev1.tmx
-/copy:Tileset/TestMapRev1.tmx
-
-#begin Tileset/tileset64.png
+#begin Tileset/Maps/tileset64.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -710,5 +733,5 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Tileset/tileset64.png
+/build:Tileset/Maps/tileset64.png
 

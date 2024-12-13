@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Superorganism.Core.Camera;
 using Superorganism.Core.Managers;
 using Superorganism.Screens;
 
@@ -53,6 +54,11 @@ namespace Superorganism.ScreenManagement
         public GameAudioManager GameAudioManager { get; set; }
 
         /// <summary>
+        /// 2D Camera for this game
+        /// </summary>
+        public Camera2D GameplayScreenCamera2D { get; set; }
+
+        /// <summary>
         /// Constructs a new ScreenManager
         /// </summary>
         /// <param name="game">The game this ScreenManager belongs to</param>
@@ -61,12 +67,21 @@ namespace Superorganism.ScreenManagement
             _content = new ContentManager(game.Services, "Content");
         }
 
+        public void SetDefaultGraphicsSettings()
+        {
+            GraphicsDeviceManager.IsFullScreen = true;
+            GraphicsDeviceManager.HardwareModeSwitch = false;
+            GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Width;
+            GraphicsDeviceManager.PreferredBackBufferHeight = DisplayMode.Height;
+        }
+
         /// <summary>
         /// Initializes the ScreenManager
         /// </summary>
         public override void Initialize()
         {
             base.Initialize();
+
             _isInitialized = true;
         }
 
@@ -163,10 +178,10 @@ namespace Superorganism.ScreenManagement
             screen.ScreenManager = this;
             screen.IsExiting = false;
 
-            GraphicsDeviceManager.IsFullScreen = true;
-            GraphicsDeviceManager.HardwareModeSwitch = false;
-            GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Width;
-            GraphicsDeviceManager.PreferredBackBufferWidth = DisplayMode.Height;
+            if (screen is OptionsMenuScreen oms)
+            {
+                oms.ScreenManager = this;
+            }
 
             // If we have a graphics device, tell the screen to load content
             if (_isInitialized) screen.Activate();
@@ -203,14 +218,19 @@ namespace Superorganism.ScreenManagement
 
             _screens.Remove(screen);
             _tmpScreensList.Remove(screen);
-            if (screen is PauseMenuScreen psm)
+            switch (screen)
             {
-                foreach (GameScreen gs in _screens)
+                case PauseMenuScreen:
                 {
-                    if (gs is GameplayScreen gps)
+                    foreach (GameScreen gs in _screens)
                     {
-                        gps.GameStateManager.ResumeMusic();
+                        if (gs is GameplayScreen gps)
+                        {
+                            gps.GameStateManager.ResumeMusic();
+                        }
                     }
+
+                    break;
                 }
             }
         }

@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.AI;
 using Superorganism.Collisions;
+using Superorganism.Core.SaveLoadSystem;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Particle;
@@ -35,13 +36,33 @@ public class EntityManager
     private double _invincibleTimer;
     private bool _blinkState;
 
-    public Vector2 PlayerPosition => _ant.Position;
-    public int PlayerHealth => _ant.HitPoints;
+    public Vector2 PlayerPosition
+    {
+        get => _ant.Position;
+        set => _ant.Position = value;
+    }
+
+    public int PlayerHealth
+    {
+        get => _ant.HitPoints;
+        set => _ant.HitPoints = value;
+    }
+
     public int PlayerMaxHealth => _ant.MaxHitPoint;
     public int CropsCount => _crops.Length;
     public bool IsPlayerInvincible { get; private set; }
-    public Vector2 EnemyPosition => _antEnemy.Position;
-    public Strategy EnemyStrategy => _antEnemy.Strategy;
+    public Vector2 EnemyPosition
+    {
+        get => _antEnemy.Position;
+        set => _antEnemy.Position = value;
+    }
+
+    public Strategy EnemyStrategy
+    {
+        get => _antEnemy.Strategy;
+        set => _antEnemy.Strategy = value;
+    }
+
     public ICollisionBounding EnemyCollisionBounding => _antEnemy.CollisionBounding;
     public List<(Strategy Strategy, double StartTime, double LastActionTime)> EnemyStrategyHistory
         => _antEnemy.StrategyHistory;
@@ -77,17 +98,16 @@ public class EntityManager
 
     private void InitializeCropsAndFlies(GraphicsDevice graphicsDevice)
     {
-        _crops = new Crop[12];
+        _crops = new Crop[30];
         for (int i = 0; i < _crops.Length; i++)
         {
             _crops[i] = new Crop();
-            Vector2 position = MapHelper.TileToWorld(10 + 4*i, 19);
+            Vector2 position = MapHelper.TileToWorld(10 + 8*i, 19);
             _crops[i].Position = position;  // Set position after creation
-            //_crops[i].CollisionBounding = new BoundingCircle(position, 80);
             DecisionMaker.Entities.Add(_crops[i]);
         }
 
-        _flies = new Fly[20];
+        _flies = new Fly[100];
         Random rand = new();
         for (int i = 0; i < _flies.Length; i++)
         {
@@ -96,7 +116,7 @@ public class EntityManager
             // Spread flies across a wider X range (50 to 100 tiles)
             int spreadX = 50 + rand.Next(50);
             // Vary Y position between tiles 10 and 20
-            int spreadY = 10 + rand.Next(11);
+            int spreadY = 5 + rand.Next(9);
 
             Vector2 position = MapHelper.TileToWorld(spreadX, spreadY);
 
@@ -259,8 +279,7 @@ public class EntityManager
         // Draw the player ant
         _ant.Draw(gameTime, spriteBatch);
 
-        // Draw enemy ant with slight transparency
-        _antEnemy.Color = Color.White * EnemyAlpha;
+        // Draw enemy ant
         _antEnemy.Draw(gameTime, spriteBatch);
     }
 

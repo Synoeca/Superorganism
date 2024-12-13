@@ -1,3 +1,10 @@
-﻿
-using Superorganism.Superorganism game = new();
-game.Run();
+﻿namespace Superorganism;
+
+internal class Program
+{
+    private static void Main()
+    {
+        using Superorganism game = new();
+        game.Run();
+    }
+}
