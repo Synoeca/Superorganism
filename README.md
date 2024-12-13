@@ -1,6 +1,7 @@
-<img src="https://github.com/user-attachments/assets/c4e7bb92-4157-4906-b7e4-e0d3068f1463" width="500">
+![image](https://github.com/user-attachments/assets/2e7f44e9-1fe8-4b58-94c9-428abd40ac85)
+![image](https://github.com/user-attachments/assets/9a68d581-fec5-4046-af3a-26cfb5b2e59e)
+![image](https://github.com/user-attachments/assets/8ead6a5a-d68a-4d6c-9f17-b3d378a5465d)
 
-![ezgif-1-7b41c8ec53](https://github.com/user-attachments/assets/1ed7b7dc-bc0f-45ca-83bf-16d42e7b884b)
 
 
 ### How to Play:
