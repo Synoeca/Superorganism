@@ -126,13 +126,13 @@ public class EntityManager
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        _antEnemies = new AntEnemy[5]; // Create 5 ant enemies
+        _antEnemies = new AntEnemy[10]; // Create 5 ant enemies
         Random rand = new();
         for (int i = 0; i < _antEnemies.Length; i++)
         {
             _antEnemies[i] = new AntEnemy();
             // Spread enemies across different X positions and higher Y positions
-            int enemyX = 60 + rand.Next(40); // Spread between tile 60-100
+            int enemyX = 2 + rand.Next(50); // Spread between tile 60-100
             int enemyY = 5 + rand.Next(8);   // Spread between tile 5-12
             _antEnemies[i].InitializeAtTile(enemyX, enemyY);
         }
@@ -257,8 +257,6 @@ public class EntityManager
             antEnemy.Update(gameTime);
         }
 
-        
-
         foreach (Crop crop in _crops.Where(c => !c.Collected))
         {
             crop.Update(gameTime);
@@ -357,7 +355,7 @@ public class EntityManager
         // Draw all enemy ants
         foreach (AntEnemy enemy in _antEnemies)
         {
-            enemy.Color = Color.White * EnemyAlpha;
+            enemy.Color = Color.White;
             enemy.Draw(gameTime, spriteBatch);
         }
     }
