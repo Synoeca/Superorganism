@@ -18,7 +18,7 @@ namespace Superorganism.Screens
 
         private int _currentResolutionIndex;
 
-        public static float BackgroundMusicVolume { get; private set; }
+        public static float BackgroundMusicVolume { get; private set; } = 0.05f;
         public static float SoundEffectVolume { get; private set; } = 0.5f;
 
         // Available resolutions

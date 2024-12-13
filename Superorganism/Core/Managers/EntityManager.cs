@@ -36,13 +36,33 @@ public class EntityManager
     private double _invincibleTimer;
     private bool _blinkState;
 
-    public Vector2 PlayerPosition => _ant.Position;
-    public int PlayerHealth => _ant.HitPoints;
+    public Vector2 PlayerPosition
+    {
+        get => _ant.Position;
+        set => _ant.Position = value;
+    }
+
+    public int PlayerHealth
+    {
+        get => _ant.HitPoints;
+        set => _ant.HitPoints = value;
+    }
+
     public int PlayerMaxHealth => _ant.MaxHitPoint;
     public int CropsCount => _crops.Length;
     public bool IsPlayerInvincible { get; private set; }
-    public Vector2 EnemyPosition => _antEnemy.Position;
-    public Strategy EnemyStrategy => _antEnemy.Strategy;
+    public Vector2 EnemyPosition
+    {
+        get => _antEnemy.Position;
+        set => _antEnemy.Position = value;
+    }
+
+    public Strategy EnemyStrategy
+    {
+        get => _antEnemy.Strategy;
+        set => _antEnemy.Strategy = value;
+    }
+
     public ICollisionBounding EnemyCollisionBounding => _antEnemy.CollisionBounding;
     public List<(Strategy Strategy, double StartTime, double LastActionTime)> EnemyStrategyHistory
         => _antEnemy.StrategyHistory;
@@ -279,70 +299,5 @@ public class EntityManager
     public void Unload()
     {
         _game.Components.Remove(_explosions);
-    }
-
-    public void SaveGameState(string saveName)
-    {
-        GameSaveData saveData = new()
-        {
-            PlayerPosition = _ant.Position,
-            PlayerHealth = _ant.HitPoints,
-            EnemyPosition = _antEnemy.Position,
-            CurrentStrategy = _antEnemy.Strategy.ToString(),
-            CurrentMapName = _map.Properties.GetValueOrDefault("name", "unknown"),
-
-            // Save all crops
-            Crops = _crops.Select(c => new CropData
-            {
-                Position = c.Position,
-                Collected = c.Collected
-            }).ToList(),
-
-            // Save all flies
-            Flies = _flies.Select(f => new FlyData
-            {
-                Position = f.Position,
-                Destroyed = f.Destroyed,
-                Direction = f.Direction
-            }).ToList()
-        };
-
-        SaveSystem.SaveGame(saveData, saveName);
-    }
-
-    public void LoadGameState(string saveName)
-    {
-        GameSaveData saveData = SaveSystem.LoadGame(saveName);
-        if (saveData == null) return;
-
-        // Restore player state
-        _ant.Position = saveData.PlayerPosition;
-        _ant.HitPoints = saveData.PlayerHealth;
-
-        // Restore enemy state
-        _antEnemy.Position = saveData.EnemyPosition;
-        if (Enum.TryParse<Strategy>(saveData.CurrentStrategy, out Strategy strategy))
-        {
-            _antEnemy.Strategy = strategy;
-        }
-
-        // Restore crops
-        for (int i = 0; i < Math.Min(_crops.Length, saveData.Crops.Count); i++)
-        {
-            _crops[i].Position = saveData.Crops[i].Position;
-            _crops[i].Collected = saveData.Crops[i].Collected;
-        }
-
-        // Restore flies
-        for (int i = 0; i < Math.Min(_flies.Length, saveData.Flies.Count); i++)
-        {
-            _flies[i].Position = saveData.Flies[i].Position;
-            _flies[i].Destroyed = saveData.Flies[i].Destroyed;
-            _flies[i].Direction = saveData.Flies[i].Direction;
-        }
-
-        // Reset entity states
-        ResetEntityColors();
-        IsPlayerInvincible = false;
     }
 }

@@ -933,7 +933,7 @@ namespace Superorganism.Tiles
 
             foreach (Tileset tileset in result.Tilesets.Values)
             {
-                string relativePath = ContentPaths.GetTilesetPath(Path.GetFileNameWithoutExtension(tileset.Image));
+                string relativePath = ContentPaths.GetMapPath(Path.GetFileNameWithoutExtension(tileset.Image));
                 tileset.TileTexture = content.Load<Texture2D>(relativePath);
             }
 

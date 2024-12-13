@@ -8,16 +8,19 @@ namespace Superorganism.Screens
         public MainMenuScreen() : base("")
         {
             MenuEntry playGameMenuEntry = new("Play Game");
+            MenuEntry loadMenuEntry = new("Load Game");
             MenuEntry instructionsMenuEntry = new("Instructions");
             MenuEntry optionsMenuEntry = new("Options");
             MenuEntry exitMenuEntry = new("Exit");
 
             playGameMenuEntry.Selected += PlayGameMenuEntrySelected;
+            loadMenuEntry.Selected += LoadMenuEntrySelected;
             instructionsMenuEntry.Selected += InstructionsMenuEntrySelected;
             optionsMenuEntry.Selected += OptionsMenuEntrySelected;
             exitMenuEntry.Selected += OnCancel;
 
             MenuEntries.Add(playGameMenuEntry);
+            MenuEntries.Add(loadMenuEntry);
             MenuEntries.Add(instructionsMenuEntry);
             MenuEntries.Add(optionsMenuEntry);
             MenuEntries.Add(exitMenuEntry);
@@ -26,6 +29,11 @@ namespace Superorganism.Screens
         private void PlayGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
             LoadingScreen.Load(ScreenManager, true, e.PlayerIndex, new GameplayScreen(), null);
+        }
+
+        private void LoadMenuEntrySelected(object sender, PlayerIndexEventArgs e)
+        {
+            ScreenManager.AddScreen(new SaveFileMenuScreen(true), e.PlayerIndex);
         }
 
         private void InstructionsMenuEntrySelected(object sender, PlayerIndexEventArgs e)
