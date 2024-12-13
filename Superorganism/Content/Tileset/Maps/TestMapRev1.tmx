@@ -8,7 +8,7 @@
  </tileset>
  <layer id="1" name="Terrain" width="200" height="50">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAACu3VsQmAUAxAwdgLVhZq6woK7r+YARewUAzfe3ADJEUSIUmSJEmSJEmSJEmSJEmSJEmSJEnS/ba0p6WIKc2vTixdHalr0PjkktRU1e59JS3/nq9vElQ2AAAAAAAAAL/RAwAAAAAAAACxAgAAAAAAAABxApLVKlRAnAAA
+   H4sIAAAAAAAACu3WwUrDMBzA4XioXgRPTlTQi6+gMC++/1vZwgpSuy5pa5PY7wcfY9CtYcu/bQiSJEmSJEmSJEmSJEmSJEmSaqip4Nw51yj1XY14bD2teI7Uvf6fZuPYeljgfvsl77Jze64546X12rrZcC0xn5uSu24WLq1xidJn5Xmghob7Zux9jMPJ0vNdOr703lsf4fdeyGXte31qsdeEkma7X/NUzY/XGNcnU/eh2KaOzTkv3e829rxZu7/Ym3PulSXMSLfuz4Tj58zHVyjj2hVTadf7ksz5/9Z4htxiTmKuG2t8B9ToLsGwlM/CHvTlXgeUqC/3OgAAAAAA9u4WAAAAAAAAAAhvAAAAAAAAAED4Bh/eoTBAnAAA
   </data>
  </layer>
 </map>

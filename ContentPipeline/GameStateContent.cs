@@ -19,8 +19,8 @@ namespace ContentPipeline
 
         public Vector2 PlayerPosition { get; set; }
         public int PlayerHealth { get; set; }
-        public Vector2 EnemyPosition { get; set; }
-        public string CurrentEnemyStrategy { get; set; }
+        public Vector2[] EnemyPositions { get; set; }
+        public string[] EnemyStrategies { get; set; }
 
         public string SaveFilename { get; set; }
     }

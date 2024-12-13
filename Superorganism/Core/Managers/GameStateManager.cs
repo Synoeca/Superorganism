@@ -45,13 +45,14 @@ namespace Superorganism.Core.Managers
             _entityManager = new EntityManager(game, content, graphicsDevice, map);
 
             _pauseAction = new InputAction(
-                [Buttons.Start, Buttons.Back],
-                [Keys.Back, Keys.Escape],
+                new[] { Buttons.Start, Buttons.Back },
+                new[] { Keys.Back, Keys.Escape },
                 true);
 
             InitializeGameState();
         }
 
+        // Existing methods remain unchanged
         public void InitializeAudio(float soundEffectVolume, float musicVolume)
         {
             _audioManager.Initialize(soundEffectVolume, musicVolume);
@@ -66,11 +67,12 @@ namespace Superorganism.Core.Managers
             CropsLeft = _entityManager.CropsCount;
         }
 
-        public Vector2 GetEnemyPosition() => _entityManager.EnemyPosition;
+        // Updated methods to handle multiple enemies
+        public Vector2[] GetEnemyPositions() => _entityManager.GetEnemyPositions();
 
-        public Strategy GetEnemyStrategy() => _entityManager.EnemyStrategy;
+        public Strategy[] GetEnemyStrategies() => _entityManager.GetEnemyStrategies();
 
-        public ICollisionBounding GetEnemyBounding => _entityManager.EnemyCollisionBounding;
+        public ICollisionBounding[] GetEnemyBoundings() => _entityManager.GetEnemyCollisionBoundings();
 
         public float GetEntityDistance(Entity entity1, Entity entity2) => Vector2.Distance(
             entity1.Position,
@@ -82,13 +84,27 @@ namespace Superorganism.Core.Managers
             entity.Position
         );
 
-        public float GetEnemyDistanceToPlayer() => Vector2.Distance(
-            _entityManager.PlayerPosition,
-            _entityManager.EnemyPosition
-        );
+        // Updated to return closest enemy distance
+        public float GetEnemyDistanceToPlayer()
+        {
+            Vector2[] enemyPositions = GetEnemyPositions();
+            float closestDistance = float.MaxValue;
 
-        public List<(Strategy Strategy, double StartTime, double LastActionTime)> GetEnemyStrategyHistory()
-            => _entityManager.EnemyStrategyHistory;
+            foreach (Vector2 enemyPos in enemyPositions)
+            {
+                float distance = Vector2.Distance(_entityManager.PlayerPosition, enemyPos);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                }
+            }
+
+            return closestDistance;
+        }
+
+        // Updated to return array of strategy histories
+        public List<(Strategy Strategy, double StartTime, double LastActionTime)>[] GetEnemyStrategyHistories()
+            => _entityManager.GetEnemyStrategyHistories();
 
         public void Update(GameTime gameTime)
         {
@@ -107,7 +123,6 @@ namespace Superorganism.Core.Managers
             if (_enemyCollisionTimer > 0)
             {
                 _enemyCollisionTimer -= gameTime.ElapsedGameTime.TotalSeconds;
-                System.Diagnostics.Debug.WriteLine($"Enemy collision timer updated: {_enemyCollisionTimer}");
             }
         }
 
@@ -125,31 +140,25 @@ namespace Superorganism.Core.Managers
             {
                 if (_enemyCollisionTimer <= 0)
                 {
-                    if (!_entityManager.IsPlayerInvincible) // Only apply damage if not invincible
-                    {
-                        _entityManager.ApplyEnemyDamage();
-                        _audioManager.PlayFliesDestroy();  // Moved to GameAudioManager
-                        _enemyCollisionTimer = EnemyCollisionInterval;
-                        _camera.StartShake(0.5f); // Stronger shake for enemy collision
-                        System.Diagnostics.Debug.WriteLine($"Enemy collision: Applied damage, Timer reset to {EnemyCollisionInterval}");
-                    }
-                }
-                else
-                {
-                    // Ensure visual feedback only if not invincible
                     if (!_entityManager.IsPlayerInvincible)
                     {
-                        _entityManager.ResetEntityColors();
-                        System.Diagnostics.Debug.WriteLine($"Enemy collision: Timer active {_enemyCollisionTimer}, no damage");
+                        _entityManager.ApplyEnemyDamage();
+                        _audioManager.PlayFliesDestroy();
+                        _enemyCollisionTimer = EnemyCollisionInterval;
+                        _camera.StartShake(0.5f);
                     }
+                }
+                else if (!_entityManager.IsPlayerInvincible)
+                {
+                    _entityManager.ResetEntityColors();
                 }
             }
 
             // Handle fly collisions
             if (_entityManager.CheckFlyCollisions())
             {
-                _audioManager.PlayFliesDestroy();  // Moved to GameAudioManager
-                _camera.StartShake(0.2f); // Lighter shake for fly collision
+                _audioManager.PlayFliesDestroy();
+                _camera.StartShake(0.2f);
             }
         }
 
@@ -162,6 +171,73 @@ namespace Superorganism.Core.Managers
                 IsGameOver = true;
         }
 
+        public void DisplayWinOrLoseMessage()
+        {
+        }
+
+        // Updated save/load state methods
+        public void SetPlayerPosition(Vector2 statePlayerPosition)
+        {
+            _entityManager.PlayerPosition = statePlayerPosition;
+        }
+
+        public void SetPlayerHealth(int statePlayerHealth)
+        {
+            _entityManager.PlayerHealth = statePlayerHealth;
+        }
+
+        public void SetEnemyPosition(int index, Vector2 position)
+        {
+            _entityManager.SetEnemyPosition(index, position);
+        }
+
+        public void SetEnemyStrategy(int index, string stateCurrentEnemyStrategy)
+        {
+            Strategy newStrategy = Strategy.Idle;
+            switch (stateCurrentEnemyStrategy)
+            {
+                case nameof(Strategy.Random360FlyingMovement):
+                    newStrategy = Strategy.Random360FlyingMovement;
+                    break;
+                case nameof(Strategy.Patrol):
+                    newStrategy = Strategy.Patrol;
+                    break;
+                case nameof(Strategy.ChaseEnemy):
+                    newStrategy = Strategy.ChaseEnemy;
+                    break;
+                case nameof(Strategy.Transition):
+                    newStrategy = Strategy.Transition;
+                    break;
+            }
+            _entityManager.SetEnemyStrategy(index, newStrategy);
+        }
+
+        // Convenience method to set all enemies to the same strategy
+        public void SetAllEnemyStrategies(string stateCurrentEnemyStrategy)
+        {
+            Strategy newStrategy = Strategy.Idle;
+            switch (stateCurrentEnemyStrategy)
+            {
+                case nameof(Strategy.Random360FlyingMovement):
+                    newStrategy = Strategy.Random360FlyingMovement;
+                    break;
+                case nameof(Strategy.Patrol):
+                    newStrategy = Strategy.Patrol;
+                    break;
+                case nameof(Strategy.ChaseEnemy):
+                    newStrategy = Strategy.ChaseEnemy;
+                    break;
+                case nameof(Strategy.Transition):
+                    newStrategy = Strategy.Transition;
+                    break;
+            }
+            _entityManager.SetAllEnemyStrategies(newStrategy);
+        }
+
+        // Helper method to get number of enemies
+        public int GetEnemyCount() => _entityManager.EnemyCount;
+
+        // Existing methods remain unchanged
         public bool HandlePauseInput(InputState input, PlayerIndex? controllingPlayer, out PlayerIndex playerIndex)
         {
             return _pauseAction.Occurred(input, controllingPlayer, out playerIndex);
@@ -182,49 +258,10 @@ namespace Superorganism.Core.Managers
         public int GetPlayerHealth() => _entityManager.PlayerHealth;
         public int GetPlayerMaxHealth() => _entityManager.PlayerMaxHealth;
         public void ResumeMusic() => _audioManager.ResumeMusic();
-        //public void PauseMusic() => _audioManager.PauseMusic();
-
-
-        public void SetPlayerPosition(Vector2 statePlayerPosition)
-        {
-            _entityManager.PlayerPosition = statePlayerPosition;
-        }
-
-        public void SetPlayerHealth(int statePlayerHealth)
-        {
-            _entityManager.PlayerHealth = statePlayerHealth;
-        }
-
-        public void SetEnemyPosition(Vector2 stateEnemyPosition)
-        {
-            _entityManager.EnemyPosition = stateEnemyPosition;
-        }
-
-        public void SetEnemyStrategy(string stateCurrentEnemyStrategy)
-        {
-            Strategy newStrategy = Strategy.Idle;
-            switch (stateCurrentEnemyStrategy)
-            {
-                case nameof(Strategy.Random360FlyingMovement):
-                    newStrategy = Strategy.Random360FlyingMovement;
-                    break;
-                case nameof(Strategy.Patrol):
-                    newStrategy = Strategy.Patrol;
-                    break;
-                case nameof(Strategy.ChaseEnemy):
-                    newStrategy = Strategy.ChaseEnemy;
-                    break;
-                case nameof(Strategy.Transition):
-                    newStrategy = Strategy.Transition;
-                    break;
-            }
-            _entityManager.EnemyStrategy = newStrategy;
-        }
 
         public void Unload()
         {
             _entityManager.Unload();
-            //_audioManager.StopMusic();
         }
     }
 }

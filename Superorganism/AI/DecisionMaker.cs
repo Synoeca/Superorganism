@@ -25,7 +25,7 @@ namespace Superorganism.AI
 
 		private static double GetNewDirectionInterval()
 		{
-			return Rand.NextDouble() * 3.0 + 1.0;
+			return Rand.NextDouble() * 3.0 + Rand.Next(3, 21);
 		}
 
         private static void AddStrategyToHistory(
@@ -72,6 +72,36 @@ namespace Superorganism.AI
         {
             AddStrategyToHistory(ref strategy, Strategy.Transition, ref strategyHistory, gameTime);
             _targetStrategy = targetStrategy;
+        }
+
+        private static bool CheckCollisionExcludingDiagonalTiles(Vector2 proposedPosition, TextureInfo textureInfo)
+        {
+            // Create a slightly smaller hitbox for better feeling collisions
+            Vector2 collisionSize = new Vector2(
+                textureInfo.UnitTextureWidth * textureInfo.SizeScale * 0.8f,
+                textureInfo.UnitTextureHeight * textureInfo.SizeScale * 0.9f
+            );
+
+            // Get the tile at the proposed position
+            int tileX = (int)(proposedPosition.X / MapHelper.TileSize);
+            int tileY = (int)(proposedPosition.Y / MapHelper.TileSize);
+
+            // Check each layer for collision, excluding diagonal tiles
+            foreach (Layer layer in GameState.CurrentMap.Layers.Values)
+            {
+                int tileId = layer.GetTile(tileX, tileY);
+                if (tileId != 0 &&
+                    tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
+                    tileId != 53 && tileId != 54 && tileId != 57)
+                {
+                    // Check collision with non-diagonal tiles
+                    if (MapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         public static void Action(ref Strategy strategy,
@@ -154,6 +184,12 @@ namespace Superorganism.AI
                             direction = velocity.Y > 0 ? Direction.Down : Direction.Up;
                         }
 
+                        Vector2 proposedXPosition = position + new Vector2(velocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds, 0);
+                        if (CheckCollisionExcludingDiagonalTiles(proposedXPosition, textureInfo))
+                        {
+                            velocity.X = -velocity.X; // Bounce off walls
+                        }
+
                         // Update position
                         Vector2 newPosition = position + velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -200,11 +236,17 @@ namespace Superorganism.AI
                         }
 
                         // Change direction every 3 seconds based on strategy duration
-                        if (currentStrategyDuration >= 3.0)
+                        if (currentStrategyDuration >= Rand.Next(Rand.Next(3, 21), 21))
                         {
                             velocity.X = -velocity.X; // Reverse direction
                             (Strategy Strategy, double StartTime, double LastActionTime) current = strategyHistory[^1];
                             strategyHistory[^1] = (current.Strategy, current.StartTime, (DateTime.Now - GameStartTime).TotalSeconds);
+                        }
+
+                        Vector2 proposedXPosition = position + new Vector2(velocity.X, 0);
+                        if (CheckCollisionExcludingDiagonalTiles(proposedXPosition, textureInfo))
+                        {
+                            velocity.X = -velocity.X; // Reverse direction when hitting a wall
                         }
 
                         // Update position
@@ -276,7 +318,7 @@ namespace Superorganism.AI
                         }
                     }
 
-                    if ((!targetPosition.HasValue || closestDistance > 200) && currentStrategyDuration >= 3.0)
+                    if ((!targetPosition.HasValue || closestDistance > 300) && currentStrategyDuration >= Rand.Next(Rand.Next(3, 21), 21))
                     {
                         targetPosition = GetLastTargetPosition(strategyHistory, gameTime);
                         if (!targetPosition.HasValue)
@@ -290,8 +332,14 @@ namespace Superorganism.AI
                     Vector2 chaseDirection = Vector2.Normalize(targetPos - position);
                     velocity.X = chaseDirection.X * chaseSpeed;
 
-                    // Calculate new position
-                    Vector2 newPosition = position + velocity;
+                    Vector2 proposedXPosition = position + new Vector2(velocity.X, 0);
+                    if (CheckCollisionExcludingDiagonalTiles(proposedXPosition, textureInfo))
+                    {
+                        velocity.X = 0; // Stop at walls when chasing
+                    }
+
+                        // Calculate new position
+                        Vector2 newPosition = position + velocity;
 
                     // Check map bounds
                     newPosition.X = MathHelper.Clamp(newPosition.X,
@@ -320,7 +368,11 @@ namespace Superorganism.AI
                 {
                     velocity.X = 0;
                     velocity.Y += 0.5f;
-
+                    Vector2 proposedXPosition = position + new Vector2(velocity.X, 0);
+                    if (CheckCollisionExcludingDiagonalTiles(proposedXPosition, textureInfo))
+                    {
+                        velocity.X = 0;
+                    }
                     Vector2 newPosition = position + velocity;
 
                     // Check map bounds

@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using ContentPipeline;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+using Superorganism.AI;
 using Superorganism.Core.Managers;
 
 namespace Superorganism.Core.SaveLoadSystem
@@ -50,6 +52,10 @@ namespace Superorganism.Core.SaveLoadSystem
                 saveFileName = $"Save{nextNumber}.sav";
             }
 
+            Vector2[] enemyPositions = gameState.GetEnemyPositions();
+            Strategy[] strategies = gameState.GetEnemyStrategies();
+            string[] strategyStrings = strategies.Select(s => s.ToString()).ToArray();
+
             GameStateContent state = new()
             {
                 IsGameOver = gameState.IsGameOver,
@@ -58,8 +64,8 @@ namespace Superorganism.Core.SaveLoadSystem
                 ElapsedTime = gameState.ElapsedTime,
                 PlayerPosition = gameState.GetPlayerPosition(),
                 PlayerHealth = gameState.GetPlayerHealth(),
-                EnemyPosition = gameState.GetEnemyPosition(),
-                CurrentEnemyStrategy = gameState.GetEnemyStrategy().ToString(),
+                EnemyPositions = enemyPositions,
+                EnemyStrategies = strategyStrings,
                 SaveFilename = saveFileName
             };
 

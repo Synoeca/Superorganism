@@ -172,7 +172,6 @@ namespace Superorganism.Screens
             // Draw parallax background first
             _parallaxBackground.Draw(spriteBatch, _camera.Position);
 
-            // In GameplayScreen.Draw
             _map.Draw(
                 spriteBatch,
                 new Rectangle(0, 0,
@@ -181,15 +180,6 @@ namespace Superorganism.Screens
                 ),
                 Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
             );
-
-            //_basicMap.Draw(
-            //    spriteBatch,
-            //    new Rectangle(0, 0,
-            //        ScreenManager.GraphicsDevice.Viewport.Width,
-            //        ScreenManager.GraphicsDevice.Viewport.Height
-            //    ),
-            //    Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
-            //);
 
             GameStateManager.Draw(gameTime, spriteBatch);
 
@@ -207,6 +197,16 @@ namespace Superorganism.Screens
             _uiManager.DrawHealthBar(GameStateManager.GetPlayerHealth(), GameStateManager.GetPlayerMaxHealth());
             _uiManager.DrawCropsLeft(GameStateManager.CropsLeft);
             _uiManager.DrawDebugInfo(gameTime, DecisionMaker.Entities, _camera.TransformMatrix, GameStateManager.GetPlayerPosition());
+
+            // Draw win/lose screen if game is over
+            if (GameStateManager.IsGameOver)
+            {
+                _uiManager.DrawGameOverScreen();
+            }
+            else if (GameStateManager.IsGameWon)
+            {
+                _uiManager.DrawWinScreen();
+            }
 
             spriteBatch.End();
 

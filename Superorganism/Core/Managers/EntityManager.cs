@@ -17,7 +17,7 @@ namespace Superorganism.Core.Managers;
 public class EntityManager
 {
     private Ant _ant;
-    private AntEnemy _antEnemy;
+    private AntEnemy[] _antEnemies; // Change to array instead of single enemy
     private Crop[] _crops;
     private Fly[] _flies;
     private ExplosionParticleSystem _explosions;
@@ -30,8 +30,8 @@ public class EntityManager
     private const double BlinkInterval = 0.05;
     private const double FlyInvincibleDuration = 1.5;
     private const double EnemyInvincibleDuration = 2.0;
-    private const int EnemyDamage = 20;
-    private const int FlyDamage = 10;
+    private const int EnemyDamage = 10;
+    private const int FlyDamage = 3;
 
     private double _invincibleTimer;
     private bool _blinkState;
@@ -51,21 +51,62 @@ public class EntityManager
     public int PlayerMaxHealth => _ant.MaxHitPoint;
     public int CropsCount => _crops.Length;
     public bool IsPlayerInvincible { get; private set; }
-    public Vector2 EnemyPosition
+    public Vector2[] GetEnemyPositions()
     {
-        get => _antEnemy.Position;
-        set => _antEnemy.Position = value;
+        return _antEnemies.Select(enemy => enemy.Position).ToArray();
     }
 
-    public Strategy EnemyStrategy
+    public void SetEnemyPosition(int index, Vector2 position)
     {
-        get => _antEnemy.Strategy;
-        set => _antEnemy.Strategy = value;
+        if (index >= 0 && index < _antEnemies.Length)
+        {
+            _antEnemies[index].Position = position;
+        }
     }
 
-    public ICollisionBounding EnemyCollisionBounding => _antEnemy.CollisionBounding;
-    public List<(Strategy Strategy, double StartTime, double LastActionTime)> EnemyStrategyHistory
-        => _antEnemy.StrategyHistory;
+    public Strategy[] GetEnemyStrategies()
+    {
+        return _antEnemies.Select(enemy => enemy.Strategy).ToArray();
+    }
+
+    public void SetEnemyStrategy(int index, Strategy strategy)
+    {
+        if (index >= 0 && index < _antEnemies.Length)
+        {
+            _antEnemies[index].Strategy = strategy;
+        }
+    }
+
+    public void SetAllEnemyStrategies(Strategy strategy)
+    {
+        foreach (AntEnemy enemy in _antEnemies)
+        {
+            enemy.Strategy = strategy;
+        }
+    }
+
+    public ICollisionBounding[] GetEnemyCollisionBoundings()
+    {
+        return _antEnemies.Select(enemy => enemy.CollisionBounding).ToArray();
+    }
+
+    public List<(Strategy Strategy, double StartTime, double LastActionTime)>[] GetEnemyStrategyHistories()
+    {
+        return _antEnemies.Select(enemy => enemy.StrategyHistory).ToArray();
+    }
+
+    // Add helper method to get number of enemies
+    public int EnemyCount => _antEnemies.Length;
+
+    // Add method to get specific enemy
+    public AntEnemy GetEnemy(int index)
+    {
+        if (index >= 0 && index < _antEnemies.Length)
+        {
+            return _antEnemies[index];
+        }
+        return null;
+    }
     public Map GetCurrentMap() => _map;
 
     public EntityManager(Game game, ContentManager content, 
@@ -82,72 +123,96 @@ public class EntityManager
     {
         _ant = new Ant();
         _ant.InitializeAtTile(72, 19);
-        //_ant.CollisionBounding.Center = _ant.Position;
         _ant.IsControlled = true;
-        
 
-        _antEnemy = new AntEnemy();
-        _antEnemy.InitializeAtTile(81, 18);
+        // Initialize multiple ant enemies
+        _antEnemies = new AntEnemy[5]; // Create 5 ant enemies
+        Random rand = new();
+        for (int i = 0; i < _antEnemies.Length; i++)
+        {
+            _antEnemies[i] = new AntEnemy();
+            // Spread enemies across different X positions and higher Y positions
+            int enemyX = 60 + rand.Next(40); // Spread between tile 60-100
+            int enemyY = 5 + rand.Next(8);   // Spread between tile 5-12
+            _antEnemies[i].InitializeAtTile(enemyX, enemyY);
+        }
 
         InitializeCropsAndFlies(graphicsDevice);
         _explosions = new ExplosionParticleSystem(_game, 20);
+
+        // Add entities to DecisionMaker
         DecisionMaker.Entities.Add(_ant);
-        DecisionMaker.Entities.Add(_antEnemy);
+        foreach (AntEnemy enemy in _antEnemies)
+        {
+            DecisionMaker.Entities.Add(enemy);
+        }
     }
 
 
     private void InitializeCropsAndFlies(GraphicsDevice graphicsDevice)
     {
-        _crops = new Crop[30];
+        Random rand = new();
+
+        // Initialize crops at higher positions
+        _crops = new Crop[40]; // Increased number of crops
         for (int i = 0; i < _crops.Length; i++)
         {
             _crops[i] = new Crop();
-            Vector2 position = MapHelper.TileToWorld(10 + 8*i, 19);
-            _crops[i].Position = position;  // Set position after creation
+            // Spread crops across different heights
+            int cropX = 10 + (6 * i); // Spread them out horizontally
+            int cropY = 5 + rand.Next(10); // Random height between tile 5-14
+            Vector2 position = MapHelper.TileToWorld(cropX, cropY);
+            // Add small random offset within tile
+            position.X += rand.Next(-16, 16);
+            position.Y += rand.Next(-16, 16);
+            _crops[i].Position = position;
             DecisionMaker.Entities.Add(_crops[i]);
         }
 
-        _flies = new Fly[100];
-        Random rand = new();
+        // Initialize more flies at higher positions
+        _flies = new Fly[150]; // Increased number of flies
         for (int i = 0; i < _flies.Length; i++)
         {
             _flies[i] = new Fly();
 
-            // Spread flies across a wider X range (50 to 100 tiles)
-            int spreadX = 50 + rand.Next(50);
-            // Vary Y position between tiles 10 and 20
-            int spreadY = 5 + rand.Next(9);
+            // Spread flies across a wider range and higher up
+            int spreadX = 40 + rand.Next(80);  // Spread between tile 40-120
+            int spreadY = 2 + rand.Next(10);   // Higher up between tile 2-11
 
             Vector2 position = MapHelper.TileToWorld(spreadX, spreadY);
 
-            // Add small random offsets within the tile for more natural positioning
-            position.X += rand.Next(-32, 32); // Half tile random offset
+            // Add random offsets within tile for more natural distribution
+            position.X += rand.Next(-32, 32);
             position.Y += rand.Next(-32, 32);
 
             _flies[i].Position = position;
-            _flies[i].Direction = (Direction)(rand.Next(4)); // Random initial direction
+            _flies[i].Direction = (Direction)(rand.Next(4));
             DecisionMaker.Entities.Add(_flies[i]);
         }
     }
 
     private void LoadContent(ContentManager content)
     {
-        _ant.LoadContent(content, "ant-side_Rev2", 3, 1, 
+        _ant.LoadContent(content, "ant-side_Rev2", 3, 1,
             new BoundingRectangle(), 0.25f);
         _ant.LoadSound(content);
 
-        _antEnemy.LoadContent(content, "antEnemy-side_Rev3", 3, 1, 
-            new BoundingRectangle(), 0.3f);
+        // Load content for all ant enemies
+        foreach (AntEnemy enemy in _antEnemies)
+        {
+            enemy.LoadContent(content, "antEnemy-side_Rev3", 3, 1,
+                new BoundingRectangle(), 0.3f);
+        }
 
         foreach (Crop crop in _crops)
         {
-            crop.LoadContent(content, "crops", 8, 1, 
+            crop.LoadContent(content, "crops", 8, 1,
                 new BoundingCircle(), 1.0f);
         }
 
         foreach (Fly fly in _flies)
         {
-            fly.LoadContent(content, "flies", 4, 4, 
+            fly.LoadContent(content, "flies", 4, 4,
                 new BoundingCircle(), 1.0f);
         }
     }
@@ -186,7 +251,13 @@ public class EntityManager
     private void UpdateEntities(GameTime gameTime)
     {
         _ant.Update(gameTime);
-        _antEnemy.Update(gameTime);
+
+        foreach (AntEnemy antEnemy in _antEnemies)
+        {
+            antEnemy.Update(gameTime);
+        }
+
+        
 
         foreach (Crop crop in _crops.Where(c => !c.Collected))
         {
@@ -226,7 +297,11 @@ public class EntityManager
     }
 
     public bool IsCollidingWithEnemy()
-        => !IsPlayerInvincible && _antEnemy.CollisionBounding.CollidesWith(_ant.CollisionBounding);
+    {
+        if (IsPlayerInvincible) return false;
+
+        return _antEnemies.Any(enemy => enemy.CollisionBounding.CollidesWith(_ant.CollisionBounding));
+    }
 
     public void ApplyEnemyDamage()
     {
@@ -279,20 +354,37 @@ public class EntityManager
         // Draw the player ant
         _ant.Draw(gameTime, spriteBatch);
 
-        // Draw enemy ant
-        _antEnemy.Draw(gameTime, spriteBatch);
+        // Draw all enemy ants
+        foreach (AntEnemy enemy in _antEnemies)
+        {
+            enemy.Color = Color.White * EnemyAlpha;
+            enemy.Draw(gameTime, spriteBatch);
+        }
     }
 
     public void ResetEntityColors()
     {
         _ant.Color = Color.White;
-        _antEnemy.Color = Color.White;
+        foreach (AntEnemy enemy in _antEnemies)
+        {
+            enemy.Color = Color.White;
+        }
     }
 
     public void Reset()
     {
         _ant.Position = new Vector2(200, 200);
-        _antEnemy.Position = new Vector2(500, 200);
+
+        // Reset all enemies to new positions
+        Random rand = new();
+        foreach (AntEnemy enemy in _antEnemies)
+        {
+            enemy.Position = new Vector2(
+                300 + rand.Next(400),
+                100 + rand.Next(100)
+            );
+        }
+
         DecisionMaker.Entities.Clear();
     }
 

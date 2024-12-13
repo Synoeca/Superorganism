@@ -20,8 +20,12 @@ namespace Superorganism.Core.SaveLoadSystem
             // Restore entity states
             manager.SetPlayerPosition(state.PlayerPosition);
             manager.SetPlayerHealth(state.PlayerHealth);
-            manager.SetEnemyPosition(state.EnemyPosition);
-            manager.SetEnemyStrategy(state.CurrentEnemyStrategy);
+            int enemyCount = Math.Min(state.EnemyPositions.Length, manager.GetEnemyCount());
+            for (int i = 0; i < enemyCount; i++)
+            {
+                manager.SetEnemyPosition(i, state.EnemyPositions[i]);
+                manager.SetEnemyStrategy(i, state.EnemyStrategies[i]);
+            }
         }
     }
 }

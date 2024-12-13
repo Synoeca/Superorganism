@@ -100,7 +100,6 @@ namespace Superorganism.Entities
 			}
 		}
 
-        // Modify ControllableEntity.HandleInput
         public void HandleInput(KeyboardState keyboardState, GamePadState gamePadState, GameTime gameTime)
         {
             GamePadState = GamePad.GetState(0);
@@ -127,27 +126,76 @@ namespace Superorganism.Entities
                 JumpSound?.Play();
             }
 
-            // Handle horizontal movement
+            // Store the original position for collision checking
+            Vector2 originalPosition = _position;
+            float proposedXVelocity = 0;
+
+            // Calculate proposed horizontal movement
             if (KeyboardState.IsKeyDown(Keys.Left) || KeyboardState.IsKeyDown(Keys.A))
             {
-                _velocity.X = -MovementSpeed;
+                proposedXVelocity = -MovementSpeed;
                 Flipped = true;
-                if (!IsJumping) PlayMoveSound(gameTime);
             }
             else if (KeyboardState.IsKeyDown(Keys.Right) || KeyboardState.IsKeyDown(Keys.D))
             {
-                _velocity.X = MovementSpeed;
+                proposedXVelocity = MovementSpeed;
                 Flipped = false;
-                if (!IsJumping) PlayMoveSound(gameTime);
             }
             else if (IsOnGround)
             {
-                _velocity.X *= Friction;
-                if (Math.Abs(_velocity.X) < 0.1f)
+                proposedXVelocity = _velocity.X * Friction;
+                if (Math.Abs(proposedXVelocity) < 0.1f)
                 {
-                    _velocity.X = 0;
+                    proposedXVelocity = 0;
                     _soundTimer = 0f;
                 }
+            }
+
+            // Check horizontal collision before applying movement
+            Vector2 proposedPosition = _position + new Vector2(proposedXVelocity, 0);
+
+            // Create a slightly smaller hitbox for better feeling collisions
+            Vector2 collisionSize = new Vector2(
+                TextureInfo.UnitTextureWidth * TextureInfo.SizeScale * 0.8f,
+                TextureInfo.UnitTextureHeight * TextureInfo.SizeScale * 0.9f
+            );
+
+            // Get the tile at the proposed position
+            int tileX = (int)(proposedPosition.X / MapHelper.TileSize);
+            int tileY = (int)(proposedPosition.Y / MapHelper.TileSize);
+            bool hasCollision = false;
+
+            // Check each layer for collision, excluding diagonal tiles
+            foreach (Layer layer in GameState.CurrentMap.Layers.Values)
+            {
+                int tileId = layer.GetTile(tileX, tileY);
+                // Skip collision check for diagonal tiles (20, 24, 25, 30, 52, 53, 56)
+                if (tileId != 0 &&
+                    tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
+                    tileId != 53 && tileId != 54 && tileId != 57)
+                {
+                    // Check collision with non-diagonal tiles
+                    if (MapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
+                    {
+                        hasCollision = true;
+                        break;
+                    }
+                }
+            }
+
+            // Only apply horizontal movement if there's no collision with non-diagonal tiles
+            if (!hasCollision)
+            {
+                _velocity.X = proposedXVelocity;
+                if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
+                {
+                    PlayMoveSound(gameTime);
+                }
+            }
+            else
+            {
+                // If there's a collision, stop horizontal movement
+                _velocity.X = 0;
             }
 
             // Apply gravity

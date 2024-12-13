@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Superorganism", "Superorganism\Superorganism.csproj", "{5F36525C-6C31-4157-9080-71567E114CDA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Superorganism", "Superorganism\Superorganism.csproj", "{5F36525C-6C31-4157-9080-71567E114CDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentPipeline", "ContentPipeline\ContentPipeline.csproj", "{6239CE8F-043B-42E0-86B2-DD65ACBC1DFA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentPipeline", "ContentPipeline\ContentPipeline.csproj", "{0DE577F7-CC36-4797-8650-C4058FA8A03C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{5F36525C-6C31-4157-9080-71567E114CDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F36525C-6C31-4157-9080-71567E114CDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F36525C-6C31-4157-9080-71567E114CDA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6239CE8F-043B-42E0-86B2-DD65ACBC1DFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6239CE8F-043B-42E0-86B2-DD65ACBC1DFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6239CE8F-043B-42E0-86B2-DD65ACBC1DFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6239CE8F-043B-42E0-86B2-DD65ACBC1DFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DE577F7-CC36-4797-8650-C4058FA8A03C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DE577F7-CC36-4797-8650-C4058FA8A03C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DE577F7-CC36-4797-8650-C4058FA8A03C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DE577F7-CC36-4797-8650-C4058FA8A03C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

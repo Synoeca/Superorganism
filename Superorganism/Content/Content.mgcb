@@ -10,8 +10,6 @@
 
 #-------------------------------- References --------------------------------#
 
-/reference:..\bin\Debug\net8.0-windows7.0\Superorganism.dll
-/reference:..\..\ContentPipeline\bin\Debug\net8.0-windows7.0\ContentPipeline.dll
 
 #---------------------------------- Content ---------------------------------#
 
@@ -631,34 +629,22 @@
 /build:Pickup_Coin4.wav
 
 #begin Saves/Save1.sav
-/importer:GameStateImporter
-/processor:GameStateProcessor
-/build:Saves/Save1.sav
+/copy:Saves/Save1.sav
 
 #begin Saves/Save2.sav
-/importer:GameStateImporter
-/processor:GameStateProcessor
-/build:Saves/Save2.sav
+/copy:Saves/Save2.sav
 
 #begin Saves/Save3.sav
-/importer:GameStateImporter
-/processor:GameStateProcessor
-/build:Saves/Save3.sav
+/copy:Saves/Save3.sav
 
 #begin Saves/Save4.sav
-/importer:GameStateImporter
-/processor:GameStateProcessor
-/build:Saves/Save4.sav
+/copy:Saves/Save4.sav
 
 #begin Saves/Save5.sav
-/importer:GameStateImporter
-/processor:GameStateProcessor
-/build:Saves/Save5.sav
+/copy:Saves/Save5.sav
 
 #begin Saves/Save6.sav
-/importer:GameStateImporter
-/processor:GameStateProcessor
-/build:Saves/Save6.sav
+/copy:Saves/Save6.sav
 
 #begin smoke.bmp
 /importer:TextureImporter
