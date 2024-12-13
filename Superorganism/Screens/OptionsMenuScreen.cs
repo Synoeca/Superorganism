@@ -2,6 +2,9 @@
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
 using System;
+using Assimp;
+using Superorganism.Core.Managers;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Superorganism.Screens
 {
@@ -10,11 +13,12 @@ namespace Superorganism.Screens
         private readonly MenuEntry _backgroundMusicVolumeEntry;
         private readonly MenuEntry _soundEffectVolumeEntry;
         private readonly MenuEntry _fullscreenEntry;
+        private readonly MenuEntry _borderlessWindowEntry;
         private readonly MenuEntry _resolutionEntry;
 
         private int _currentResolutionIndex;
 
-        public static float BackgroundMusicVolume { get; private set; }
+        public static float BackgroundMusicVolume { get; private set; } = 0.05f;
         public static float SoundEffectVolume { get; private set; } = 0.5f;
 
         // Available resolutions
@@ -31,6 +35,7 @@ namespace Superorganism.Screens
             _backgroundMusicVolumeEntry = new MenuEntry(string.Empty);
             _soundEffectVolumeEntry = new MenuEntry(string.Empty);
             _fullscreenEntry = new MenuEntry(string.Empty);
+            _borderlessWindowEntry = new MenuEntry(string.Empty);
             _resolutionEntry = new MenuEntry(string.Empty);
             MenuEntry back = new("Back");
 
@@ -38,17 +43,21 @@ namespace Superorganism.Screens
             _backgroundMusicVolumeEntry.Selected += BackgroundMusicVolumeEntrySelected;
             _soundEffectVolumeEntry.Selected += SoundEffectVolumeEntrySelected;
             _fullscreenEntry.Selected += FullscreenEntrySelected;
+            _borderlessWindowEntry.Selected += BorderlessWindowEntrySelected;
             _resolutionEntry.Selected += ResolutionEntrySelected;
             back.Selected += OnCancel;
 
             // Set up adjust value handlers
             _backgroundMusicVolumeEntry.AdjustValue += BackgroundMusicVolumeEntrySelected;
             _soundEffectVolumeEntry.AdjustValue += SoundEffectVolumeEntrySelected;
+            _fullscreenEntry.AdjustValue += FullscreenEntrySelected;
+            _borderlessWindowEntry.AdjustValue += BorderlessWindowEntrySelected;
             _resolutionEntry.AdjustValue += ResolutionEntrySelected;
 
             MenuEntries.Add(_backgroundMusicVolumeEntry);
             MenuEntries.Add(_soundEffectVolumeEntry);
             MenuEntries.Add(_fullscreenEntry);
+            MenuEntries.Add(_borderlessWindowEntry);
             MenuEntries.Add(_resolutionEntry);
             MenuEntries.Add(back);
 
@@ -69,10 +78,36 @@ namespace Superorganism.Screens
             {
                 // Toggle fullscreen and apply changes
                 ScreenManager.GraphicsDeviceManager.IsFullScreen = !ScreenManager.GraphicsDeviceManager.IsFullScreen;
-                ScreenManager.GraphicsDeviceManager.HardwareModeSwitch = false;
                 ScreenManager.GraphicsDeviceManager.ApplyChanges();
+                if (ScreenManager.GameplayScreenCamera2D != null)
+                {
+                    ScreenManager.GameplayScreenCamera2D.Position = GameState.GetPlayerPosition();
+                    ScreenManager.GameplayScreenCamera2D.UpdateTransformMatrix();
+                }
                 SetMenuEntryText();
             }
+            else if (entry.Text.Contains("Borderless Window"))
+            {
+                ScreenManager.GraphicsDeviceManager.HardwareModeSwitch = !ScreenManager.GraphicsDeviceManager.HardwareModeSwitch;
+                ScreenManager.GraphicsDeviceManager.ApplyChanges();
+                if (ScreenManager.GameplayScreenCamera2D != null)
+                {
+                    ScreenManager.GameplayScreenCamera2D.Position = GameState.GetPlayerPosition();
+                    ScreenManager.GameplayScreenCamera2D.UpdateTransformMatrix();
+                }
+                SetMenuEntryText();
+            }
+            //else if (entry.Text.Contains("Resolution"))
+            //{
+            //    ScreenManager.GraphicsDeviceManager.HardwareModeSwitch = !ScreenManager.GraphicsDeviceManager.HardwareModeSwitch;
+            //    ScreenManager.GraphicsDeviceManager.ApplyChanges();
+            //    if (ScreenManager.GameplayScreenCamera2D != null)
+            //    {
+            //        ScreenManager.GameplayScreenCamera2D.Position = GameState.GetPlayerPosition();
+            //        ScreenManager.GameplayScreenCamera2D.UpdateTransformMatrix();
+            //    }
+            //    SetMenuEntryText();
+            //}
             else
             {
                 // Treat selection as a positive adjustment and apply changes
@@ -111,6 +146,7 @@ namespace Superorganism.Screens
             if (ScreenManager != null)
             {
                 _fullscreenEntry.Text = $"Fullscreen: {(ScreenManager.GraphicsDeviceManager.IsFullScreen ? "On" : "Off")}";
+                _borderlessWindowEntry.Text = $"Borderless Window: {(!ScreenManager.GraphicsDeviceManager.HardwareModeSwitch ? "On" : "Off")}";
 
                 if (_currentResolutionIndex >= 0 && _currentResolutionIndex < _availableResolutions.Length)
                 {
@@ -123,8 +159,24 @@ namespace Superorganism.Screens
         private void FullscreenEntrySelected(object sender, PlayerIndexEventArgs e)
         {
             ScreenManager.GraphicsDeviceManager.IsFullScreen = !ScreenManager.GraphicsDeviceManager.IsFullScreen;
-            ScreenManager.GraphicsDeviceManager.HardwareModeSwitch = false;
             ScreenManager.GraphicsDeviceManager.ApplyChanges();
+            if (ScreenManager.GameplayScreenCamera2D != null)
+            {
+                ScreenManager.GameplayScreenCamera2D.Position = GameState.GetPlayerPosition();
+                ScreenManager.GameplayScreenCamera2D.UpdateTransformMatrix();
+            }
+            SetMenuEntryText();
+        }
+
+        private void BorderlessWindowEntrySelected(object sender, PlayerIndexEventArgs e)
+        {
+            ScreenManager.GraphicsDeviceManager.HardwareModeSwitch = !ScreenManager.GraphicsDeviceManager.HardwareModeSwitch;
+            ScreenManager.GraphicsDeviceManager.ApplyChanges();
+            if (ScreenManager.GameplayScreenCamera2D != null)
+            {
+                ScreenManager.GameplayScreenCamera2D.Position = GameState.GetPlayerPosition();
+                ScreenManager.GameplayScreenCamera2D.UpdateTransformMatrix();
+            }
             SetMenuEntryText();
         }
 
@@ -137,7 +189,25 @@ namespace Superorganism.Screens
                 Point newResolution = _availableResolutions[_currentResolutionIndex];
                 ScreenManager.GraphicsDeviceManager.PreferredBackBufferWidth = newResolution.X;
                 ScreenManager.GraphicsDeviceManager.PreferredBackBufferHeight = newResolution.Y;
+
                 ScreenManager.GraphicsDeviceManager.ApplyChanges();
+
+                if (!ScreenManager.GraphicsDeviceManager.HardwareModeSwitch &&
+                    ScreenManager.GraphicsDeviceManager.IsFullScreen)
+                {
+                    //ScreenManager.GraphicsDevice.Viewport =
+                    //    ScreenManager.GraphicsDevice.Viewport with
+                    //    {
+                    //        Width = newResolution.X,
+                    //        Height = newResolution.Y
+                    //    };
+                }
+
+                if (ScreenManager.GameplayScreenCamera2D != null)
+                {
+                    ScreenManager.GameplayScreenCamera2D.Position = GameState.GetPlayerPosition();
+                    ScreenManager.GameplayScreenCamera2D.UpdateTransformMatrix();
+                }
 
                 SetMenuEntryText();
             }

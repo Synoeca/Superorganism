@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.AI;
 using Superorganism.Collisions;
+using Superorganism.Core.SaveLoadSystem;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Particle;
@@ -35,13 +36,33 @@ public class EntityManager
     private double _invincibleTimer;
     private bool _blinkState;
 
-    public Vector2 PlayerPosition => _ant.Position;
-    public int PlayerHealth => _ant.HitPoints;
+    public Vector2 PlayerPosition
+    {
+        get => _ant.Position;
+        set => _ant.Position = value;
+    }
+
+    public int PlayerHealth
+    {
+        get => _ant.HitPoints;
+        set => _ant.HitPoints = value;
+    }
+
     public int PlayerMaxHealth => _ant.MaxHitPoint;
     public int CropsCount => _crops.Length;
     public bool IsPlayerInvincible { get; private set; }
-    public Vector2 EnemyPosition => _antEnemy.Position;
-    public Strategy EnemyStrategy => _antEnemy.Strategy;
+    public Vector2 EnemyPosition
+    {
+        get => _antEnemy.Position;
+        set => _antEnemy.Position = value;
+    }
+
+    public Strategy EnemyStrategy
+    {
+        get => _antEnemy.Strategy;
+        set => _antEnemy.Strategy = value;
+    }
+
     public ICollisionBounding EnemyCollisionBounding => _antEnemy.CollisionBounding;
     public List<(Strategy Strategy, double StartTime, double LastActionTime)> EnemyStrategyHistory
         => _antEnemy.StrategyHistory;
@@ -86,7 +107,7 @@ public class EntityManager
             DecisionMaker.Entities.Add(_crops[i]);
         }
 
-        _flies = new Fly[50];
+        _flies = new Fly[100];
         Random rand = new();
         for (int i = 0; i < _flies.Length; i++)
         {

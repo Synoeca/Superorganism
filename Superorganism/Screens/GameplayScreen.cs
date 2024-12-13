@@ -10,6 +10,11 @@ using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
+using ContentPipeline;
+using Superorganism.Core.SaveLoadSystem;
+using System.Text.Json;
+
+#pragma warning disable CA1416
 
 namespace Superorganism.Screens
 {
@@ -21,11 +26,14 @@ namespace Superorganism.Screens
         private Camera2D _camera;
         private ParallaxBackground _parallaxBackground;
         private Map _map;
+        private BasicMap _basicMap;
         private ContentManager _content;
 
         // Constants
         public readonly float Zoom = 1f;
         private float _pauseAlpha;
+
+        public string SaveFileToLoad { get; set; } = "save1.sav";
 
         public GameplayScreen()
         {
@@ -37,17 +45,22 @@ namespace Superorganism.Screens
         {
             DecisionMaker.GameStartTime = DateTime.Now;
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
+            //ContentReaders.Register(_content); // Register content readers
             InitializeComponents();
         }
+
+        private readonly JsonSerializerOptions _serializerOptions = new()
+        {
+            WriteIndented = true,
+            Converters = { new Vector2Converter() }
+        };
 
         private void InitializeComponents()
         {
             _map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
-
-            // Initialize camera
+            //_basicMap = _content.Load<BasicMap>("Tileset/Maps/TestMapRev1");
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
-            // Initialize core managers
             GameStateManager = new GameStateManager(
                 ScreenManager.Game,
                 _content,
@@ -59,7 +72,37 @@ namespace Superorganism.Screens
 
             GameState.Initialize(GameStateManager);
 
-            // Initialize UI
+            string contentPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content"));
+            string savePath = Path.Combine(contentPath, "Saves", SaveFileToLoad);
+
+            try
+            {
+                if (File.Exists(savePath))
+                {
+                    GameStateContent savedState = _content.Load<GameStateContent>($"Saves/{Path.GetFileNameWithoutExtension(SaveFileToLoad)}");
+                    if (savedState != null)
+                    {
+                        GameStateLoader.RestoreGameState(GameStateManager, savedState);
+                    }
+                    else
+                    {
+                        GameState.Initialize(GameStateManager);
+                    }
+                }
+                else
+                {
+                    GameState.Initialize(GameStateManager);
+                }
+            }
+            catch (Exception ex)
+            {
+                string jsonContent = File.ReadAllText(savePath);
+                GameStateContent savedState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, _serializerOptions);
+                GameStateLoader.RestoreGameState(GameStateManager, savedState);
+                GameState.Initialize(GameStateManager);
+            }
+
+            // Initialize UI and other components
             _uiManager = new GameUiManager(
                 _content.Load<SpriteFont>("gamefont"),
                 ScreenManager.SpriteBatch
@@ -68,7 +111,8 @@ namespace Superorganism.Screens
             _parallaxBackground = new ParallaxBackground();
             _parallaxBackground.LoadContent(_content);
 
-            _camera.Initialize(GameStateManager.GetPlayerPosition());
+            _camera.Initialize(GameStateManager.GetPlayerPosition(), ScreenManager);
+            ScreenManager.GameplayScreenCamera2D = _camera;
         }
 
         public override void HandleInput(GameTime gameTime, InputState input)
@@ -138,6 +182,15 @@ namespace Superorganism.Screens
                 Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
             );
 
+            //_basicMap.Draw(
+            //    spriteBatch,
+            //    new Rectangle(0, 0,
+            //        ScreenManager.GraphicsDevice.Viewport.Width,
+            //        ScreenManager.GraphicsDevice.Viewport.Height
+            //    ),
+            //    Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
+            //);
+
             GameStateManager.Draw(gameTime, spriteBatch);
 
             spriteBatch.End();
@@ -164,7 +217,7 @@ namespace Superorganism.Screens
 
         private void UpdatePauseAlpha(bool coveredByOtherScreen)
         {
-            _pauseAlpha = coveredByOtherScreen ? 
+            _pauseAlpha = coveredByOtherScreen ?
                 Math.Min(_pauseAlpha + 0.05f, 1.0f) : Math.Max(_pauseAlpha - 0.05f, 0f);
         }
 

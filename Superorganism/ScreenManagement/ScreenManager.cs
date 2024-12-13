@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Superorganism.Core.Camera;
 using Superorganism.Core.Managers;
 using Superorganism.Screens;
 
@@ -51,6 +52,11 @@ namespace Superorganism.ScreenManagement
         /// GameAudioManager for this game
         /// </summary>
         public GameAudioManager GameAudioManager { get; set; }
+
+        /// <summary>
+        /// 2D Camera for this game
+        /// </summary>
+        public Camera2D GameplayScreenCamera2D { get; set; }
 
         /// <summary>
         /// Constructs a new ScreenManager

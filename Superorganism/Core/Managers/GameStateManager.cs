@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
 using Superorganism.Collisions;
 using Superorganism.Core.Camera;
+using Superorganism.Core.SaveLoadSystem;
 using Superorganism.Entities;
 using Superorganism.ScreenManagement;
 using Superorganism.Tiles;
@@ -20,13 +21,14 @@ namespace Superorganism.Core.Managers
         private readonly InputAction _pauseAction;
         private readonly Camera2D _camera;
         private readonly Map _map;
+        private readonly ContentManager _content;
 
         public Map CurrentMap => _map;
 
-        public bool IsGameOver { get; private set; }
-        public bool IsGameWon { get; private set; }
-        public int CropsLeft { get; private set; }
-        public double ElapsedTime { get; private set; }
+        public bool IsGameOver { get; set; }
+        public bool IsGameWon { get; set; }
+        public int CropsLeft { get; set; }
+        public double ElapsedTime { get; set; }
 
         private double _enemyCollisionTimer;
         private const double EnemyCollisionInterval = 0.2;
@@ -38,6 +40,7 @@ namespace Superorganism.Core.Managers
             _audioManager = audio;
             _camera = camera;
             _map = map;
+            _content = content;
 
             _entityManager = new EntityManager(game, content, graphicsDevice, map);
 
@@ -114,7 +117,7 @@ namespace Superorganism.Core.Managers
             if (_entityManager.CheckCropCollisions())
             {
                 CropsLeft--;
-                _audioManager.PlayCropPickup();  // Moved to GameAudioManager
+                _audioManager.PlayCropPickup();
             }
 
             // Handle enemy collisions with timer
@@ -180,6 +183,43 @@ namespace Superorganism.Core.Managers
         public int GetPlayerMaxHealth() => _entityManager.PlayerMaxHealth;
         public void ResumeMusic() => _audioManager.ResumeMusic();
         //public void PauseMusic() => _audioManager.PauseMusic();
+
+
+        public void SetPlayerPosition(Vector2 statePlayerPosition)
+        {
+            _entityManager.PlayerPosition = statePlayerPosition;
+        }
+
+        public void SetPlayerHealth(int statePlayerHealth)
+        {
+            _entityManager.PlayerHealth = statePlayerHealth;
+        }
+
+        public void SetEnemyPosition(Vector2 stateEnemyPosition)
+        {
+            _entityManager.EnemyPosition = stateEnemyPosition;
+        }
+
+        public void SetEnemyStrategy(string stateCurrentEnemyStrategy)
+        {
+            Strategy newStrategy = Strategy.Idle;
+            switch (stateCurrentEnemyStrategy)
+            {
+                case nameof(Strategy.Random360FlyingMovement):
+                    newStrategy = Strategy.Random360FlyingMovement;
+                    break;
+                case nameof(Strategy.Patrol):
+                    newStrategy = Strategy.Patrol;
+                    break;
+                case nameof(Strategy.ChaseEnemy):
+                    newStrategy = Strategy.ChaseEnemy;
+                    break;
+                case nameof(Strategy.Transition):
+                    newStrategy = Strategy.Transition;
+                    break;
+            }
+            _entityManager.EnemyStrategy = newStrategy;
+        }
 
         public void Unload()
         {

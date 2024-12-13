@@ -63,7 +63,6 @@ Copyright (C) 2009 Kevin Gadd
  */
 #endregion
 
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -73,7 +72,6 @@ using System.Xml;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Framework.Utilities.Deflate;
 using CompressionMode = System.IO.Compression.CompressionMode;
 using GZipStream = System.IO.Compression.GZipStream;
 
@@ -84,13 +82,15 @@ namespace Superorganism.Tiles
     /// </summary>
     public class Tileset
     {
-        /// <summary>
-        /// A class for holding a list of tile properties 
-        /// </summary>
-        /// <remarks>
-        /// Essentially, a &lt;string, string&gt; dictionary
-        /// </remarks>
-        public class TilePropertyList : Dictionary<string, string>;
+        ///// <summary>
+        ///// A class for holding a list of tile properties 
+        ///// </summary>
+        ///// <remarks>
+        ///// Essentially, a &lt;string, string&gt; dictionary
+        ///// </remarks>
+        //public class TilePropertyList : Dictionary<string, string>
+        //{
+        //}
 
         public string Name;
         public int FirstTileId;
@@ -98,8 +98,9 @@ namespace Superorganism.Tiles
         public int TileHeight;
         public int Spacing;
         public int Margin;
-        public Dictionary<int, TilePropertyList> TileProperties = new();
+        public Dictionary<int, Dictionary<string, string>> TileProperties = new();
         public string Image;
+
         protected Texture2D Texture;
         protected int TexWidth;
         protected int TexHeight;
@@ -146,15 +147,14 @@ namespace Superorganism.Tiles
                                 currentTileId = int.Parse(reader.GetAttribute("id") ?? throw new InvalidOperationException());
                                 break;
                             case "property":
+                            {
+                                if (!result.TileProperties.TryGetValue(currentTileId, out Dictionary<string, string> props))
                                 {
-                                    if (!result.TileProperties.TryGetValue(currentTileId, out TilePropertyList props))
-                                    {
-                                        props = new TilePropertyList();
-                                        result.TileProperties[currentTileId] = props;
-                                    }
-
-                                    props[reader.GetAttribute("name") ?? throw new InvalidOperationException()] = reader.GetAttribute("value");
+                                    props = new Dictionary<string, string>();
+                                    result.TileProperties[currentTileId] = props;
                                 }
+                                props[reader.GetAttribute("name") ?? throw new InvalidOperationException()] = reader.GetAttribute("value");
+                            }
                                 break;
                         }
 
@@ -171,16 +171,13 @@ namespace Superorganism.Tiles
         /// Gets the properties of the specified tile
         /// </summary>
         /// <param name="index">The index of the tile</param>
-        /// <returns>A TilePropertyList for the tile</returns>
-        public TilePropertyList GetTileProperties(int index)
+        /// <returns>A dictionary of property names to values</returns>
+        public Dictionary<string, string> GetTileProperties(int index)
         {
             index -= FirstTileId;
-
             if (index < 0)
                 return null;
-
-            TileProperties.TryGetValue(index, out TilePropertyList result);
-
+            TileProperties.TryGetValue(index, out Dictionary<string, string> result);
             return result;
         }
 
@@ -244,7 +241,7 @@ namespace Superorganism.Tiles
         internal const byte VerticalFlipDrawFlag = 2;
         internal const byte DiagonallyFlipDrawFlag = 4;
 
-        public SortedList<string, string> Properties = new();
+        public Dictionary<string, string> Properties = new();
         internal struct TileInfo
         {
             public Texture2D Texture;
@@ -344,9 +341,7 @@ namespace Superorganism.Tiles
                                                     stream = new GZipStream(stream, CompressionMode.Decompress, false);
                                                     break;
                                                 case "zlib":
-                                                    stream = new ZlibStream(stream,
-                                                        (MonoGame.Framework.Utilities.Deflate.CompressionMode)
-                                                        CompressionMode.Decompress, false);
+                                                    stream = new GZipStream(stream, CompressionMode.Decompress, false);
                                                     break;
                                             }
 
@@ -455,7 +450,7 @@ namespace Superorganism.Tiles
         /// by the tile index for quick retreival/processing
         /// </summary>
         /// <param name="tilesets">The list of tilesets containing tiles to cache</param>
-        protected void BuildTileInfoCache(IList<Tileset> tilesets)
+        protected void BuildTileInfoCache(Dictionary<string, Tileset>.ValueCollection tilesets)
         {
             Rectangle rect = new();
             List<TileInfo> cache = [];
@@ -488,7 +483,7 @@ namespace Superorganism.Tiles
         /// <param name="viewportPosition">The viewport's position in the layer</param>
         /// <param name="tileWidth">The width of a tile</param>
         /// <param name="tileHeight">The height of a tile</param>
-        public void Draw(SpriteBatch batch, IList<Tileset> tilesets, Rectangle rectangle, Vector2 viewportPosition, int tileWidth, int tileHeight)
+        public void Draw(SpriteBatch batch, Dictionary<string, Tileset>.ValueCollection tilesets, Rectangle rectangle, Vector2 viewportPosition, int tileWidth, int tileHeight)
         {
             if (TileInfoCache == null)
                 BuildTileInfoCache(tilesets);
@@ -535,7 +530,7 @@ namespace Superorganism.Tiles
                     }
 
                     int index = Tiles[i] - 1;
-                    if ((index >= 0) && (index < TileInfoCache!.Length))
+                    if (index >= 0 && index < TileInfoCache!.Length)
                     {
                         TileInfo info = TileInfoCache[index];
 
@@ -551,7 +546,7 @@ namespace Superorganism.Tiles
                             info.Rectangle,
                             Color.White * Opacity,
                             rotation,
-                            Vector2.Zero, // Don't use center origin since we're positioning manually
+                            Vector2.Zero, // Don't use center origin since it positions manually
                             1f,
                             flipEffect,
                             0
@@ -567,8 +562,8 @@ namespace Superorganism.Tiles
     /// </summary>
     public class ObjectGroup
     {
-        public SortedList<string, Object> Objects = new();
-        public SortedList<string, string> Properties = new();
+        public Dictionary<string, Object> Objects = new();
+        public Dictionary<string, string> Properties = new();
 
         public string Name;
         public int Width, Height, X, Y;
@@ -680,7 +675,7 @@ namespace Superorganism.Tiles
     /// </remarks>
     public class Object
     {
-        public SortedList<string, string> Properties = new();
+        public Dictionary<string, string> Properties = new();
 
         public string Name, Image;
         public int Width, Height, X, Y;
@@ -811,22 +806,22 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The Map's Tilesets
         /// </summary>
-        public SortedList<string, Tileset> Tilesets = new();
+        public Dictionary<string, Tileset> Tilesets = new();
 
         /// <summary>
         /// The Map's Layers
         /// </summary>
-        public SortedList<string, Layer> Layers = new();
+        public Dictionary<string, Layer> Layers = new();
 
         /// <summary>
         /// The Map's Object Groups
         /// </summary>
-        public SortedList<string, ObjectGroup> ObjectGroups = new();
+        public Dictionary<string, ObjectGroup> ObjectGroups = new();
 
         /// <summary>
         /// The Map's properties
         /// </summary>
-        public SortedList<string, string> Properties = new();
+        public Dictionary<string, string> Properties = new();
 
         /// <summary>
         /// The Map's width and height
@@ -938,7 +933,7 @@ namespace Superorganism.Tiles
 
             foreach (Tileset tileset in result.Tilesets.Values)
             {
-                string relativePath = ContentPaths.GetTilesetPath(Path.GetFileNameWithoutExtension(tileset.Image));
+                string relativePath = ContentPaths.GetMapPath(Path.GetFileNameWithoutExtension(tileset.Image));
                 tileset.TileTexture = content.Load<Texture2D>(relativePath);
             }
 
