@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Superorganism.Tiles.BasicTilemapEngine;
 using Superorganism.Tiles.TilemapEngine;
 
 namespace Superorganism.Core.Managers
@@ -18,7 +19,17 @@ namespace Superorganism.Core.Managers
             _instance = manager ?? throw new ArgumentNullException(nameof(manager));
         }
 
-        public static Map CurrentMap
+        //public static Map CurrentMap
+        //{
+        //    get
+        //    {
+        //        if (_instance == null)
+        //            throw new InvalidOperationException("GameStateManager not initialized. Call Initialize() first.");
+        //        return _instance.CurrentMap;
+        //    }
+        //}
+
+        public static BasicMap CurrentMap
         {
             get
             {

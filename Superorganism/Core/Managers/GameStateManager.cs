@@ -11,6 +11,7 @@ using Superorganism.Core.SaveLoadSystem;
 using Superorganism.Entities;
 using Superorganism.ScreenManagement;
 using Superorganism.Tiles;
+using Superorganism.Tiles.BasicTilemapEngine;
 using Superorganism.Tiles.TilemapEngine;
 
 namespace Superorganism.Core.Managers
@@ -21,10 +22,11 @@ namespace Superorganism.Core.Managers
         private readonly GameAudioManager _audioManager;
         private readonly InputAction _pauseAction;
         private readonly Camera2D _camera;
-        private readonly Map _map;
+        //private readonly Map _map;
+        private readonly BasicMap _map;
         private readonly ContentManager _content;
 
-        public Map CurrentMap => _map;
+        public BasicMap CurrentMap => _map;
 
         public bool IsGameOver { get; set; }
         public bool IsGameWon { get; set; }
@@ -34,8 +36,27 @@ namespace Superorganism.Core.Managers
         private double _enemyCollisionTimer;
         private const double EnemyCollisionInterval = 0.2;
 
+        //public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera,
+        //    GameAudioManager audio, Map map)
+        //{
+        //    DecisionMaker.Entities.Clear();
+        //    _audioManager = audio;
+        //    _camera = camera;
+        //    _map = map;
+        //    _content = content;
+
+        //    _entityManager = new EntityManager(game, content, graphicsDevice, map);
+
+        //    _pauseAction = new InputAction(
+        //        new[] { Buttons.Start, Buttons.Back },
+        //        new[] { Keys.Back, Keys.Escape },
+        //        true);
+
+        //    InitializeGameState();
+        //}
+
         public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera,
-            GameAudioManager audio, Map map)
+            GameAudioManager audio, BasicMap map)
         {
             DecisionMaker.Entities.Clear();
             _audioManager = audio;

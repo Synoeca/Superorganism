@@ -7,6 +7,7 @@ using Superorganism.Collisions;
 using Superorganism.Core.Managers;
 using Superorganism.Interfaces;
 using Superorganism.Tiles;
+using Superorganism.Tiles.BasicTilemapEngine;
 using Superorganism.Tiles.TilemapEngine;
 
 namespace Superorganism.Entities
@@ -162,12 +163,12 @@ namespace Superorganism.Entities
             );
 
             // Get the tile at the proposed position
-            int tileX = (int)(proposedPosition.X / MapHelper.TileSize);
-            int tileY = (int)(proposedPosition.Y / MapHelper.TileSize);
+            int tileX = (int)(proposedPosition.X / BasicMapHelper.TileSize);
+            int tileY = (int)(proposedPosition.Y / BasicMapHelper.TileSize);
             bool hasCollision = false;
 
             // Check each layer for collision, excluding diagonal tiles
-            foreach (Layer layer in GameState.CurrentMap.Layers.Values)
+            foreach (BasicLayer layer in GameState.CurrentMap.Layers.Values)
             {
                 int tileId = layer.GetTile(tileX, tileY);
                 // Skip collision check for diagonal tiles (20, 24, 25, 30, 52, 53, 56)
@@ -176,7 +177,7 @@ namespace Superorganism.Entities
                     tileId != 53 && tileId != 54 && tileId != 57)
                 {
                     // Check collision with non-diagonal tiles
-                    if (MapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
+                    if (BasicMapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
                     {
                         hasCollision = true;
                         break;
@@ -212,7 +213,7 @@ namespace Superorganism.Entities
                 mapBounds.Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
 
             // Get ground level at new position
-            float groundY = MapHelper.GetGroundYPosition(
+            float groundY = BasicMapHelper.GetGroundYPosition(
                 GameState.CurrentMap,
                 newPosition.X,
                 _position.Y,

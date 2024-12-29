@@ -66,7 +66,7 @@ namespace Superorganism.Entities
                 MapHelper.GetMapWorldBounds().Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
 
             // Get ground level at new position
-            float groundY = MapHelper.GetGroundYPosition(
+            float groundY = BasicMapHelper.GetGroundYPosition(
                 GameState.CurrentMap,
                 newPosition.X,
                 Position.Y,

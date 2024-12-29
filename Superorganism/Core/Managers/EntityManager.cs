@@ -11,6 +11,7 @@ using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Particle;
 using Superorganism.Tiles;
+using Superorganism.Tiles.BasicTilemapEngine;
 using Superorganism.Tiles.TilemapEngine;
 
 namespace Superorganism.Core.Managers;
@@ -23,7 +24,8 @@ public class EntityManager
     private Fly[] _flies;
     private ExplosionParticleSystem _explosions;
     private readonly Game _game;
-    private readonly Map _map;
+    //private readonly Map _map;
+    private readonly BasicMap _map;
 
     private const float InvincibleAlpha = 0.4f;
     private const float EnemyAlpha = 0.8f;
@@ -108,10 +110,20 @@ public class EntityManager
         }
         return null;
     }
-    public Map GetCurrentMap() => _map;
+    public BasicMap GetCurrentMap() => _map;
 
-    public EntityManager(Game game, ContentManager content, 
-        GraphicsDevice graphicsDevice, Map map)
+    //public EntityManager(Game game, ContentManager content, 
+    //    GraphicsDevice graphicsDevice, Map map)
+    //{
+    //    _game = game;
+    //    _map = map;
+    //    InitializeEntities(graphicsDevice);
+    //    LoadContent(content);
+    //    //_ant.CollisionBounding = (BoundingRectangle)_ant.TextureInfo.CollisionType;
+    //}
+
+    public EntityManager(Game game, ContentManager content,
+        GraphicsDevice graphicsDevice, BasicMap map)
     {
         _game = game;
         _map = map;

@@ -8,6 +8,7 @@ using Superorganism.Core.Managers;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Tiles;
+using Superorganism.Tiles.BasicTilemapEngine;
 using Superorganism.Tiles.TilemapEngine;
 
 namespace Superorganism.AI
@@ -88,7 +89,22 @@ namespace Superorganism.AI
             int tileY = (int)(proposedPosition.Y / MapHelper.TileSize);
 
             // Check each layer for collision, excluding diagonal tiles
-            foreach (Layer layer in GameState.CurrentMap.Layers.Values)
+            //foreach (Layer layer in GameState.CurrentMap.Layers.Values)
+            //{
+            //    int tileId = layer.GetTile(tileX, tileY);
+            //    if (tileId != 0 &&
+            //        tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
+            //        tileId != 53 && tileId != 54 && tileId != 57)
+            //    {
+            //        // Check collision with non-diagonal tiles
+            //        if (MapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
+            //        {
+            //            return true;
+            //        }
+            //    }
+            //}
+
+            foreach (BasicLayer layer in GameState.CurrentMap.Layers.Values)
             {
                 int tileId = layer.GetTile(tileX, tileY);
                 if (tileId != 0 &&
@@ -96,7 +112,11 @@ namespace Superorganism.AI
                     tileId != 53 && tileId != 54 && tileId != 57)
                 {
                     // Check collision with non-diagonal tiles
-                    if (MapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
+                    //if (MapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
+                    //{
+                    //    return true;
+                    //}
+                    if (BasicMapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
                     {
                         return true;
                     }
@@ -195,7 +215,14 @@ namespace Superorganism.AI
                         Vector2 newPosition = position + velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
                         // Check ground collision before applying position update
-                        float groundY = MapHelper.GetGroundYPosition(
+                        //float groundY = MapHelper.GetGroundYPosition(
+                        //    GameState.CurrentMap,
+                        //    newPosition.X,
+                        //    position.Y,
+                        //    textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                        //);
+
+                        float groundY = BasicMapHelper.GetGroundYPosition(
                             GameState.CurrentMap,
                             newPosition.X,
                             position.Y,
@@ -259,7 +286,14 @@ namespace Superorganism.AI
                             mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
 
                         // Get ground level at new position
-                        float groundY = MapHelper.GetGroundYPosition(
+                        //float groundY = MapHelper.GetGroundYPosition(
+                        //    GameState.CurrentMap,
+                        //    newPosition.X,
+                        //    position.Y,
+                        //    textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                        //);
+
+                        float groundY = BasicMapHelper.GetGroundYPosition(
                             GameState.CurrentMap,
                             newPosition.X,
                             position.Y,
@@ -348,15 +382,22 @@ namespace Superorganism.AI
                         mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
 
                     // Get ground level at new position
-                    float groundY = MapHelper.GetGroundYPosition(
+                    //float groundY = MapHelper.GetGroundYPosition(
+                    //    GameState.CurrentMap,
+                    //    newPosition.X,
+                    //    position.Y,
+                    //    textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                    //);
+
+                    float groundY = BasicMapHelper.GetGroundYPosition(
                         GameState.CurrentMap,
                         newPosition.X,
                         position.Y,
                         textureInfo.UnitTextureHeight * textureInfo.SizeScale
                     );
 
-                    // Handle ground collision
-                    if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
+                        // Handle ground collision
+                        if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
                     {
                         newPosition.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
                         velocity.Y = 0;
@@ -382,7 +423,7 @@ namespace Superorganism.AI
                         mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
 
                     // Get ground level at new position
-                    float groundY = MapHelper.GetGroundYPosition(
+                    float groundY = BasicMapHelper.GetGroundYPosition(
                         GameState.CurrentMap,
                         newPosition.X,
                         position.Y,

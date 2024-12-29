@@ -110,7 +110,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// Checks collision with nearby tiles for an entity
         /// </summary>
-        public static bool CheckEntityMapCollision(Map map, Vector2 position, Vector2 size)
+        public static bool CheckEntityMapCollision(BasicMap map, Vector2 position, Vector2 size)
         {
             // Get the tiles the entity might be intersecting with
             int startTileX = (int)((position.X - size.X / 2) / TileSize);
@@ -129,7 +129,7 @@ namespace Superorganism.Tiles
             {
                 for (int x = startTileX; x <= endTileX; x++)
                 {
-                    foreach (Layer layer in map.Layers.Values)
+                    foreach (BasicLayer layer in map.Layers.Values)
                     {
                         if (layer.GetTile(x, y) != 0) // Non-empty tile
                         {
@@ -162,7 +162,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// Gets the ground Y position at a given world X coordinate
         /// </summary>
-        public static float GetGroundYPosition(Map map, float worldX, float positionY, float entityHeight)
+        public static float GetGroundYPosition(BasicMap map, float worldX, float positionY, float entityHeight)
         {
             // Convert world X to tile X
             int tileX = (int)(worldX / TileSize);
@@ -172,7 +172,7 @@ namespace Superorganism.Tiles
             // Search downward until we find ground
             for (; tileY < MapHeight; tileY++)
             {
-                foreach (Layer layer in map.Layers.Values)
+                foreach (BasicLayer layer in map.Layers.Values)
                 {
                     if (layer.GetTile(tileX, tileY) != 0)
                     {

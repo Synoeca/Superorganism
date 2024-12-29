@@ -25,7 +25,7 @@ namespace Superorganism.Screens
         private GameUiManager _uiManager;
         private Camera2D _camera;
         private ParallaxBackground _parallaxBackground;
-        private Map _map;
+        //private Map _map;
         private BasicMap _basicMap;
         private ContentManager _content;
 
@@ -57,19 +57,10 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            _map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
-            //_basicMap = BasicMap.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
+            //_map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
+            _basicMap = BasicMap.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
             //_basicMap = _content.Load<BasicMap>("Tileset/Maps/TestMapRev1");
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
-
-            GameStateManager = new GameStateManager(
-                ScreenManager.Game,
-                _content,
-                ScreenManager.GraphicsDevice,
-                _camera,
-                ScreenManager.GameAudioManager,
-                _map
-            );
 
             //GameStateManager = new GameStateManager(
             //    ScreenManager.Game,
@@ -77,8 +68,17 @@ namespace Superorganism.Screens
             //    ScreenManager.GraphicsDevice,
             //    _camera,
             //    ScreenManager.GameAudioManager,
-            //    _basicMap
+            //    _map
             //);
+
+            GameStateManager = new GameStateManager(
+                ScreenManager.Game,
+                _content,
+                ScreenManager.GraphicsDevice,
+                _camera,
+                ScreenManager.GameAudioManager,
+                _basicMap
+            );
 
             GameState.Initialize(GameStateManager);
 
@@ -182,16 +182,7 @@ namespace Superorganism.Screens
             // Draw parallax background first
             _parallaxBackground.Draw(spriteBatch, _camera.Position);
 
-            _map.Draw(
-                spriteBatch,
-                new Rectangle(0, 0,
-                    ScreenManager.GraphicsDevice.Viewport.Width,
-                    ScreenManager.GraphicsDevice.Viewport.Height
-                ),
-                Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
-            );
-
-            //_basicMap.Draw(
+            //_map.Draw(
             //    spriteBatch,
             //    new Rectangle(0, 0,
             //        ScreenManager.GraphicsDevice.Viewport.Width,
@@ -199,6 +190,15 @@ namespace Superorganism.Screens
             //    ),
             //    Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
             //);
+
+            _basicMap.Draw(
+                spriteBatch,
+                new Rectangle(0, 0,
+                    ScreenManager.GraphicsDevice.Viewport.Width,
+                    ScreenManager.GraphicsDevice.Viewport.Height
+                ),
+                Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
+            );
 
             GameStateManager.Draw(gameTime, spriteBatch);
 
