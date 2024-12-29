@@ -137,10 +137,6 @@ namespace Superorganism.Tiles.TilemapEngine
                                     break;
                             }
                             break;
-                        case XmlNodeType.EndElement:
-                            break;
-                        case XmlNodeType.Whitespace:
-                            break;
                     }
                 }
 

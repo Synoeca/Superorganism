@@ -44,120 +44,120 @@ namespace Superorganism.Tiles.BasicTilemapEngine
         /// </summary>
         public int TileWidth, TileHeight;
 
-        /// <summary>
-        /// Loads a TMX file into a Map object
-        /// </summary>
-        /// <param name="filename">The filename of the TMX file</param>
-        /// <param name="content">The ContentManager to load textures with</param>
-        /// <returns>The loaded map</returns>
-        public static BasicMap Load(string filename, ContentManager content)
-        {
-            BasicMap result = new();
-            XmlReaderSettings settings = new()
-            {
-                DtdProcessing = DtdProcessing.Parse
-            };
+        ///// <summary>
+        ///// Loads a TMX file into a Map object
+        ///// </summary>
+        ///// <param name="filename">The filename of the TMX file</param>
+        ///// <param name="content">The ContentManager to load textures with</param>
+        ///// <returns>The loaded map</returns>
+        //public static BasicMap Load(string filename, ContentManager content)
+        //{
+        //    BasicMap result = new();
+        //    XmlReaderSettings settings = new()
+        //    {
+        //        DtdProcessing = DtdProcessing.Parse
+        //    };
 
-            using (StreamReader stream = File.OpenText(filename))
-            using (XmlReader reader = XmlReader.Create(stream, settings))
-                while (reader.Read())
-                {
-                    string name = reader.Name;
+        //    using (StreamReader stream = File.OpenText(filename))
+        //    using (XmlReader reader = XmlReader.Create(stream, settings))
+        //        while (reader.Read())
+        //        {
+        //            string name = reader.Name;
 
-                    switch (reader.NodeType)
-                    {
-                        case XmlNodeType.DocumentType:
-                            if (name != "map")
-                                throw new Exception("Invalid map format");
-                            break;
-                        case XmlNodeType.Element:
-                            switch (name)
-                            {
-                                case "map":
-                                    {
-                                        result.Width = int.Parse(reader.GetAttribute("width") ?? throw new InvalidOperationException());
-                                        result.Height = int.Parse(reader.GetAttribute("height") ?? throw new InvalidOperationException());
-                                        result.TileWidth = int.Parse(reader.GetAttribute("tilewidth") ?? throw new InvalidOperationException());
-                                        result.TileHeight = int.Parse(reader.GetAttribute("tileheight") ?? throw new InvalidOperationException());
-                                    }
-                                    break;
-                                case "tileset":
-                                    {
-                                        using XmlReader st = reader.ReadSubtree();
-                                        st.Read();
-                                        BasicTileset tileset = BasicTileset.Load(st);
-                                        result.Tilesets.Add(tileset.Name, tileset);
-                                    }
-                                    break;
-                                case "layer":
-                                    {
-                                        using XmlReader st = reader.ReadSubtree();
-                                        st.Read();
-                                        BasicLayer layer = BasicLayer.Load(st);
-                                        if (null != layer)
-                                        {
-                                            result.Layers.Add(layer.Name, layer);
-                                        }
-                                    }
-                                    break;
-                                case "objectgroup":
-                                    {
-                                        using XmlReader st = reader.ReadSubtree();
-                                        st.Read();
-                                        BasicObjectGroup objectgroup = BasicObjectGroup.Load(st);
-                                        result.ObjectGroups.Add(objectgroup.Name, objectgroup);
-                                    }
-                                    break;
-                                case "properties":
-                                    {
-                                        using XmlReader st = reader.ReadSubtree();
-                                        while (!st.EOF)
-                                        {
-                                            switch (st.NodeType)
-                                            {
-                                                case XmlNodeType.Element:
-                                                    if (st.Name == "property")
-                                                    {
-                                                        if (st.GetAttribute("name") != null)
-                                                        {
-                                                            result.Properties.Add(st.GetAttribute("name") ?? throw new InvalidOperationException(), st.GetAttribute("value"));
-                                                        }
-                                                    }
+        //            switch (reader.NodeType)
+        //            {
+        //                case XmlNodeType.DocumentType:
+        //                    if (name != "map")
+        //                        throw new Exception("Invalid map format");
+        //                    break;
+        //                case XmlNodeType.Element:
+        //                    switch (name)
+        //                    {
+        //                        case "map":
+        //                            {
+        //                                result.Width = int.Parse(reader.GetAttribute("width") ?? throw new InvalidOperationException());
+        //                                result.Height = int.Parse(reader.GetAttribute("height") ?? throw new InvalidOperationException());
+        //                                result.TileWidth = int.Parse(reader.GetAttribute("tilewidth") ?? throw new InvalidOperationException());
+        //                                result.TileHeight = int.Parse(reader.GetAttribute("tileheight") ?? throw new InvalidOperationException());
+        //                            }
+        //                            break;
+        //                        case "tileset":
+        //                            {
+        //                                using XmlReader st = reader.ReadSubtree();
+        //                                st.Read();
+        //                                BasicTileset tileset = BasicTileset.Load(st);
+        //                                result.Tilesets.Add(tileset.Name, tileset);
+        //                            }
+        //                            break;
+        //                        case "layer":
+        //                            {
+        //                                using XmlReader st = reader.ReadSubtree();
+        //                                st.Read();
+        //                                BasicLayer layer = BasicLayer.Load(st);
+        //                                if (null != layer)
+        //                                {
+        //                                    result.Layers.Add(layer.Name, layer);
+        //                                }
+        //                            }
+        //                            break;
+        //                        case "objectgroup":
+        //                            {
+        //                                using XmlReader st = reader.ReadSubtree();
+        //                                st.Read();
+        //                                BasicObjectGroup objectgroup = BasicObjectGroup.Load(st);
+        //                                result.ObjectGroups.Add(objectgroup.Name, objectgroup);
+        //                            }
+        //                            break;
+        //                        case "properties":
+        //                            {
+        //                                using XmlReader st = reader.ReadSubtree();
+        //                                while (!st.EOF)
+        //                                {
+        //                                    switch (st.NodeType)
+        //                                    {
+        //                                        case XmlNodeType.Element:
+        //                                            if (st.Name == "property")
+        //                                            {
+        //                                                if (st.GetAttribute("name") != null)
+        //                                                {
+        //                                                    result.Properties.Add(st.GetAttribute("name") ?? throw new InvalidOperationException(), st.GetAttribute("value"));
+        //                                                }
+        //                                            }
 
-                                                    break;
-                                                case XmlNodeType.EndElement:
-                                                    break;
-                                            }
+        //                                            break;
+        //                                        case XmlNodeType.EndElement:
+        //                                            break;
+        //                                    }
 
-                                            st.Read();
-                                        }
-                                    }
-                                    break;
-                            }
-                            break;
-                    }
-                }
+        //                                    st.Read();
+        //                                }
+        //                            }
+        //                            break;
+        //                    }
+        //                    break;
+        //            }
+        //        }
 
-            foreach (BasicTileset tileset in result.Tilesets.Values)
-            {
-                string relativePath = ContentPaths.GetMapPath(Path.GetFileNameWithoutExtension(tileset.Image));
-                tileset.TileTexture = content.Load<Texture2D>(relativePath);
-            }
+        //    foreach (BasicTileset tileset in result.Tilesets.Values)
+        //    {
+        //        string relativePath = ContentPaths.GetMapPath(Path.GetFileNameWithoutExtension(tileset.Image));
+        //        tileset.TileTexture = content.Load<Texture2D>(relativePath);
+        //    }
 
-            foreach (BasicObjectGroup objects in result.ObjectGroups.Values)
-            {
-                foreach (BasicObject item in objects.Objects.Values)
-                {
-                    if (item.Image != null)
-                    {
-                        string relativePath = ContentPaths.GetMapPath(Path.GetFileNameWithoutExtension(item.Image));
-                        item.TileTexture = content.Load<Texture2D>(relativePath);
-                    }
-                }
-            }
-            BasicMapHelper.AnalyzeMapGround(result);
-            return result;
-        }
+        //    foreach (BasicObjectGroup objects in result.ObjectGroups.Values)
+        //    {
+        //        foreach (BasicObject item in objects.Objects.Values)
+        //        {
+        //            if (item.Image != null)
+        //            {
+        //                string relativePath = ContentPaths.GetMapPath(Path.GetFileNameWithoutExtension(item.Image));
+        //                item.TileTexture = content.Load<Texture2D>(relativePath);
+        //            }
+        //        }
+        //    }
+        //    BasicMapHelper.AnalyzeMapGround(result);
+        //    return result;
+        //}
 
         /// <summary>
         /// Draws the Map

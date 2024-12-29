@@ -8,5 +8,6 @@ namespace ContentPipeline
 {
     public class BasicTilesetContent
     {
+
     }
 }
