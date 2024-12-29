@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Superorganism.Tiles.TilemapEngine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using Superorganism.Tiles.TilemapEngine;
+using Superorganism.Tiles.BasicTilemapEngine;
 
 namespace Superorganism.Tiles
 {
-    public static class MapHelper
+    public static class BasicMapHelper
     {
         public const int TileSize = 64;  // Each tile is 64x64 pixels
         public const int MapWidth = 200; // Width in tiles
@@ -16,7 +17,7 @@ namespace Superorganism.Tiles
 
         private static readonly Dictionary<int, int> GroundLevels = new();
 
-        public static void AnalyzeMapGround(Map map)
+        public static void AnalyzeMapGround(BasicMap map)
         {
             GroundLevels.Clear();
 
@@ -26,7 +27,7 @@ namespace Superorganism.Tiles
                 for (int y = 0; y < MapHeight; y++)
                 {
                     bool foundGround = false;
-                    foreach (Layer layer in map.Layers.Values)
+                    foreach (BasicLayer layer in map.Layers.Values)
                     {
                         if (layer.GetTile(x, y) != 0)
                         {

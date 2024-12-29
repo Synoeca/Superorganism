@@ -8,6 +8,7 @@ using Superorganism.Core.Managers;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Tiles;
+using Superorganism.Tiles.TilemapEngine;
 
 namespace Superorganism.AI
 {

@@ -11,6 +11,7 @@ using Superorganism.Core.SaveLoadSystem;
 using Superorganism.Entities;
 using Superorganism.ScreenManagement;
 using Superorganism.Tiles;
+using Superorganism.Tiles.TilemapEngine;
 
 namespace Superorganism.Core.Managers
 {

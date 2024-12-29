@@ -13,8 +13,8 @@ using System.IO;
 using ContentPipeline;
 using Superorganism.Core.SaveLoadSystem;
 using System.Text.Json;
-
-#pragma warning disable CA1416
+using Superorganism.Tiles.BasicTilemapEngine;
+using Superorganism.Tiles.TilemapEngine;
 
 namespace Superorganism.Screens
 {
@@ -58,6 +58,7 @@ namespace Superorganism.Screens
         private void InitializeComponents()
         {
             _map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
+            //_basicMap = BasicMap.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
             //_basicMap = _content.Load<BasicMap>("Tileset/Maps/TestMapRev1");
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
@@ -69,6 +70,15 @@ namespace Superorganism.Screens
                 ScreenManager.GameAudioManager,
                 _map
             );
+
+            //GameStateManager = new GameStateManager(
+            //    ScreenManager.Game,
+            //    _content,
+            //    ScreenManager.GraphicsDevice,
+            //    _camera,
+            //    ScreenManager.GameAudioManager,
+            //    _basicMap
+            //);
 
             GameState.Initialize(GameStateManager);
 
@@ -180,6 +190,15 @@ namespace Superorganism.Screens
                 ),
                 Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
             );
+
+            //_basicMap.Draw(
+            //    spriteBatch,
+            //    new Rectangle(0, 0,
+            //        ScreenManager.GraphicsDevice.Viewport.Width,
+            //        ScreenManager.GraphicsDevice.Viewport.Height
+            //    ),
+            //    Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
+            //);
 
             GameStateManager.Draw(gameTime, spriteBatch);
 

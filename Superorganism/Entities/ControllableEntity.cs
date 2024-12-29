@@ -7,6 +7,7 @@ using Superorganism.Collisions;
 using Superorganism.Core.Managers;
 using Superorganism.Interfaces;
 using Superorganism.Tiles;
+using Superorganism.Tiles.TilemapEngine;
 
 namespace Superorganism.Entities
 {

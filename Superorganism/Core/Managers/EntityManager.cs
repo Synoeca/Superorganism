@@ -11,6 +11,7 @@ using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Particle;
 using Superorganism.Tiles;
+using Superorganism.Tiles.TilemapEngine;
 
 namespace Superorganism.Core.Managers;
 
