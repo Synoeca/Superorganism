@@ -15,6 +15,12 @@ namespace ContentPipeline
     [ContentSerializerRuntimeType("Superorganism.Tiles.Map, Superorganism")]
     public class BasicMap
     {
+        public int Width { get; set; }
+        public int Height { get; set; }
+
+        public int TileWidth { get; set; }
+        public int TileHeight { get; set; }
+
         public Dictionary<string, BasicTileset> Tilesets { get; set; } = new();
 
 
@@ -25,13 +31,6 @@ namespace ContentPipeline
 
 
         public Dictionary<string, string> Properties { get; set; } = new();
-
-
-        public int Width { get; set; }
-        public int Height { get; set; }
-
-        public int TileWidth;
-        public int TileHeight;
 
         [ContentSerializerIgnore]
         public string Filename;

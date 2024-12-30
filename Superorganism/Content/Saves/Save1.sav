@@ -1,0 +1,66 @@
+{
+  "IsGameOver": false,
+  "IsGameWon": false,
+  "CropsLeft": 29,
+  "ElapsedTime": 80.90016180000367,
+  "PlayerPosition": {
+    "X": 654.5,
+    "Y": 1035
+  },
+  "PlayerHealth": 68,
+  "EnemyPositions": [
+    {
+      "X": 6072,
+      "Y": 1034.6
+    },
+    {
+      "X": 3427.7656,
+      "Y": 1226.6
+    },
+    {
+      "X": 6344,
+      "Y": 1034.6
+    },
+    {
+      "X": 6118,
+      "Y": 1034.6
+    },
+    {
+      "X": 6356,
+      "Y": 1034.6
+    },
+    {
+      "X": 811,
+      "Y": 1482.6
+    },
+    {
+      "X": 777,
+      "Y": 1482.6
+    },
+    {
+      "X": 845,
+      "Y": 1482.6
+    },
+    {
+      "X": 2289,
+      "Y": 1226.6
+    },
+    {
+      "X": 849,
+      "Y": 1482.6
+    }
+  ],
+  "EnemyStrategies": [
+    "Patrol",
+    "Patrol",
+    "Patrol",
+    "Patrol",
+    "Patrol",
+    "Patrol",
+    "Patrol",
+    "Patrol",
+    "Patrol",
+    "Patrol"
+  ],
+  "SaveFilename": "Save1.sav"
+}

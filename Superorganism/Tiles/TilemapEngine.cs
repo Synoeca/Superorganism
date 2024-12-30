@@ -804,6 +804,20 @@ namespace Superorganism.Tiles
     public class Map
     {
         /// <summary>
+        /// The Map's width and height
+        /// </summary>
+        public int Width;
+
+        public int Height;
+
+        /// <summary>
+        /// The Map's tile width and height
+        /// </summary>
+        public int TileWidth;
+
+        public int TileHeight;
+
+        /// <summary>
         /// The Map's Tilesets
         /// </summary>
         public Dictionary<string, Tileset> Tilesets = new();
@@ -822,16 +836,6 @@ namespace Superorganism.Tiles
         /// The Map's properties
         /// </summary>
         public Dictionary<string, string> Properties = new();
-
-        /// <summary>
-        /// The Map's width and height
-        /// </summary>
-        public int Width, Height;
-
-        /// <summary>
-        /// The Map's tile width and height
-        /// </summary>
-        public int TileWidth, TileHeight;
 
         /// <summary>
         /// Loads a TMX file into a Map object
