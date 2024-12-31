@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -10,6 +11,7 @@ using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
+using System.Linq;
 
 namespace Superorganism.Screens
 {
@@ -55,7 +57,39 @@ namespace Superorganism.Screens
                 Console.WriteLine($"Map file not found at: {mapPath}");
             }
 
+            // First load base map
             _map = _content.Load<Map>("Tileset/Maps/TestMapRev1");
+
+            // Load and process tilesets
+            //foreach (string key in _map.Tilesets.Keys.ToList())
+            //{
+            //    string tilesetPath = Path.Combine("Tileset", key);
+            //    Tileset tileset = _content.Load<Tileset>(tilesetPath);
+            //    _map.Tilesets[key] = tileset;
+            //}
+
+            //Tileset tileset = _content.Load<Tileset>("Tileset/Maps/TestMapRev1");
+
+            // Load and process layers
+            //foreach (string key in _map.Layers.Keys.ToList())
+            //{
+            //    string layerPath = Path.Combine("Tileset/Maps", key);
+            //    Layer layer = _content.Load<Layer>(layerPath);
+            //    _map.Layers[key] = layer;
+            //}
+
+            //Layer layer = _content.Load<Layer>("Tileset/Maps/TestMapRev1");
+
+            // Load and process object groups
+            //foreach (string key in _map.ObjectGroups.Keys.ToList())
+            //{
+            //    string groupPath = Path.Combine("Tileset/Maps", key);
+            //    ObjectGroup group = _content.Load<ObjectGroup>(groupPath);
+            //    _map.ObjectGroups[key] = group;
+            //}
+
+            //ObjectGroup group = _content.Load<ObjectGroup>("Tileset/Maps/TestMapRev1");
+
             // Initialize camera
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
