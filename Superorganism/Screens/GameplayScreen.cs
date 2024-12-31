@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using Superorganism.Core.Camera;
-using Superorganism.Core.Managers;
-using Microsoft.Xna.Framework.Content;
-using Superorganism.AI;
-using Superorganism.ScreenManagement;
-using Superorganism.Core.Background;
-using Superorganism.Tiles;
 using System.IO;
 using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using Superorganism.AI;
+using Superorganism.Core.Background;
+using Superorganism.Core.Camera;
+using Superorganism.Core.Managers;
+using Superorganism.ScreenManagement;
+using Superorganism.Tiles;
 
 namespace Superorganism.Screens
 {

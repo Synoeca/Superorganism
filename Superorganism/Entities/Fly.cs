@@ -1,5 +1,5 @@
-﻿using Superorganism.Collisions;
-using Superorganism.AI;
+﻿using Superorganism.AI;
+using Superorganism.Collisions;
 using Superorganism.Common;
 
 namespace Superorganism.Entities

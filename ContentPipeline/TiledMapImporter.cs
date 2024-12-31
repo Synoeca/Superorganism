@@ -1,12 +1,11 @@
-﻿using Microsoft.Xna.Framework.Content;
+﻿using System.Globalization;
+using System.IO.Compression;
+using System.Xml;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
 using MonoGame.Extended.Content.Pipeline.Tiled;
 using SharpDX;
-using System.Globalization;
-using System.IO.Compression;
-using System.Xml;
-using static ContentPipeline.BasicTileset;
 
 namespace ContentPipeline
 {
@@ -87,7 +86,7 @@ namespace ContentPipeline
                                     {
                                         st.Read();
                                         context.Logger.LogMessage("Loading tileset...");
-                                        BasicTileset tileset = LoadBasicTileset(st, context);
+                                        BasicMap.BasicTileset tileset = LoadBasicTileset(st, context);
                                         result.Tilesets.Add(tileset.Name, tileset);
                                         context.Logger.LogMessage($"tileset.Name: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
                                         context.Logger.LogMessage($"Loaded tileset: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
@@ -99,7 +98,7 @@ namespace ContentPipeline
                                     {
                                         st.Read();
                                         context.Logger.LogMessage("Loading layer...");
-                                        BasicLayer layer = LoadBasicLayer(st);
+                                        BasicMap.BasicLayer layer = LoadBasicLayer(st);
                                         if (layer != null)
                                         {
                                             result.Layers.Add(layer.Name, layer);
@@ -113,7 +112,7 @@ namespace ContentPipeline
                                     {
                                         st.Read();
                                         context.Logger.LogMessage("Loading object group...");
-                                        BasicObjectGroup objectgroup = LoadBasicObjectGroup(st);
+                                        BasicMap.BasicObjectGroup objectgroup = LoadBasicObjectGroup(st);
                                         result.ObjectGroups.Add(objectgroup.Name, objectgroup);
                                         context.Logger.LogMessage($"Loaded object group: {objectgroup.Name} (Objects: {objectgroup.Objects.Count})");
                                     }
@@ -164,7 +163,7 @@ namespace ContentPipeline
         }
 
         // Add context parameter to these methods and include logging
-        private BasicTileset LoadBasicTileset(XmlReader reader, ContentImporterContext context)
+        private BasicMap.BasicTileset LoadBasicTileset(XmlReader reader, ContentImporterContext context)
         {
             context.Logger.LogMessage("\n=== Starting Tileset Loading ===");
             context.Logger.LogMessage("Reading initial attributes...");
@@ -180,7 +179,7 @@ namespace ContentPipeline
             context.Logger.LogMessage($"  tilecount: {reader.GetAttribute("tilecount")}");
             context.Logger.LogMessage($"  columns: {reader.GetAttribute("columns")}");
 
-            BasicTileset result = new()
+            BasicMap.BasicTileset result = new()
             {
                 Name = reader.GetAttribute("name")!,
                 FirstTileId = ParseIntAttribute(reader, "firstgid"),
@@ -286,11 +285,11 @@ namespace ContentPipeline
             }
         }
 
-        public BasicLayer LoadBasicLayer(XmlReader reader)
+        public BasicMap.BasicLayer LoadBasicLayer(XmlReader reader)
         {
             CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
             ci.NumberFormat.CurrencyDecimalSeparator = ".";
-            BasicLayer result = new();
+            BasicMap.BasicLayer result = new();
 
             if (reader.GetAttribute("name") != null)
             {
@@ -460,9 +459,9 @@ namespace ContentPipeline
             return result;
         }
 
-        public BasicObjectGroup LoadBasicObjectGroup(XmlReader reader)
+        public BasicMap.BasicObjectGroup LoadBasicObjectGroup(XmlReader reader)
         {
-            BasicObjectGroup result = new();
+            BasicMap.BasicObjectGroup result = new();
             CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
             ci.NumberFormat.CurrencyDecimalSeparator = ".";
 
@@ -492,7 +491,7 @@ namespace ContentPipeline
                                 {
                                     using XmlReader st = reader.ReadSubtree();
                                     st.Read();
-                                    BasicObject objects = LoadBasicObject(st);
+                                    BasicMap.BasicObject objects = LoadBasicObject(st);
                                     if (!result.Objects.TryAdd(objects.Name, objects))
                                     {
                                         int count = result.Objects.Keys.Count((item) => item.Equals(objects.Name));
@@ -538,9 +537,9 @@ namespace ContentPipeline
             return result;
         }
 
-        public BasicObject LoadBasicObject(XmlReader reader)
+        public BasicMap.BasicObject LoadBasicObject(XmlReader reader)
         {
-            BasicObject result = new()
+            BasicMap.BasicObject result = new()
             {
                 Name = reader.GetAttribute("name"),
                 X = int.Parse(reader.GetAttribute("x") ?? throw new InvalidOperationException()),
