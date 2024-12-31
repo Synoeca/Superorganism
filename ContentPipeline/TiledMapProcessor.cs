@@ -46,11 +46,30 @@ namespace ContentPipeline
 
             try
             {
+                BasicMap processedMap = new BasicMap
+                {
+                    Width = input.Width,
+                    Height = input.Height,
+                    TileWidth = input.TileWidth,
+                    TileHeight = input.TileHeight,
+                    Tilesets = new Dictionary<string, BasicTileset>(),
+                    Layers = new Dictionary<string, BasicLayer>(),
+                    ObjectGroups = new Dictionary<string, BasicObjectGroup>(),
+                    Properties = new Dictionary<string, string>(input.Properties ?? new Dictionary<string, string>()),
+                };
+
                 // Process each tileset
                 foreach (KeyValuePair<string, BasicTileset> tilesetEntry in input.Tilesets)
                 {
                     context.Logger.LogMessage($"\n=== Processing Tileset: {tilesetEntry.Key} ===");
                     BasicTileset tileset = tilesetEntry.Value;
+
+                    tileset.FirstTileId = tileset.FirstTileId;
+                    tileset.TileWidth = tileset.TileWidth;
+                    tileset.TileHeight = tileset.TileHeight;
+                    tileset.Spacing = tileset.Spacing;
+                    tileset.Margin = tileset.Margin;
+                    tileset.TileProperties = tileset.TileProperties ?? new Dictionary<int, Dictionary<string, string>>();
 
                     // Log pre-processing state
                     context.Logger.LogMessage("Pre-processing Tileset State:");
@@ -62,6 +81,8 @@ namespace ContentPipeline
                     context.Logger.LogMessage($"  Margin: {tileset.Margin}");
                     context.Logger.LogMessage($"  Image Path: {tileset.Image}");
                     context.Logger.LogMessage($"  Properties Count: {tileset.TileProperties?.Count ?? 0}");
+
+
 
                     if (!string.IsNullOrEmpty(tileset.Image))
                     {
@@ -182,7 +203,7 @@ namespace ContentPipeline
                 }
 
                 context.Logger.LogMessage("\n=== Building Tile Info Caches ===");
-                foreach (var layer in input.Layers.Values)
+                foreach (BasicLayer layer in input.Layers.Values)
                 {
                     context.Logger.LogMessage($"Building cache for layer: {layer.Name}");
                     layer.BuildTileInfoCache(input.Tilesets.Values, context);  // Pass the context
@@ -206,7 +227,7 @@ namespace ContentPipeline
                     context.Logger.LogMessage($"TileHeight: {input.TileHeight} (Type: {input.TileHeight.GetType()})");
 
                     // Log each tileset's raw values
-                    foreach (var tileset in input.Tilesets.Values)
+                    foreach (BasicTileset tileset in input.Tilesets.Values)
                     {
                         context.Logger.LogMessage($"\nTileset raw values:");
                         context.Logger.LogMessage($"Name: {tileset.Name}");
@@ -221,7 +242,7 @@ namespace ContentPipeline
                     }
 
                     // Log each layer's raw values
-                    foreach (var layer in input.Layers.Values)
+                    foreach (BasicLayer layer in input.Layers.Values)
                     {
                         context.Logger.LogMessage($"\nLayer raw values:");
                         context.Logger.LogMessage($"Name: {layer.Name}");
@@ -239,9 +260,7 @@ namespace ContentPipeline
                     context.Logger.LogImportantMessage($"Error logging raw state: {ex.Message}");
                 }
 
-                return input;
-
-                return input;
+                return processedMap;
             }
             catch (Exception ex)
             {

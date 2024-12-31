@@ -249,7 +249,8 @@ namespace Superorganism.Tiles
         }
 
         public string Name;
-        public int Width, Height;
+        public int Width;
+        public int Height;
         public float Opacity = 1;
         public int[] Tiles;
         public byte[] FlipAndRotate;
