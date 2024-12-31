@@ -1,14 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
-using MonoGame.Extended.Content.Pipeline;
-using System.Collections.Generic;
-using System.Xml;
-using Microsoft.Xna.Framework.Graphics;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using System.Globalization;
-using System.IO.Compression;
-using Microsoft.Xna.Framework;
 
 namespace ContentPipeline
 {
@@ -23,12 +16,9 @@ namespace ContentPipeline
 
         public Dictionary<string, BasicTileset> Tilesets { get; set; } = new();
 
-
         public Dictionary<string, BasicLayer> Layers { get; set; } = new();
 
-
         public Dictionary<string, BasicObjectGroup> ObjectGroups { get; set; } = new();
-
 
         public Dictionary<string, string> Properties { get; set; } = new();
 
@@ -44,9 +34,7 @@ namespace ContentPipeline
 
         public int FirstTileId;
 
-
         public int TileWidth;
-
 
         public int TileHeight;
 

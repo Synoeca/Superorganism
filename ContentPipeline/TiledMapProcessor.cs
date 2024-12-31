@@ -46,7 +46,7 @@ namespace ContentPipeline
 
             try
             {
-                BasicMap processedMap = new BasicMap
+                BasicMap processedMap = new()
                 {
                     Width = input.Width,
                     Height = input.Height,
@@ -55,7 +55,7 @@ namespace ContentPipeline
                     Tilesets = new Dictionary<string, BasicTileset>(),
                     Layers = new Dictionary<string, BasicLayer>(),
                     ObjectGroups = new Dictionary<string, BasicObjectGroup>(),
-                    Properties = new Dictionary<string, string>(input.Properties ?? new Dictionary<string, string>()),
+                    Properties = new Dictionary<string, string>(input.Properties),
                 };
 
                 // Process each tileset
@@ -69,7 +69,7 @@ namespace ContentPipeline
                     tileset.TileHeight = tileset.TileHeight;
                     tileset.Spacing = tileset.Spacing;
                     tileset.Margin = tileset.Margin;
-                    tileset.TileProperties = tileset.TileProperties ?? new Dictionary<int, Dictionary<string, string>>();
+                    tileset.TileProperties = tileset.TileProperties;
 
                     // Log pre-processing state
                     context.Logger.LogMessage("Pre-processing Tileset State:");
@@ -81,7 +81,6 @@ namespace ContentPipeline
                     context.Logger.LogMessage($"  Margin: {tileset.Margin}");
                     context.Logger.LogMessage($"  Image Path: {tileset.Image}");
                     context.Logger.LogMessage($"  Properties Count: {tileset.TileProperties?.Count ?? 0}");
-
 
 
                     if (!string.IsNullOrEmpty(tileset.Image))

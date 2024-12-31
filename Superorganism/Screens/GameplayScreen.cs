@@ -10,7 +10,6 @@ using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
-#pragma warning disable CA1416
 
 namespace Superorganism.Screens
 {
