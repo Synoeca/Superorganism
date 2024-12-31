@@ -62,14 +62,19 @@ namespace ContentPipeline
                 foreach (KeyValuePair<string, BasicTileset> tilesetEntry in input.Tilesets)
                 {
                     context.Logger.LogMessage($"\n=== Processing Tileset: {tilesetEntry.Key} ===");
-                    BasicTileset tileset = tilesetEntry.Value;
-
-                    tileset.FirstTileId = tileset.FirstTileId;
-                    tileset.TileWidth = tileset.TileWidth;
-                    tileset.TileHeight = tileset.TileHeight;
-                    tileset.Spacing = tileset.Spacing;
-                    tileset.Margin = tileset.Margin;
-                    tileset.TileProperties = tileset.TileProperties;
+                    BasicTileset tileset = new()
+                    {
+                        Name = tilesetEntry.Key,
+                        FirstTileId = tilesetEntry.Value.FirstTileId,
+                        TileWidth = tilesetEntry.Value.TileWidth,
+                        TileHeight = tilesetEntry.Value.TileHeight,
+                        Spacing = tilesetEntry.Value.Spacing,
+                        Margin = tilesetEntry.Value.Margin,
+                        TileProperties = new Dictionary<int, Dictionary<string, string>>(
+                            tilesetEntry.Value.TileProperties
+                        ),
+                        Image = tilesetEntry.Value.Image
+                    };
 
                     // Log pre-processing state
                     context.Logger.LogMessage("Pre-processing Tileset State:");
@@ -99,6 +104,7 @@ namespace ContentPipeline
                             {
                                 tileset.TexWidth = tileset.Texture.Mipmaps[0].Width;
                                 tileset.TexHeight = tileset.Texture.Mipmaps[0].Height;
+                                tileset.TileTexture = tileset.Texture;
                                 context.Logger.LogMessage($"Texture processed successfully:");
                                 context.Logger.LogMessage($"  Width: {tileset.TexWidth}");
                                 context.Logger.LogMessage($"  Height: {tileset.TexHeight}");
@@ -115,17 +121,7 @@ namespace ContentPipeline
                         }
                     }
 
-                    // Log post-processing state
-                    context.Logger.LogMessage("\nPost-processing Tileset State:");
-                    context.Logger.LogMessage($"  Name: {tileset.Name}");
-                    context.Logger.LogMessage($"  FirstTileId: {tileset.FirstTileId}");
-                    context.Logger.LogMessage($"  TileWidth: {tileset.TileWidth}");
-                    context.Logger.LogMessage($"  TileHeight: {tileset.TileHeight}");
-                    context.Logger.LogMessage($"  Spacing: {tileset.Spacing}");
-                    context.Logger.LogMessage($"  Margin: {tileset.Margin}");
-                    context.Logger.LogMessage($"  TexWidth: {tileset.TexWidth}");
-                    context.Logger.LogMessage($"  TexHeight: {tileset.TexHeight}");
-                    context.Logger.LogMessage($"  Has Texture: {tileset.Texture != null}");
+                    processedMap.Tilesets.Add(tileset.Name, tileset);
                 }
 
                 // Process layers with detailed logging
@@ -133,25 +129,56 @@ namespace ContentPipeline
                 {
                     context.Logger.LogMessage($"\n=== Processing Layer: {layerEntry.Key} ===");
                     BasicLayer layer = layerEntry.Value;
-                    context.Logger.LogMessage($"Layer State:");
-                    context.Logger.LogMessage($"  Dimensions: {layer.Width}x{layer.Height}");
-                    context.Logger.LogMessage($"  Tile Count: {layer.Tiles?.Length ?? 0}");
-                    context.Logger.LogMessage($"  Properties: {layer.Properties.Count}");
 
-                    if (layer.Tiles != null)
+                    BasicLayer processedLayer = new()
                     {
-                        context.Logger.LogMessage($"  First few tile indices: {string.Join(", ", layer.Tiles.Take(5))}...");
+                        Properties = new Dictionary<string, string>(layer.Properties),
+                        Name = layer.Name,
+                        Width = layer.Width,
+                        Height = layer.Height,
+                        Opacity = layer.Opacity,
+                        Tiles = layer.Tiles?.ToArray() ?? [],
+                        FlipAndRotate = layer.FlipAndRotate?.ToArray() ?? [],
+                        TileInfoCache = layer.TileInfoCache
+ 
+                    };
+
+                    context.Logger.LogMessage($"Layer State:");
+                    context.Logger.LogMessage($"  Dimensions: {processedLayer.Width}x{processedLayer.Height}");
+                    context.Logger.LogMessage($"  Tile Count: {processedLayer.Tiles?.Length ?? 0}");
+                    context.Logger.LogMessage($"  Properties: {processedLayer.Properties.Count}");
+
+                    if (processedLayer.Tiles != null)
+                    {
+                        context.Logger.LogMessage($"  First few tile indices: {string.Join(", ", processedLayer.Tiles.Take(5))}...");
                     }
+
+                    processedMap.Layers.Add(layerEntry.Key, processedLayer);
                 }
 
-                // Process object groups with detailed logging
-                foreach (BasicObjectGroup group in input.ObjectGroups.Values)
+                // Process ObjectGroups
+                foreach (KeyValuePair<string, BasicObjectGroup> kvp in input.ObjectGroups)
                 {
-                    context.Logger.LogMessage($"\n=== Processing Object Group: {group.Name} ===");
-                    foreach (BasicObject obj in group.Objects.Values)
+                    BasicObjectGroup group = kvp.Value;
+                    BasicObjectGroup processedGroup = new()
                     {
-                        ProcessObject(obj, input.Filename, context);
+                        Name = group.Name,
+                        Width = group.Width,
+                        Height = group.Height,
+                        X = group.X,
+                        Y = group.Y,
+                        _opacity = group._opacity,  // Note: underscore prefix
+                        Objects = new Dictionary<string, BasicObject>(),
+                        Properties = new Dictionary<string, string>(group.Properties)
+                    };
+
+                    // Process each object in the group
+                    foreach (KeyValuePair<string, BasicObject> objKvp in group.Objects)
+                    {
+                        BasicObject processedObject = ProcessObject(objKvp.Value, input.Filename, context);
+                        processedGroup.Objects.Add(objKvp.Key, processedObject);
                     }
+                    processedMap.ObjectGroups.Add(kvp.Key, processedGroup);
                 }
 
                 // Final validation with detailed state
@@ -159,17 +186,17 @@ namespace ContentPipeline
 
                 // Basic map properties
                 context.Logger.LogMessage($"Map Properties:");
-                context.Logger.LogMessage($"  Dimensions: {input.Width}x{input.Height}");
-                context.Logger.LogMessage($"  Tile Dimensions: {input.TileWidth}x{input.TileHeight}");
-                context.Logger.LogMessage($"  Custom Properties Count: {input.Properties.Count}");
-                foreach (KeyValuePair<string, string> prop in input.Properties)
+                context.Logger.LogMessage($"  Dimensions: {processedMap.Width}x{processedMap.Height}");
+                context.Logger.LogMessage($"  Tile Dimensions: {processedMap.TileWidth}x{processedMap.TileHeight}");
+                context.Logger.LogMessage($"  Custom Properties Count: {processedMap.Properties.Count}");
+                foreach (KeyValuePair<string, string> prop in processedMap.Properties)
                 {
                     context.Logger.LogMessage($"    {prop.Key}: {prop.Value}");
                 }
 
                 // Tilesets
-                context.Logger.LogMessage($"\nTilesets ({input.Tilesets.Count}):");
-                foreach (BasicTileset tileset in input.Tilesets.Values)
+                context.Logger.LogMessage($"\nTilesets ({processedMap.Tilesets.Count}):");
+                foreach (BasicTileset tileset in processedMap.Tilesets.Values)
                 {
                     context.Logger.LogMessage($"  Tileset '{tileset.Name}' final state:");
                     context.Logger.LogMessage($"    FirstTileId: {tileset.FirstTileId}");
@@ -183,7 +210,7 @@ namespace ContentPipeline
                 }
 
                 // Layers
-                context.Logger.LogMessage($"\nLayers ({input.Layers.Count}):");
+                context.Logger.LogMessage($"\nLayers ({processedMap.Layers.Count}):");
                 foreach (KeyValuePair<string, BasicLayer> layer in input.Layers)
                 {
                     context.Logger.LogMessage($"  Layer '{layer.Key}' final state:");
@@ -193,7 +220,7 @@ namespace ContentPipeline
                 }
 
                 // Object Groups
-                context.Logger.LogMessage($"\nObject Groups ({input.ObjectGroups.Count}):");
+                context.Logger.LogMessage($"\nObject Groups ({processedMap.ObjectGroups.Count}):");
                 foreach (KeyValuePair<string, BasicObjectGroup> group in input.ObjectGroups)
                 {
                     context.Logger.LogMessage($"  Group '{group.Key}' final state:");
@@ -202,10 +229,10 @@ namespace ContentPipeline
                 }
 
                 context.Logger.LogMessage("\n=== Building Tile Info Caches ===");
-                foreach (BasicLayer layer in input.Layers.Values)
+                foreach (BasicLayer layer in processedMap.Layers.Values)
                 {
                     context.Logger.LogMessage($"Building cache for layer: {layer.Name}");
-                    layer.BuildTileInfoCache(input.Tilesets.Values, context);  // Pass the context
+                    layer.BuildTileInfoCache(processedMap.Tilesets.Values, context);  // Pass the context
                     context.Logger.LogMessage($"  Cache size: {layer.TileInfoCache?.Length ?? 0} entries");
                 }
 
@@ -220,13 +247,13 @@ namespace ContentPipeline
 
                     // Log map properties
                     context.Logger.LogMessage($"Map raw values:");
-                    context.Logger.LogMessage($"Width: {input.Width} (Type: {input.Width.GetType()})");
-                    context.Logger.LogMessage($"Height: {input.Height} (Type: {input.Height.GetType()})");
-                    context.Logger.LogMessage($"TileWidth: {input.TileWidth} (Type: {input.TileWidth.GetType()})");
-                    context.Logger.LogMessage($"TileHeight: {input.TileHeight} (Type: {input.TileHeight.GetType()})");
+                    context.Logger.LogMessage($"Width: {processedMap.Width} (Type: {processedMap.Width.GetType()})");
+                    context.Logger.LogMessage($"Height: {processedMap.Height} (Type: {processedMap.Height.GetType()})");
+                    context.Logger.LogMessage($"TileWidth: {processedMap.TileWidth} (Type: {processedMap.TileWidth.GetType()})");
+                    context.Logger.LogMessage($"TileHeight: {processedMap.TileHeight} (Type: {processedMap.TileHeight.GetType()})");
 
                     // Log each tileset's raw values
-                    foreach (BasicTileset tileset in input.Tilesets.Values)
+                    foreach (BasicTileset tileset in processedMap.Tilesets.Values)
                     {
                         context.Logger.LogMessage($"\nTileset raw values:");
                         context.Logger.LogMessage($"Name: {tileset.Name}");
@@ -241,7 +268,7 @@ namespace ContentPipeline
                     }
 
                     // Log each layer's raw values
-                    foreach (BasicLayer layer in input.Layers.Values)
+                    foreach (BasicLayer layer in processedMap.Layers.Values)
                     {
                         context.Logger.LogMessage($"\nLayer raw values:");
                         context.Logger.LogMessage($"Name: {layer.Name}");
@@ -269,11 +296,17 @@ namespace ContentPipeline
             }
         }
 
-        private void ProcessObject(BasicObject obj, string mapFilename, ContentProcessorContext context)
+        private BasicObject ProcessObject(BasicObject obj, string mapFilename, ContentProcessorContext context)
         {
-            context.Logger.LogMessage($"Processing object: {obj.Name}");
-            context.Logger.LogMessage($"  Position: ({obj.X}, {obj.Y})");
-            context.Logger.LogMessage($"  Size: {obj.Width}x{obj.Height}");
+            BasicObject processedObject = new()
+            {
+                Name = obj.Name,
+                Width = obj.Width,
+                Height = obj.Height,
+                X = obj.X,
+                Y = obj.Y,
+                Properties = new Dictionary<string, string>(obj.Properties ?? new Dictionary<string, string>())
+            };
 
             if (!string.IsNullOrEmpty(obj.Image))
             {
@@ -282,16 +315,15 @@ namespace ContentPipeline
 
                 try
                 {
-                    obj.TileTexture = context.BuildAndLoadAsset<TextureContent, Texture2DContent>(
+                    processedObject.TileTexture = context.BuildAndLoadAsset<TextureContent, Texture2DContent>(
                         new ExternalReference<TextureContent>(texturePath),
                         "TextureProcessor"
                     );
 
-                    if (obj.TileTexture?.Mipmaps.Count > 0)
+                    if (processedObject.TileTexture?.Mipmaps.Count > 0)
                     {
-                        obj.TexWidth = obj.TileTexture.Mipmaps[0].Width;
-                        obj.TexHeight = obj.TileTexture.Mipmaps[0].Height;
-                        context.Logger.LogMessage($"  Texture processed - Size: {obj.TexWidth}x{obj.TexHeight}");
+                        processedObject.TexWidth = processedObject.TileTexture.Mipmaps[0].Width;
+                        processedObject.TexHeight = processedObject.TileTexture.Mipmaps[0].Height;
                     }
                 }
                 catch (Exception ex)
@@ -299,6 +331,8 @@ namespace ContentPipeline
                     context.Logger.LogImportantMessage($"  Failed to process object texture: {ex.Message}");
                 }
             }
+
+            return processedObject;
         }
 
         private void LogWarning(ContentProcessorContext context, string message, params object[] messageArgs)

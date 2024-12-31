@@ -821,7 +821,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The Map's Tilesets
         /// </summary>
-        public Dictionary<string, Tileset> Tilesets;
+        public Dictionary<string, Tileset> Tilesets = new();
 
         /// <summary>
         /// The Map's Layers

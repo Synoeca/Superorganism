@@ -30,7 +30,7 @@ namespace ContentPipeline
     public class BasicTileset
     {
         [ContentSerializerIgnore]
-        public string Name;
+        public string Name { get; set; }
 
         public int FirstTileId;
 
@@ -46,7 +46,7 @@ namespace ContentPipeline
 
         public Dictionary<int, Dictionary<string, string>> TileProperties = new();
 
-
+        public string Image;
 
         public Texture2DContent Texture { get; set; }
 
@@ -55,11 +55,6 @@ namespace ContentPipeline
         public int TexHeight { get; set; }
 
         public Texture2DContent TileTexture { get; set; }
-
-
-
-        [ContentSerializerIgnore]
-        public string Image;
     }
 
     [ContentSerializerRuntimeType("Superorganism.Tiles.Layer, Superorganism")]
@@ -75,9 +70,10 @@ namespace ContentPipeline
         }
 
 
+        public string Name;
 
-
-        public int Width, Height;
+        public int Width;
+        public int Height;
 
         public float Opacity { get; set; }
 
@@ -87,8 +83,7 @@ namespace ContentPipeline
 
         public TileInfo[] TileInfoCache;
 
-        [ContentSerializerIgnore]
-        public string Name;
+
 
         public void BuildTileInfoCache(Dictionary<string, BasicTileset>.ValueCollection tilesets, ContentProcessorContext context)
         {
@@ -191,6 +186,4 @@ namespace ContentPipeline
         [ContentSerializerIgnore]
         public string Image;
     }
-
-
 }
