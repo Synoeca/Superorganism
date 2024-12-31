@@ -39,6 +39,9 @@ namespace ContentPipeline
     [ContentSerializerRuntimeType("Superorganism.Tiles.Tileset, Superorganism")]
     public class BasicTileset
     {
+        [ContentSerializerIgnore]
+        public string Name;
+
         public int FirstTileId;
 
 
@@ -65,8 +68,7 @@ namespace ContentPipeline
 
         public Texture2DContent TileTexture { get; set; }
 
-        [ContentSerializerIgnore]
-        public string Name;
+
 
         [ContentSerializerIgnore]
         public string Image;
