@@ -76,7 +76,12 @@ namespace Superorganism.Tiles
                 layer.Draw(batch, Tilesets.Values, visibleArea, cameraPosition, TileWidth, TileHeight);
             }
 
-            //// Draw the objects
+            // Draw the groups
+            foreach (Group group in Groups.Values)
+            {
+                group.Draw(this, batch, visibleArea, cameraPosition);
+            }
+
             //foreach (ObjectGroup objectGroup in ObjectGroups.Values)
             //{
             //    objectGroup.Draw(this, batch, visibleArea, cameraPosition);
@@ -362,6 +367,30 @@ namespace Superorganism.Tiles
                 TexHeight = value.Height;
             }
         }
+
+        /// <summary>
+        /// Draws the Object
+        /// </summary>
+        /// <param name="batch">The SpriteBatch to draw with</param>
+        /// <param name="rectangle">The viewport (visible screen size)</param>
+        /// <param name="offset">An offset to apply when rendering the viewport on-screen</param>
+        /// <param name="viewportPosition">The viewport's position in the world</param>
+        /// <param name="opacity">An opacity value for making the object semi-transparent (1.0=fully opaque)</param>
+        public void Draw(SpriteBatch batch, Rectangle rectangle, Vector2 offset, Vector2 viewportPosition, float opacity)
+        {
+            int minX = (int)Math.Floor(viewportPosition.X);
+            int minY = (int)Math.Floor(viewportPosition.Y);
+            int maxX = (int)Math.Ceiling((rectangle.Width + viewportPosition.X));
+            int maxY = (int)Math.Ceiling((rectangle.Height + viewportPosition.Y));
+
+            if (X + offset.X + Width > minX && X + offset.X < maxX
+                                            && Y + offset.Y + Height > minY && Y + offset.Y < maxY)
+            {
+                int x = (int)(X + offset.X - viewportPosition.X);
+                int y = (int)(Y + offset.Y - viewportPosition.Y);
+                batch.Draw(Texture, new Rectangle(x, y, Width, Height), new Rectangle(0, 0, Texture.Width, Texture.Height), Color.White * opacity);
+            }
+        }
     }
 
     /// <summary>
@@ -385,6 +414,17 @@ namespace Superorganism.Tiles
         public bool Visible { get; set; }
         public bool Locked { get; set; }
         public int Id { get; set; }
+
+        public void Draw(TiledMap result, SpriteBatch batch, Rectangle rectangle, Vector2 viewportPosition)
+        {
+            foreach (Object objects in Objects.Values)
+            {
+                if (objects.TileTexture != null)
+                {
+                    objects.Draw(batch, rectangle, new Vector2(OffsetX * result.TileWidth, OffsetY * result.TileHeight), viewportPosition, Opacity);
+                }
+            }
+        }
     }
 
     public class Group
@@ -394,5 +434,21 @@ namespace Superorganism.Tiles
         public string Name { get; set; }
         public int Id { get; set; }
         public bool Locked { get; set; }
+
+        public void Draw(TiledMap result, SpriteBatch batch, Rectangle rectangle, Vector2 viewportPosition)
+        {
+            foreach (ObjectGroup objectGroup in ObjectGroups.Values)
+            {
+                objectGroup.Draw(result, batch, rectangle, viewportPosition);
+            }
+
+            //foreach (Object objects in Objects.Values)
+            //{
+            //    if (objects.TileTexture != null)
+            //    {
+            //        objects.Draw(batch, rectangle, new Vector2(X * result.TileWidth, Y * result.TileHeight), viewportPosition, _opacity);
+            //    }
+            //}
+        }
     }
 }

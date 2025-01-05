@@ -60,7 +60,8 @@ namespace Superorganism.Screens
         {
             //_map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
             //_basicMap = _content.Load<BasicMap>("Tileset/Maps/TestMapRev1");
-            _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev1");
+            //_map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev1");
+            _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev4");
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
             GameStateManager = new GameStateManager(

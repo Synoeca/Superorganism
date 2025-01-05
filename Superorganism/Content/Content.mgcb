@@ -712,6 +712,11 @@
 /processor:TiledMapEngineContentProcessor
 /build:Tileset/Maps/TestMapRev1.tmx
 
+#begin Tileset/Maps/TestMapRev4.tmx
+/importer:TiledMapEngineContentImporter
+/processor:TiledMapEngineContentProcessor
+/build:Tileset/Maps/TestMapRev4.tmx
+
 #begin Tileset/Maps/tileset64.png
 /importer:TextureImporter
 /processor:TextureProcessor
