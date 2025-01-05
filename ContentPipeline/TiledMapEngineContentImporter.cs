@@ -7,19 +7,19 @@ using Color = Microsoft.Xna.Framework.Color;
 
 namespace ContentPipeline
 {
-    [ContentImporter(".tmx", DisplayName = "BasicTiledMTLGImporter", DefaultProcessor = "BasicTiledMTLGProcessor")]
-    public class BasicTiledMTLGImporter : ContentImporter<BasicTiledMTLGContent>
+    [ContentImporter(".tmx", DisplayName = "TiledMapEngineContentImporter", DefaultProcessor = "TiledMapEngineContentProcessor")]
+    public class TiledMapEngineContentImporter : ContentImporter<TiledMapEngineContent>
     {
-        public override BasicTiledMTLGContent Import(string filename, ContentImporterContext context)
+        public override TiledMapEngineContent Import(string filename, ContentImporterContext context)
         {
             context.Logger.LogMessage($"=== Starting TMX Import for {filename} ===");
-            BasicTiledMTLGContent result = new()
+            TiledMapEngineContent result = new()
             {
                 Filename = Path.GetFullPath(filename),
                 Properties = new Dictionary<string, string>(),
-                Tilesets = new Dictionary<string, BasicTilesetMTLGContent>(),
-                Layers = new Dictionary<string, BasicLayerMTLGContent>(),
-                Groups = new Dictionary<string, BasicTiledGroupMTLGContent>()
+                Tilesets = new Dictionary<string, TilesetContent>(),
+                Layers = new Dictionary<string, LayerContent>(),
+                Groups = new Dictionary<string, GroupContent>()
             };
 
             XmlReaderSettings settings = new()
@@ -61,7 +61,7 @@ namespace ContentPipeline
                                 {
                                     st.Read();
                                     context.Logger.LogMessage("Loading tileset...");
-                                    BasicTilesetMTLGContent tileset = LoadBasicTileset(st, context);
+                                    TilesetContent tileset = LoadBasicTileset(st, context);
                                     result.Tilesets[tileset.Name] = tileset;
                                     context.Logger.LogMessage($"tileset.Name: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
                                     context.Logger.LogMessage($"Loaded tileset: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
@@ -74,7 +74,7 @@ namespace ContentPipeline
                                 {
                                     layerReader.Read();
                                     context.Logger.LogMessage("Loading layer...");
-                                    BasicLayerMTLGContent layer = LoadBasicLayer(layerReader, filename, context);
+                                    LayerContent layer = LoadBasicLayer(layerReader, filename, context);
                                     if (layer != null)
                                     {
                                         result.Layers[layer.Name] = layer;
@@ -92,7 +92,7 @@ namespace ContentPipeline
                                 {
                                     st.Read();
                                     context.Logger.LogMessage("Loading group...");
-                                    BasicTiledGroupMTLGContent group = LoadGroup(st, context);
+                                    GroupContent group = LoadGroup(st, context);
                                     result.Groups.Add(group.Name, group);
                                     context.Logger.LogMessage($"Loaded group: {group.Name}");
                                 }
@@ -127,7 +127,7 @@ namespace ContentPipeline
             return result;
         }
 
-        private BasicTilesetMTLGContent LoadBasicTileset(XmlReader reader, ContentImporterContext context)
+        private TilesetContent LoadBasicTileset(XmlReader reader, ContentImporterContext context)
         {
             context.Logger.LogMessage("\n=== Starting Tileset Loading ===");
             context.Logger.LogMessage("Reading initial attributes...");
@@ -143,7 +143,7 @@ namespace ContentPipeline
             context.Logger.LogMessage($"  tilecount: {reader.GetAttribute("tilecount")}");
             context.Logger.LogMessage($"  columns: {reader.GetAttribute("columns")}");
 
-            BasicTilesetMTLGContent result = new();
+            TilesetContent result = new();
             result.Name = reader.GetAttribute("name")!;
             result.FirstTileId = ParseIntAttribute(reader, "firstgid");
             result.TileWidth = ParseIntAttribute(reader, "tilewidth");
@@ -193,9 +193,9 @@ namespace ContentPipeline
                                     string propName = reader.GetAttribute("name");
                                     string propValue = reader.GetAttribute("value");
 
-                                    if (!result.TileProperties.TryGetValue(currentTileId, out BasicTilesetMTLGContent.TilePropertyList props))
+                                    if (!result.TileProperties.TryGetValue(currentTileId, out TilesetContent.TilePropertyList props))
                                     {
-                                        props = new BasicTilesetMTLGContent.TilePropertyList();
+                                        props = new TilesetContent.TilePropertyList();
                                         result.TileProperties[currentTileId] = props;
                                     }
 
@@ -248,18 +248,18 @@ namespace ContentPipeline
             }
         }
 
-        private BasicLayerMTLGContent LoadBasicLayer(XmlReader reader, string filename, ContentImporterContext context)
+        private LayerContent LoadBasicLayer(XmlReader reader, string filename, ContentImporterContext context)
         {
             context.Logger.LogMessage("\n=== Starting Layer Loading ===");
             CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
             ci.NumberFormat.CurrencyDecimalSeparator = ".";
-            BasicLayerMTLGContent result = new();
-            BasicLayerMTLGContent.FlippedHorizontallyFlag = 0x80000000;
-            BasicLayerMTLGContent.FlippedVerticallyFlag = 0x40000000;
-            BasicLayerMTLGContent.FlippedDiagonallyFlag = 0x20000000;
-            BasicLayerMTLGContent.HorizontalFlipDrawFlag = 1;
-            BasicLayerMTLGContent.VerticalFlipDrawFlag = 2;
-            BasicLayerMTLGContent.DiagonallyFlipDrawFlag = 4;
+            LayerContent result = new();
+            LayerContent.FlippedHorizontallyFlag = 0x80000000;
+            LayerContent.FlippedVerticallyFlag = 0x40000000;
+            LayerContent.FlippedDiagonallyFlag = 0x20000000;
+            LayerContent.HorizontalFlipDrawFlag = 1;
+            LayerContent.VerticalFlipDrawFlag = 2;
+            LayerContent.DiagonallyFlipDrawFlag = 4;
             result.Filename = Path.GetFullPath(filename);
 
             context.Logger.LogMessage("Reading initial attributes...");
@@ -358,27 +358,27 @@ namespace ContentPipeline
 
                                                             // The data contain flip information as well as the tileset index
                                                             byte flipAndRotateFlags = 0;
-                                                            if ((tileData & BasicLayerMTLGContent.FlippedHorizontallyFlag) != 0)
+                                                            if ((tileData & LayerContent.FlippedHorizontallyFlag) != 0)
                                                             {
-                                                                flipAndRotateFlags |= BasicLayerMTLGContent.HorizontalFlipDrawFlag;
+                                                                flipAndRotateFlags |= LayerContent.HorizontalFlipDrawFlag;
                                                             }
 
-                                                            if ((tileData & BasicLayerMTLGContent.FlippedVerticallyFlag) != 0)
+                                                            if ((tileData & LayerContent.FlippedVerticallyFlag) != 0)
                                                             {
-                                                                flipAndRotateFlags |= BasicLayerMTLGContent.VerticalFlipDrawFlag;
+                                                                flipAndRotateFlags |= LayerContent.VerticalFlipDrawFlag;
                                                             }
 
-                                                            if ((tileData & BasicLayerMTLGContent.FlippedDiagonallyFlag) != 0)
+                                                            if ((tileData & LayerContent.FlippedDiagonallyFlag) != 0)
                                                             {
-                                                                flipAndRotateFlags |= BasicLayerMTLGContent.DiagonallyFlipDrawFlag;
+                                                                flipAndRotateFlags |= LayerContent.DiagonallyFlipDrawFlag;
                                                             }
 
                                                             result.FlipAndRotate[i] = flipAndRotateFlags;
 
                                                             // Clear the flip bits before storing the tile data
-                                                            tileData &= ~(BasicLayerMTLGContent.FlippedHorizontallyFlag |
-                                                                          BasicLayerMTLGContent.FlippedVerticallyFlag |
-                                                                          BasicLayerMTLGContent.FlippedDiagonallyFlag);
+                                                            tileData &= ~(LayerContent.FlippedHorizontallyFlag |
+                                                                          LayerContent.FlippedVerticallyFlag |
+                                                                          LayerContent.FlippedDiagonallyFlag);
                                                             result.Tiles[i] = (int)tileData;
                                                         }
                                                     }
@@ -430,13 +430,13 @@ namespace ContentPipeline
             return result;
         }
 
-        public BasicTiledGroupMTLGContent LoadGroup(XmlReader reader, ContentImporterContext context)
+        public GroupContent LoadGroup(XmlReader reader, ContentImporterContext context)
         {
             context.Logger.LogMessage("Loading group...");
 
-            BasicTiledGroupMTLGContent group = new()
+            GroupContent group = new()
             {
-                ObjectGroups = new Dictionary<string, BasicTiledObjectGroupMTLGContent>(),
+                ObjectGroups = new Dictionary<string, ObjectGroupContent>(),
                 Properties = new Dictionary<string, string>()
             };
 
@@ -464,7 +464,7 @@ namespace ContentPipeline
                                 {
                                     st.Read();
                                     context.Logger.LogMessage("Loading object group...");
-                                    BasicTiledObjectGroupMTLGContent objectGroup = LoadBasicObjectGroup(st, context);
+                                    ObjectGroupContent objectGroup = LoadBasicObjectGroup(st, context);
                                     if (objectGroup != null)
                                     {
                                         group.ObjectGroups[objectGroup.Name] = objectGroup;
@@ -488,13 +488,13 @@ namespace ContentPipeline
             return group;
         }
 
-        public BasicTiledObjectGroupMTLGContent LoadBasicObjectGroup(XmlReader reader, ContentImporterContext context)
+        public ObjectGroupContent LoadBasicObjectGroup(XmlReader reader, ContentImporterContext context)
         {
             context.Logger.LogMessage("\n=== Starting LoadBasicObjectGroup ===");
 
-            BasicTiledObjectGroupMTLGContent result = new()
+            ObjectGroupContent result = new()
             {
-                Objects = new Dictionary<string, BasicTiledObjectMTLGContent>(),
+                Objects = new Dictionary<string, ObjectContent>(),
                 ObjectProperties = new Dictionary<string, string>()
             };
 
@@ -588,7 +588,7 @@ namespace ContentPipeline
                             {
                                 st.Read();
                                 context.Logger.LogMessage("Processing object:");
-                                BasicTiledObjectMTLGContent obj = LoadBasicObject(st);
+                                ObjectContent obj = LoadBasicObject(st);
                                 if (!result.Objects.TryAdd(obj.Name, obj))
                                 {
                                     int count = result.Objects.Keys.Count(k => k.StartsWith(obj.Name));
@@ -640,9 +640,9 @@ namespace ContentPipeline
             return result;
         }
 
-        public BasicTiledObjectMTLGContent LoadBasicObject(XmlReader reader)
+        public ObjectContent LoadBasicObject(XmlReader reader)
         {
-            BasicTiledObjectMTLGContent result = new()
+            ObjectContent result = new()
             {
                 Name = reader.GetAttribute("name"),
                 X = int.Parse(reader.GetAttribute("x") ?? throw new InvalidOperationException()),

@@ -708,8 +708,8 @@
 /build:tiles2.png
 
 #begin Tileset/Maps/TestMapRev1.tmx
-/importer:BasicTiledMTLGImporter
-/processor:BasicTiledMTLGProcessor
+/importer:TiledMapEngineContentImporter
+/processor:TiledMapEngineContentProcessor
 /build:Tileset/Maps/TestMapRev1.tmx
 
 #begin Tileset/Maps/tileset64.png

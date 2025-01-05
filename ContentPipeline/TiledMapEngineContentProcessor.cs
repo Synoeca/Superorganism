@@ -8,26 +8,26 @@ using System.Threading.Tasks;
 
 namespace ContentPipeline
 {
-    [ContentProcessor(DisplayName = "BasicTiledMTLGProcessor")]
-    public class BasicTiledMTLGProcessor : ContentProcessor<BasicTiledMTLGContent, BasicTiledMTLGContent>
+    [ContentProcessor(DisplayName = "TiledMapEngineContentProcessor")]
+    public class TiledMapEngineContentProcessor : ContentProcessor<TiledMapEngineContent, TiledMapEngineContent>
     {
-        public override BasicTiledMTLGContent Process(BasicTiledMTLGContent mtlg, ContentProcessorContext context)
+        public override TiledMapEngineContent Process(TiledMapEngineContent mapEngine, ContentProcessorContext context)
         {
             context.Logger.LogMessage("\n=== Starting Tilemap Processing ===");
             context.Logger.LogMessage($"Input Map State:");
-            context.Logger.LogMessage($"  Filename: {mtlg.Filename}");
-            context.Logger.LogMessage($"  Dimensions: {mtlg.Width}x{mtlg.Height}");
-            context.Logger.LogMessage($"  Tile Dimensions: {mtlg.TileWidth}x{mtlg.TileHeight}");
-            context.Logger.LogMessage($"  Number of Tilesets: {mtlg.Tilesets.Count}");
+            context.Logger.LogMessage($"  Filename: {mapEngine.Filename}");
+            context.Logger.LogMessage($"  Dimensions: {mapEngine.Width}x{mapEngine.Height}");
+            context.Logger.LogMessage($"  Tile Dimensions: {mapEngine.TileWidth}x{mapEngine.TileHeight}");
+            context.Logger.LogMessage($"  Number of Tilesets: {mapEngine.Tilesets.Count}");
 
             context.Logger.LogMessage("\n=== Starting Tilemap Processing ===");
             context.Logger.LogMessage($"Input Map State:");
-            context.Logger.LogMessage($"  Filename: {mtlg.Filename}");
-            context.Logger.LogMessage($"  Dimensions: {mtlg.Width}x{mtlg.Height}");
-            context.Logger.LogMessage($"  Tile Dimensions: {mtlg.TileWidth}x{mtlg.TileHeight}");
-            context.Logger.LogMessage($"  Number of Tilesets: {mtlg.Tilesets.Count}");
+            context.Logger.LogMessage($"  Filename: {mapEngine.Filename}");
+            context.Logger.LogMessage($"  Dimensions: {mapEngine.Width}x{mapEngine.Height}");
+            context.Logger.LogMessage($"  Tile Dimensions: {mapEngine.TileWidth}x{mapEngine.TileHeight}");
+            context.Logger.LogMessage($"  Number of Tilesets: {mapEngine.Tilesets.Count}");
 
-            foreach (KeyValuePair<string, BasicTilesetMTLGContent> tilesetEntry in mtlg.Tilesets)
+            foreach (KeyValuePair<string, TilesetContent> tilesetEntry in mapEngine.Tilesets)
             {
                 context.Logger.LogMessage($"\nKey: {tilesetEntry.Key}");
                 context.Logger.LogMessage($"Value: {tilesetEntry.Value}");
@@ -69,7 +69,7 @@ namespace ContentPipeline
                 }
             }
 
-            foreach (KeyValuePair<string, BasicLayerMTLGContent> layerEntry in mtlg.Layers)
+            foreach (KeyValuePair<string, LayerContent> layerEntry in mapEngine.Layers)
             {
                 context.Logger.LogMessage($"\nKey: {layerEntry.Key}");
                 context.Logger.LogMessage($"Value: {layerEntry.Value}");
@@ -80,17 +80,17 @@ namespace ContentPipeline
                 context.Logger.LogMessage($"  Tiles Count: {layerEntry.Value.Tiles?.Length ?? 0}");
                 context.Logger.LogMessage($"  FlipAndRotate Count: {layerEntry.Value.FlipAndRotate?.Length ?? 0}");
                 context.Logger.LogMessage($"  Properties Count: {layerEntry.Value.Properties?.Count ?? 0}");
-                context.Logger.LogMessage($"  FlippedHorizontallyFlag: {BasicLayerMTLGContent.FlippedHorizontallyFlag}");
-                context.Logger.LogMessage($"  FlippedVerticallyFlag: {BasicLayerMTLGContent.FlippedVerticallyFlag}");
-                context.Logger.LogMessage($"  FlippedDiagonallyFlag: {BasicLayerMTLGContent.FlippedDiagonallyFlag}");
-                context.Logger.LogMessage($"  HorizontalFlipDrawFlag: {BasicLayerMTLGContent.HorizontalFlipDrawFlag}");
-                context.Logger.LogMessage($"  VerticalFlipDrawFlag: {BasicLayerMTLGContent.VerticalFlipDrawFlag}");
-                context.Logger.LogMessage($"  DiagonallyFlipDrawFlag: {BasicLayerMTLGContent.DiagonallyFlipDrawFlag}");
+                context.Logger.LogMessage($"  FlippedHorizontallyFlag: {LayerContent.FlippedHorizontallyFlag}");
+                context.Logger.LogMessage($"  FlippedVerticallyFlag: {LayerContent.FlippedVerticallyFlag}");
+                context.Logger.LogMessage($"  FlippedDiagonallyFlag: {LayerContent.FlippedDiagonallyFlag}");
+                context.Logger.LogMessage($"  HorizontalFlipDrawFlag: {LayerContent.HorizontalFlipDrawFlag}");
+                context.Logger.LogMessage($"  VerticalFlipDrawFlag: {LayerContent.VerticalFlipDrawFlag}");
+                context.Logger.LogMessage($"  DiagonallyFlipDrawFlag: {LayerContent.DiagonallyFlipDrawFlag}");
                 context.Logger.LogMessage($"  TileInfoCache Count: {layerEntry.Value.TileInfoCache?.Length ?? 0}");
                 context.Logger.LogMessage($"  Filename: {layerEntry.Value.Filename}");
             }
 
-            foreach (KeyValuePair<string, BasicTiledGroupMTLGContent> groupEntry in mtlg.Groups)
+            foreach (KeyValuePair<string, GroupContent> groupEntry in mapEngine.Groups)
             {
                 context.Logger.LogMessage($"\nKey: {groupEntry.Key}");
                 context.Logger.LogMessage($"Value: {groupEntry.Value}");
@@ -105,19 +105,19 @@ namespace ContentPipeline
 
                 if (groupEntry.Value.ObjectGroups != null)
                 {
-                    foreach (KeyValuePair<string, BasicTiledObjectGroupMTLGContent> objGroupEntry in groupEntry.Value.ObjectGroups)
+                    foreach (KeyValuePair<string, ObjectGroupContent> objGroupEntry in groupEntry.Value.ObjectGroups)
                     {
                         context.Logger.LogMessage($"\nProcessing Object Group: {objGroupEntry.Key}");
-                        BasicTiledObjectGroupMTLGContent objectGroup = objGroupEntry.Value;
+                        ObjectGroupContent objectGroup = objGroupEntry.Value;
                         LogObjectGroupState(objectGroup, context, "Pre-processing");
 
                         // Process each object in the object group
                         if (objectGroup.Objects != null)
                         {
-                            foreach (KeyValuePair<string, BasicTiledObjectMTLGContent> objectEntry in objectGroup.Objects)
+                            foreach (KeyValuePair<string, ObjectContent> objectEntry in objectGroup.Objects)
                             {
                                 context.Logger.LogMessage($"\nProcessing Object: {objectEntry.Key}");
-                                BasicTiledObjectMTLGContent obj = objectEntry.Value;
+                                ObjectContent obj = objectEntry.Value;
                                 LogObjectState(obj, context, "Pre-processing");
 
                                 if (!string.IsNullOrEmpty(obj.Image))
@@ -134,7 +134,7 @@ namespace ContentPipeline
                 }
             }
 
-            return mtlg;
+            return mapEngine;
         }
 
         private static string GetTexturePath(string imageSource, string mapFilename, ContentProcessorContext context)
@@ -164,7 +164,7 @@ namespace ContentPipeline
         }
 
 
-        private static void LogTilesetState(BasicTilesetMTLGContent tileset, ContentProcessorContext context, string stage)
+        private static void LogTilesetState(TilesetContent tileset, ContentProcessorContext context, string stage)
         {
             context.Logger.LogMessage($"\n{stage} Tileset State:");
             context.Logger.LogMessage($" Name: {tileset.Name}");
@@ -178,7 +178,7 @@ namespace ContentPipeline
             context.Logger.LogMessage($" Has Texture: {tileset.Texture != null}\n");
         }
 
-        private void ProcessObjectTexture(BasicTiledObjectMTLGContent obj, string baseFilename, ContentProcessorContext context)
+        private void ProcessObjectTexture(ObjectContent obj, string baseFilename, ContentProcessorContext context)
         {
             string texturePath = GetTexturePath(obj.Image, baseFilename, context);
             context.Logger.LogMessage($"Processing texture for Object {obj.Name}: {texturePath}");
@@ -213,7 +213,7 @@ namespace ContentPipeline
             }
         }
 
-        private static void LogObjectState(BasicTiledObjectMTLGContent obj, ContentProcessorContext context, string stage)
+        private static void LogObjectState(ObjectContent obj, ContentProcessorContext context, string stage)
         {
             context.Logger.LogMessage($"\n{stage} Object State:");
             context.Logger.LogMessage($" Name: {obj.Name}");
@@ -225,7 +225,7 @@ namespace ContentPipeline
             context.Logger.LogMessage($" TexHeight: {obj.TexHeight}\n");
         }
 
-        private static void LogObjectGroupState(BasicTiledObjectGroupMTLGContent objGroup, ContentProcessorContext context, string stage)
+        private static void LogObjectGroupState(ObjectGroupContent objGroup, ContentProcessorContext context, string stage)
         {
             context.Logger.LogMessage($"\n{stage} Object Group State:");
             context.Logger.LogMessage($" Name: {objGroup.Name}");

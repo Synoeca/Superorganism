@@ -6,7 +6,7 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 namespace ContentPipeline
 {
     [ContentSerializerRuntimeType("Superorganism.Tiles.TiledMap, Superorganism")]
-    public class BasicTiledMTLGContent
+    public class TiledMapEngineContent
     {
         public int Width;
 
@@ -21,15 +21,15 @@ namespace ContentPipeline
 
         public Dictionary<string, string> Properties;
 
-        public Dictionary<string, BasicTiledGroupMTLGContent> Groups;
+        public Dictionary<string, GroupContent> Groups;
 
-        public Dictionary<string, BasicLayerMTLGContent> Layers;
+        public Dictionary<string, LayerContent> Layers;
 
-        public Dictionary<string, BasicTilesetMTLGContent> Tilesets;
+        public Dictionary<string, TilesetContent> Tilesets;
     }
 
     [ContentSerializerRuntimeType("Superorganism.Tiles.Tileset, Superorganism")]
-    public class BasicTilesetMTLGContent
+    public class TilesetContent
     {
         [ContentSerializerRuntimeType("Superorganism.Tiles.Tileset+TilePropertyList, Superorganism")]
         public class TilePropertyList : Dictionary<string, string>;
@@ -63,7 +63,7 @@ namespace ContentPipeline
     }
 
     [ContentSerializerRuntimeType("Superorganism.Tiles.Layer, Superorganism")]
-    public class BasicLayerMTLGContent
+    public class LayerContent
     {
         public static uint FlippedHorizontallyFlag;
         public static uint FlippedVerticallyFlag;
@@ -101,7 +101,7 @@ namespace ContentPipeline
     }
 
     [ContentSerializerRuntimeType("Superorganism.Tiles.Object, Superorganism")]
-    public class BasicTiledObjectMTLGContent
+    public class ObjectContent
     {
         public Dictionary<string, string> Properties;
 
@@ -120,9 +120,9 @@ namespace ContentPipeline
     }
 
     [ContentSerializerRuntimeType("Superorganism.Tiles.ObjectGroup, Superorganism")]
-    public class BasicTiledObjectGroupMTLGContent
+    public class ObjectGroupContent
     {
-        public Dictionary<string, BasicTiledObjectMTLGContent> Objects;
+        public Dictionary<string, ObjectContent> Objects;
         public Dictionary<string, string> ObjectProperties;
 
         public string Name;
@@ -140,9 +140,9 @@ namespace ContentPipeline
     }
 
     [ContentSerializerRuntimeType("Superorganism.Tiles.Group, Superorganism")]
-    public class BasicTiledGroupMTLGContent
+    public class GroupContent
     {
-        public Dictionary<string, BasicTiledObjectGroupMTLGContent> ObjectGroups;
+        public Dictionary<string, ObjectGroupContent> ObjectGroups;
         public Dictionary<string, string> Properties;
         public string Name;
         public int Id;
