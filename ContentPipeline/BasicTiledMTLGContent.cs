@@ -1,18 +1,11 @@
-﻿using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
-using Microsoft.Xna.Framework.Content;
+﻿using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
 using Color = Microsoft.Xna.Framework.Color;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace ContentPipeline
 {
-    [ContentSerializerRuntimeType("Superorganism.Tiles.BasicTiledMTLG, Superorganism")]
+    [ContentSerializerRuntimeType("Superorganism.Tiles.TiledMap, Superorganism")]
     public class BasicTiledMTLGContent
     {
         public int Width;
@@ -35,10 +28,10 @@ namespace ContentPipeline
         public Dictionary<string, BasicTilesetMTLGContent> Tilesets;
     }
 
-    [ContentSerializerRuntimeType("Superorganism.Tiles.BasicTilesetMTLG, Superorganism")]
+    [ContentSerializerRuntimeType("Superorganism.Tiles.Tileset, Superorganism")]
     public class BasicTilesetMTLGContent
     {
-        [ContentSerializerRuntimeType("Superorganism.Tiles.BasicTilesetMTLG+TilePropertyList, Superorganism")]
+        [ContentSerializerRuntimeType("Superorganism.Tiles.Tileset+TilePropertyList, Superorganism")]
         public class TilePropertyList : Dictionary<string, string>;
 
         public string Name;
@@ -69,7 +62,7 @@ namespace ContentPipeline
         public string Filename;
     }
 
-    [ContentSerializerRuntimeType("Superorganism.Tiles.BasicLayerMTLG, Superorganism")]
+    [ContentSerializerRuntimeType("Superorganism.Tiles.Layer, Superorganism")]
     public class BasicLayerMTLGContent
     {
         public static uint FlippedHorizontallyFlag;
@@ -82,7 +75,7 @@ namespace ContentPipeline
 
         public SortedList<string, string> Properties;
 
-        [ContentSerializerRuntimeType("Superorganism.Tiles.BasicLayerMTLG+TileInfo, Superorganism")]
+        [ContentSerializerRuntimeType("Superorganism.Tiles.Layer+TileInfo, Superorganism")]
         public struct TileInfo
         {
             public Texture2DContent Texture;
@@ -107,7 +100,7 @@ namespace ContentPipeline
         public string Filename;
     }
 
-    [ContentSerializerRuntimeType("Superorganism.Tiles.BasicTiledObjectMTLG, Superorganism")]
+    [ContentSerializerRuntimeType("Superorganism.Tiles.Object, Superorganism")]
     public class BasicTiledObjectMTLGContent
     {
         public Dictionary<string, string> Properties;
@@ -126,7 +119,7 @@ namespace ContentPipeline
         public Texture2DContent TileTexture;
     }
 
-    [ContentSerializerRuntimeType("Superorganism.Tiles.BasicTiledObjectGroupMTLG, Superorganism")]
+    [ContentSerializerRuntimeType("Superorganism.Tiles.ObjectGroup, Superorganism")]
     public class BasicTiledObjectGroupMTLGContent
     {
         public Dictionary<string, BasicTiledObjectMTLGContent> Objects;
@@ -146,7 +139,7 @@ namespace ContentPipeline
         public int Id;
     }
 
-    [ContentSerializerRuntimeType("Superorganism.Tiles.BasicTiledGroupMTLG, Superorganism")]
+    [ContentSerializerRuntimeType("Superorganism.Tiles.Group, Superorganism")]
     public class BasicTiledGroupMTLGContent
     {
         public Dictionary<string, BasicTiledObjectGroupMTLGContent> ObjectGroups;

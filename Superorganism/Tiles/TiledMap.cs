@@ -9,7 +9,7 @@ using Color = Microsoft.Xna.Framework.Color;
 
 namespace Superorganism.Tiles
 {
-    public class BasicTiledMTLG
+    public class TiledMap
     {
         /// <summary>
         /// The Map's width and height
@@ -39,17 +39,17 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The Map's Groups
         /// </summary>
-        public Dictionary<string, BasicTiledGroupMTLG> Groups { get; set; }
+        public Dictionary<string, Group> Groups { get; set; }
 
         /// <summary>
         /// The Map's Layers
         /// </summary>
-        public Dictionary<string, BasicLayerMTLG> Layers { get; set; }
+        public Dictionary<string, Layer> Layers { get; set; }
 
         /// <summary>
         /// The Map's Tilesets
         /// </summary>
-        public Dictionary<string, BasicTilesetMTLG> Tilesets { get; set; }
+        public Dictionary<string, Tileset> Tilesets { get; set; }
 
         /// <summary>
         /// Draws the Map
@@ -71,7 +71,7 @@ namespace Superorganism.Tiles
             visibleArea.Inflate(TileWidth * 2, TileHeight * 2);
 
             // Draw the layers
-            foreach (BasicLayerMTLG layer in Layers.Values)
+            foreach (Layer layer in Layers.Values)
             {
                 layer.Draw(batch, Tilesets.Values, visibleArea, cameraPosition, TileWidth, TileHeight);
             }
@@ -87,7 +87,7 @@ namespace Superorganism.Tiles
     /// <summary>
     /// The Map's tileset class
     /// </summary>
-    public class BasicTilesetMTLG
+    public class Tileset
     {
         public class TilePropertyList : Dictionary<string, string>;
 
@@ -166,7 +166,7 @@ namespace Superorganism.Tiles
         }
     }
 
-    public class BasicLayerMTLG
+    public class Layer
     {
         public static uint FlippedHorizontallyFlag { get; set; }
         public static uint FlippedVerticallyFlag { get; set; }
@@ -220,14 +220,14 @@ namespace Superorganism.Tiles
         /// by the tile index for quick retreival/processing
         /// </summary>
         /// <param name="tilesets">The list of tilesets containing tiles to cache</param>
-        protected void BuildTileInfoCache(Dictionary<string, BasicTilesetMTLG>.ValueCollection tilesets)
+        protected void BuildTileInfoCache(Dictionary<string, Tileset>.ValueCollection tilesets)
         {
             Rectangle rect = new();
             List<TileInfo> cache = [];
             int i = 1;
 
             next:
-            foreach (BasicTilesetMTLG ts in tilesets)
+            foreach (Tileset ts in tilesets)
             {
                 if (ts.MapTileToRect(i, ref rect))
                 {
@@ -254,7 +254,7 @@ namespace Superorganism.Tiles
         /// <param name="viewportPosition">The viewport's position in the layer</param>
         /// <param name="tileWidth">The width of a tile</param>
         /// <param name="tileHeight">The height of a tile</param>
-        public void Draw(SpriteBatch batch, Dictionary<string, BasicTilesetMTLG>.ValueCollection tilesets, Rectangle rectangle, Vector2 viewportPosition, int tileWidth, int tileHeight)
+        public void Draw(SpriteBatch batch, Dictionary<string, Tileset>.ValueCollection tilesets, Rectangle rectangle, Vector2 viewportPosition, int tileWidth, int tileHeight)
         {
             if (TileInfoCache == null)
                 BuildTileInfoCache(tilesets);
@@ -337,7 +337,7 @@ namespace Superorganism.Tiles
     /// It can be used for spawn locations, triggers, etc.
     /// In this implementation, it also has a texture 
     /// </remarks>
-    public class BasicTiledObjectMTLG
+    public class Object
     {
         public Dictionary<string, string> Properties { get; set; }
 
@@ -367,9 +367,9 @@ namespace Superorganism.Tiles
     /// <summary>
     /// A class representing a group of map Objects
     /// </summary>
-    public class BasicTiledObjectGroupMTLG
+    public class ObjectGroup
     {
-        public Dictionary<string, BasicTiledObjectMTLG> Objects { get; set; }
+        public Dictionary<string, Object> Objects { get; set; }
         public Dictionary<string, string> ObjectProperties { get; set; }
 
         public string Name { get; set; }
@@ -387,9 +387,9 @@ namespace Superorganism.Tiles
         public int Id { get; set; }
     }
 
-    public class BasicTiledGroupMTLG
+    public class Group
     {
-        public Dictionary<string, BasicTiledObjectGroupMTLG> ObjectGroups { get; set; }
+        public Dictionary<string, ObjectGroup> ObjectGroups { get; set; }
         public Dictionary<string, string> Properties { get; set; }
         public string Name { get; set; }
         public int Id { get; set; }
