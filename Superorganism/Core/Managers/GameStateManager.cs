@@ -20,10 +20,10 @@ namespace Superorganism.Core.Managers
         private readonly GameAudioManager _audioManager;
         private readonly InputAction _pauseAction;
         private readonly Camera2D _camera;
-        private readonly Map _map;
+        private readonly BasicTiledMTLG _map;
         private readonly ContentManager _content;
 
-        public Map CurrentMap => _map;
+        public BasicTiledMTLG CurrentMap => _map;
 
         public bool IsGameOver { get; set; }
         public bool IsGameWon { get; set; }
@@ -34,7 +34,7 @@ namespace Superorganism.Core.Managers
         private const double EnemyCollisionInterval = 0.2;
 
         public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera,
-            GameAudioManager audio, Map map)
+            GameAudioManager audio, BasicTiledMTLG map)
         {
             DecisionMaker.Entities.Clear();
             _audioManager = audio;

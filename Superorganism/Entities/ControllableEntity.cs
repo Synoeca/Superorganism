@@ -166,7 +166,7 @@ namespace Superorganism.Entities
             bool hasCollision = false;
 
             // Check each layer for collision, excluding diagonal tiles
-            foreach (Layer layer in GameState.CurrentMap.Layers.Values)
+            foreach (BasicLayerMTLG layer in GameState.CurrentMap.Layers.Values)
             {
                 int tileId = layer.GetTile(tileX, tileY);
                 // Skip collision check for diagonal tiles (20, 24, 25, 30, 52, 53, 56)

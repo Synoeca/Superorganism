@@ -22,7 +22,7 @@ public class EntityManager
     private Fly[] _flies;
     private ExplosionParticleSystem _explosions;
     private readonly Game _game;
-    private readonly Map _map;
+    private readonly BasicTiledMTLG _map;
 
     private const float InvincibleAlpha = 0.4f;
     private const float EnemyAlpha = 0.8f;
@@ -107,10 +107,10 @@ public class EntityManager
         }
         return null;
     }
-    public Map GetCurrentMap() => _map;
+    public BasicTiledMTLG GetCurrentMap() => _map;
 
     public EntityManager(Game game, ContentManager content, 
-        GraphicsDevice graphicsDevice, Map map)
+        GraphicsDevice graphicsDevice, BasicTiledMTLG map)
     {
         _game = game;
         _map = map;

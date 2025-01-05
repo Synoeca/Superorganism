@@ -87,7 +87,7 @@ namespace Superorganism.AI
             int tileY = (int)(proposedPosition.Y / MapHelper.TileSize);
 
             // Check each layer for collision, excluding diagonal tiles
-            foreach (Layer layer in GameState.CurrentMap.Layers.Values)
+            foreach (BasicLayerMTLG layer in GameState.CurrentMap.Layers.Values)
             {
                 int tileId = layer.GetTile(tileX, tileY);
                 if (tileId != 0 &&

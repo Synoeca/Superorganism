@@ -15,7 +15,7 @@ namespace Superorganism.Tiles
 
         private static readonly Dictionary<int, int> GroundLevels = new();
 
-        public static void AnalyzeMapGround(Map map)
+        public static void AnalyzeMapGround(BasicTiledMTLG map)
         {
             GroundLevels.Clear();
 
@@ -25,7 +25,7 @@ namespace Superorganism.Tiles
                 for (int y = 0; y < MapHeight; y++)
                 {
                     bool foundGround = false;
-                    foreach (Layer layer in map.Layers.Values)
+                    foreach (BasicLayerMTLG layer in map.Layers.Values)
                     {
                         if (layer.GetTile(x, y) != 0)
                         {
@@ -63,7 +63,7 @@ namespace Superorganism.Tiles
         }
 
         // Update GetGroundLevel to use our analyzed data
-        public static float GetGroundLevel(Map map, float worldX)
+        public static float GetGroundLevel(BasicTiledMTLG map, float worldX)
         {
             int tileX = (int)(worldX / TileSize);
             tileX = Math.Clamp(tileX, 0, MapWidth - 1);
@@ -79,7 +79,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// Checks if a point is inside a solid tile
         /// </summary>
-        public static bool IsInsideTile(Map map, Vector2 position)
+        public static bool IsInsideTile(BasicTiledMTLG map, Vector2 position)
         {
             (int tileX, int tileY) = WorldToTile(position);
 
@@ -88,7 +88,7 @@ namespace Superorganism.Tiles
                 return false;
 
             // Check all layers
-            foreach (Layer layer in map.Layers.Values)
+            foreach (BasicLayerMTLG layer in map.Layers.Values)
             {
                 if (layer.GetTile(tileX, tileY) != 0)
                     return true;
@@ -108,7 +108,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// Checks collision with nearby tiles for an entity
         /// </summary>
-        public static bool CheckEntityMapCollision(Map map, Vector2 position, Vector2 size)
+        public static bool CheckEntityMapCollision(BasicTiledMTLG map, Vector2 position, Vector2 size)
         {
             // Get the tiles the entity might be intersecting with
             int startTileX = (int)((position.X - size.X / 2) / TileSize);
@@ -127,7 +127,7 @@ namespace Superorganism.Tiles
             {
                 for (int x = startTileX; x <= endTileX; x++)
                 {
-                    foreach (Layer layer in map.Layers.Values)
+                    foreach (BasicLayerMTLG layer in map.Layers.Values)
                     {
                         if (layer.GetTile(x, y) != 0) // Non-empty tile
                         {
@@ -160,7 +160,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// Gets the ground Y position at a given world X coordinate
         /// </summary>
-        public static float GetGroundYPosition(Map map, float worldX, float positionY, float entityHeight)
+        public static float GetGroundYPosition(BasicTiledMTLG map, float worldX, float positionY, float entityHeight)
         {
             // Convert world X to tile X
             int tileX = (int)(worldX / TileSize);
@@ -170,7 +170,7 @@ namespace Superorganism.Tiles
             // Search downward until we find ground
             for (; tileY < MapHeight; tileY++)
             {
-                foreach (Layer layer in map.Layers.Values)
+                foreach (BasicLayerMTLG layer in map.Layers.Values)
                 {
                     if (layer.GetTile(tileX, tileY) != 0)
                     {

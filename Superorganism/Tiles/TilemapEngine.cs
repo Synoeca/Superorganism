@@ -948,7 +948,7 @@ namespace Superorganism.Tiles
                     }
                 }
             }
-            MapHelper.AnalyzeMapGround(result);
+            //MapHelper.AnalyzeMapGround(result);
             return result;
         }
 
