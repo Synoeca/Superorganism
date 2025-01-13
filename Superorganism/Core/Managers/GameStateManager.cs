@@ -33,8 +33,8 @@ namespace Superorganism.Core.Managers
         private double _enemyCollisionTimer;
         private const double EnemyCollisionInterval = 0.2;
 
-        public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera,
-            GameAudioManager audio, TiledMap map)
+        public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, 
+            Camera2D camera, GameAudioManager audio, TiledMap map)
         {
             DecisionMaker.Entities.Clear();
             _audioManager = audio;
@@ -45,8 +45,8 @@ namespace Superorganism.Core.Managers
             _entityManager = new EntityManager(game, content, graphicsDevice, map);
 
             _pauseAction = new InputAction(
-                new[] { Buttons.Start, Buttons.Back },
-                new[] { Keys.Back, Keys.Escape },
+                [Buttons.Start, Buttons.Back],
+                [Keys.Back, Keys.Escape],
                 true);
 
             InitializeGameState();

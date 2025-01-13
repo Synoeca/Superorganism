@@ -17,7 +17,7 @@ namespace Superorganism.AI
         private static Vector2 _lastKnownTargetPosition;
         private static Strategy _targetStrategy;
         private const float TransitionDuration = 1.0f; // 1 second pause
-        public static GameTime GameTime { get; set; }
+        public static TimeSpan GameProgressTime { get; set; }
 		public static List<Entity> Entities { get; set; } = [];
 		public static Strategy Strategy { get; set; }
 		public static int GroundY { get; set; }
@@ -37,7 +37,8 @@ namespace Superorganism.AI
             if (strategy != newStrategy)
             {
                 strategy = newStrategy;
-                double currentTime = (DateTime.Now - GameStartTime).TotalSeconds;
+                //double currentTime = (DateTime.Now - GameStartTime).TotalSeconds;
+                double currentTime = gameTime.TotalGameTime.TotalSeconds;
                 strategyHistory.Add((newStrategy, currentTime, currentTime));
             }
         }
@@ -46,7 +47,9 @@ namespace Superorganism.AI
         {
             if (!strategyHistory.Any()) return 0;
             (Strategy Strategy, double StartTime, double LastActionTime) lastEntry = strategyHistory[^1];
-            return (DateTime.Now - GameStartTime).TotalSeconds - lastEntry.LastActionTime;
+            //return (DateTime.Now - GameStartTime).TotalSeconds - lastEntry.LastActionTime;
+            //return (gameTime.TotalGameTime - GameStartTime.TimeOfDay).TotalSeconds - lastEntry.LastActionTime;
+            return gameTime.TotalGameTime.TotalSeconds - lastEntry.LastActionTime;
         }
 
         private static Vector2? GetLastTargetPosition(List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, GameTime gameTime)
@@ -115,7 +118,6 @@ namespace Superorganism.AI
         ref double directionTimer, ref double directionInterval, ref ICollisionBounding collisionBounding,
         ref Vector2 velocity, int screenWidth, int groundHeight, TextureInfo textureInfo, EntityStatus entityStatus)
         {
-            GameTime = gameTime;
             double currentStrategyDuration = GetStrategyDuration(strategyHistory, gameTime);
             Rectangle mapBounds = MapHelper.GetMapWorldBounds();
 
@@ -240,7 +242,8 @@ namespace Superorganism.AI
                         {
                             velocity.X = -velocity.X; // Reverse direction
                             (Strategy Strategy, double StartTime, double LastActionTime) current = strategyHistory[^1];
-                            strategyHistory[^1] = (current.Strategy, current.StartTime, (DateTime.Now - GameStartTime).TotalSeconds);
+                            //strategyHistory[^1] = (current.Strategy, current.StartTime, (DateTime.Now - GameStartTime).TotalSeconds);
+                            strategyHistory[^1] = (current.Strategy, current.StartTime, gameTime.TotalGameTime.TotalSeconds);
                         }
 
                         Vector2 proposedXPosition = position + new Vector2(velocity.X, 0);

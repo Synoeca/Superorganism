@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 namespace ContentPipeline
 {
-    [ContentSerializerRuntimeType("Superorganism.Core.SaveLoadSystem.GameStateContent, Superorganism")]
+    [ContentSerializerRuntimeType("Superorganism.Core.SaveLoadSystem.GameState, Superorganism")]
     public class GameStateContent
     {
         public bool IsGameOver { get; set; }

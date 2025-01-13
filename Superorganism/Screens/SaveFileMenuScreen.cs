@@ -79,15 +79,32 @@ namespace Superorganism.Screens
             // Add back button
             _backButton = new SaveFileEntry("Back", "", true);
 
+            // Create save directory if it doesn't exist
             if (!Directory.Exists(_savePath))
             {
-                _pages.Add([new SaveFileEntry("No save files found", "", false)]);
+                Directory.CreateDirectory(_savePath);
+                if (_isLoadingMode)
+                {
+                    _pages.Add([new SaveFileEntry("No save files found", "", false)]);
+                }
+                else
+                {
+                    _pages.Add([new SaveFileEntry("Create New Save", "", true)]);
+                    _selectedEntry = 0; // Focus on Create New Save
+                }
                 return;
+            }
+
+            // If in save mode, add "Create New Save" at the beginning of the first page
+            if (!_isLoadingMode)
+            {
+                currentPage.Add(new SaveFileEntry("Create New Save", "", true));
+                _selectedEntry = 0; // Focus on Create New Save
             }
 
             List<string> saveFiles = Directory
                 .GetFiles(_savePath, "Save*.sav")
-                .OrderBy(f => int.Parse(Path.GetFileNameWithoutExtension(f).Replace("Save", "")))
+                .OrderByDescending(f => int.Parse(Path.GetFileNameWithoutExtension(f).Replace("Save", "")))
                 .ToList();
 
             foreach (string file in saveFiles)
@@ -97,7 +114,6 @@ namespace Superorganism.Screens
                 {
                     string jsonContent = File.ReadAllText(file);
                     GameStateContent saveState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, _serializerOptions);
-
                     string entryText = $"{saveFileName} - HP: {saveState.PlayerHealth}, Crops: {saveState.CropsLeft}";
                     currentPage.Add(new SaveFileEntry(entryText, saveFileName, true));
                 }
@@ -119,20 +135,18 @@ namespace Superorganism.Screens
                 _pages.Add(currentPage);
             }
 
-            // If in save mode, add "New Save" to the last page
-            if (!_isLoadingMode)
-            {
-                if (_pages.Count == 0 || _pages[^1].Count == EntriesPerPage)
-                {
-                    _pages.Add([]);
-                }
-                _pages[^1].Add(new SaveFileEntry("Create New Save", "", true));
-            }
-
             // If no pages were created, add an empty page
             if (_pages.Count == 0)
             {
-                _pages.Add([new SaveFileEntry("No save files found", "", false)]);
+                if (_isLoadingMode)
+                {
+                    _pages.Add([new SaveFileEntry("No save files found", "", false)]);
+                }
+                else
+                {
+                    _pages.Add([new SaveFileEntry("Create New Save", "", true)]);
+                    _selectedEntry = 0; // Focus on Create New Save
+                }
             }
         }
 

@@ -81,11 +81,6 @@ namespace Superorganism.Tiles
             {
                 group.Draw(this, batch, visibleArea, cameraPosition);
             }
-
-            //foreach (ObjectGroup objectGroup in ObjectGroups.Values)
-            //{
-            //    objectGroup.Draw(this, batch, visibleArea, cameraPosition);
-            //}
         }
     }
 
@@ -441,14 +436,6 @@ namespace Superorganism.Tiles
             {
                 objectGroup.Draw(result, batch, rectangle, viewportPosition);
             }
-
-            //foreach (Object objects in Objects.Values)
-            //{
-            //    if (objects.TileTexture != null)
-            //    {
-            //        objects.Draw(batch, rectangle, new Vector2(X * result.TileWidth, Y * result.TileHeight), viewportPosition, _opacity);
-            //    }
-            //}
         }
     }
 }

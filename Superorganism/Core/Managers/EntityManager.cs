@@ -154,7 +154,7 @@ public class EntityManager
         Random rand = new();
 
         // Initialize crops at higher positions
-        _crops = new Crop[40]; // Increased number of crops
+        _crops = new Crop[1]; // Increased number of crops
         for (int i = 0; i < _crops.Length; i++)
         {
             _crops[i] = new Crop();
@@ -170,7 +170,7 @@ public class EntityManager
         }
 
         // Initialize more flies at higher positions
-        _flies = new Fly[150]; // Increased number of flies
+        _flies = new Fly[1]; // Increased number of flies
         for (int i = 0; i < _flies.Length; i++)
         {
             _flies[i] = new Fly();

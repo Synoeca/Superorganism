@@ -27,7 +27,6 @@ namespace Superorganism.Screens
         private ParallaxBackground _parallaxBackground;
         //private Map _map;
         private TiledMap _map;
-        private BasicMap _basicMap;
         private ContentManager _content;
 
         // Constants
@@ -44,7 +43,7 @@ namespace Superorganism.Screens
 
         public override void Activate()
         {
-            DecisionMaker.GameStartTime = DateTime.Now;
+            //DecisionMaker.GameStartTime = DateTime.Now;
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
             //ContentReaders.Register(_content); // Register content readers
             InitializeComponents();
@@ -58,9 +57,6 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            //_map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
-            //_basicMap = _content.Load<BasicMap>("Tileset/Maps/TestMapRev1");
-            //_map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev1");
             _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev4");
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
@@ -75,35 +71,35 @@ namespace Superorganism.Screens
 
             GameState.Initialize(GameStateManager);
 
-            string contentPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content"));
-            string savePath = Path.Combine(contentPath, "Saves", SaveFileToLoad);
+            //string contentPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content"));
+            //string savePath = Path.Combine(contentPath, "Saves", SaveFileToLoad);
 
-            try
-            {
-                if (File.Exists(savePath))
-                {
-                    GameStateContent savedState = _content.Load<GameStateContent>($"Saves/{Path.GetFileNameWithoutExtension(SaveFileToLoad)}");
-                    if (savedState != null)
-                    {
-                        GameStateLoader.RestoreGameState(GameStateManager, savedState);
-                    }
-                    else
-                    {
-                        GameState.Initialize(GameStateManager);
-                    }
-                }
-                else
-                {
-                    GameState.Initialize(GameStateManager);
-                }
-            }
-            catch (Exception ex)
-            {
-                string jsonContent = File.ReadAllText(savePath);
-                GameStateContent savedState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, _serializerOptions);
-                GameStateLoader.RestoreGameState(GameStateManager, savedState);
-                GameState.Initialize(GameStateManager);
-            }
+            //try
+            //{
+            //    if (File.Exists(savePath))
+            //    {
+            //        GameStateContent savedState = _content.Load<GameStateContent>($"Saves/{Path.GetFileNameWithoutExtension(SaveFileToLoad)}");
+            //        if (savedState != null)
+            //        {
+            //            GameStateLoader.RestoreGameState(GameStateManager, savedState);
+            //        }
+            //        else
+            //        {
+            //            GameState.Initialize(GameStateManager);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        GameState.Initialize(GameStateManager);
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    string jsonContent = File.ReadAllText(savePath);
+            //    GameStateContent savedState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, _serializerOptions);
+            //    GameStateLoader.RestoreGameState(GameStateManager, savedState);
+            //    GameState.Initialize(GameStateManager);
+            //}
 
             // Initialize UI and other components
             _uiManager = new GameUiManager(
