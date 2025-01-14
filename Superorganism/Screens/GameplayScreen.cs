@@ -10,9 +10,7 @@ using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
-using ContentPipeline;
 using Superorganism.Core.SaveLoadSystem;
-using System.Text.Json;
 
 #pragma warning disable CA1416
 
@@ -25,15 +23,15 @@ namespace Superorganism.Screens
         private GameUiManager _uiManager;
         private Camera2D _camera;
         private ParallaxBackground _parallaxBackground;
-        private Map _map;
-        private BasicMap _basicMap;
+        //private Map _map;
+        private TiledMap _map;
         private ContentManager _content;
 
         // Constants
         public readonly float Zoom = 1f;
         private float _pauseAlpha;
 
-        public string SaveFileToLoad { get; set; } = "save1.sav";
+        public string SaveFileToLoad { get; set; }
 
         public GameplayScreen()
         {
@@ -43,23 +41,40 @@ namespace Superorganism.Screens
 
         public override void Activate()
         {
-            DecisionMaker.GameStartTime = DateTime.Now;
+            //DecisionMaker.GameStartTime = DateTime.Now;
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
             //ContentReaders.Register(_content); // Register content readers
             InitializeComponents();
         }
 
-        private readonly JsonSerializerOptions _serializerOptions = new()
-        {
-            WriteIndented = true,
-            Converters = { new Vector2Converter() }
-        };
-
         private void InitializeComponents()
         {
-            _map = Map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev1.tmx")), _content);
-            //_basicMap = _content.Load<BasicMap>("Tileset/Maps/TestMapRev1");
+            _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev4");
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
+
+            GameStateInfo loadedState = new();
+
+            if (SaveFileToLoad != null)
+            {
+                try
+                {
+                    string savePath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "Superorganism",
+                        "Saves",
+                        SaveFileToLoad);
+
+                    if (File.Exists(savePath))
+                    {
+                        // Load state using GameStateLoader
+                        loadedState = GameStateLoader.LoadGameState(SaveFileToLoad);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to load save file: {ex.Message}");
+                }
+            }
 
             GameStateManager = new GameStateManager(
                 ScreenManager.Game,
@@ -67,40 +82,12 @@ namespace Superorganism.Screens
                 ScreenManager.GraphicsDevice,
                 _camera,
                 ScreenManager.GameAudioManager,
-                _map
+                _map,
+                loadedState
             );
 
             GameState.Initialize(GameStateManager);
 
-            string contentPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content"));
-            string savePath = Path.Combine(contentPath, "Saves", SaveFileToLoad);
-
-            try
-            {
-                if (File.Exists(savePath))
-                {
-                    GameStateContent savedState = _content.Load<GameStateContent>($"Saves/{Path.GetFileNameWithoutExtension(SaveFileToLoad)}");
-                    if (savedState != null)
-                    {
-                        GameStateLoader.RestoreGameState(GameStateManager, savedState);
-                    }
-                    else
-                    {
-                        GameState.Initialize(GameStateManager);
-                    }
-                }
-                else
-                {
-                    GameState.Initialize(GameStateManager);
-                }
-            }
-            catch (Exception ex)
-            {
-                string jsonContent = File.ReadAllText(savePath);
-                GameStateContent savedState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, _serializerOptions);
-                GameStateLoader.RestoreGameState(GameStateManager, savedState);
-                GameState.Initialize(GameStateManager);
-            }
 
             // Initialize UI and other components
             _uiManager = new GameUiManager(

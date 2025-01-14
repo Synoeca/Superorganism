@@ -10,6 +10,7 @@
 
 #-------------------------------- References --------------------------------#
 
+/reference:..\..\ContentPipeline\bin\Debug\net8.0-windows7.0\ContentPipeline.dll
 
 #---------------------------------- Content ---------------------------------#
 
@@ -707,7 +708,14 @@
 /build:tiles2.png
 
 #begin Tileset/Maps/TestMapRev1.tmx
-/copy:Tileset/Maps/TestMapRev1.tmx
+/importer:TiledMapEngineContentImporter
+/processor:TiledMapEngineContentProcessor
+/build:Tileset/Maps/TestMapRev1.tmx
+
+#begin Tileset/Maps/TestMapRev4.tmx
+/importer:TiledMapEngineContentImporter
+/processor:TiledMapEngineContentProcessor
+/build:Tileset/Maps/TestMapRev4.tmx
 
 #begin Tileset/Maps/tileset64.png
 /importer:TextureImporter
@@ -720,4 +728,16 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Tileset/Maps/tileset64.png
+
+#begin Tileset/tileset64.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Tileset/tileset64.png
 

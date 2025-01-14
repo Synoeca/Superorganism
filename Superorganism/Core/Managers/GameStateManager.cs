@@ -20,21 +20,23 @@ namespace Superorganism.Core.Managers
         private readonly GameAudioManager _audioManager;
         private readonly InputAction _pauseAction;
         private readonly Camera2D _camera;
-        private readonly Map _map;
+        private readonly TiledMap _map;
         private readonly ContentManager _content;
 
-        public Map CurrentMap => _map;
+        public TiledMap CurrentMap => _map;
 
         public bool IsGameOver { get; set; }
         public bool IsGameWon { get; set; }
         public int CropsLeft { get; set; }
         public double ElapsedTime { get; set; }
 
+        public GameTime GameTime { get; set; }
+
         private double _enemyCollisionTimer;
         private const double EnemyCollisionInterval = 0.2;
 
-        public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, Camera2D camera,
-            GameAudioManager audio, Map map)
+        public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, 
+            Camera2D camera, GameAudioManager audio, TiledMap map, GameStateInfo gameStateInfo)
         {
             DecisionMaker.Entities.Clear();
             _audioManager = audio;
@@ -42,11 +44,11 @@ namespace Superorganism.Core.Managers
             _map = map;
             _content = content;
 
-            _entityManager = new EntityManager(game, content, graphicsDevice, map);
+            _entityManager = new EntityManager(game, content, graphicsDevice, map, gameStateInfo);
 
             _pauseAction = new InputAction(
-                new[] { Buttons.Start, Buttons.Back },
-                new[] { Keys.Back, Keys.Escape },
+                [Buttons.Start, Buttons.Back],
+                [Keys.Back, Keys.Escape],
                 true);
 
             InitializeGameState();
@@ -109,7 +111,7 @@ namespace Superorganism.Core.Managers
         public void Update(GameTime gameTime)
         {
             if (IsGameOver || IsGameWon) return;
-
+            GameTime = gameTime;
             UpdateTimers(gameTime);
             _entityManager.Update(gameTime);
             CheckCollisions();

@@ -17,7 +17,7 @@ namespace Superorganism.Core.Managers
             _instance = manager ?? throw new ArgumentNullException(nameof(manager));
         }
 
-        public static Map CurrentMap
+        public static TiledMap CurrentMap
         {
             get
             {
