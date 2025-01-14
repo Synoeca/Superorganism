@@ -86,8 +86,6 @@ namespace Superorganism.Screens
                 }
             }
 
-            
-
             GameStateManager = new GameStateManager(
                 ScreenManager.Game,
                 _content,
@@ -100,32 +98,6 @@ namespace Superorganism.Screens
 
             GameState.Initialize(GameStateManager);
 
-            //try
-            //{
-            //    if (File.Exists(savePath))
-            //    {
-            //        GameStateContent savedState = _content.Load<GameStateContent>($"Saves/{Path.GetFileNameWithoutExtension(SaveFileToLoad)}");
-            //        if (savedState != null)
-            //        {
-            //            GameStateLoader.RestoreGameState(savedState);
-            //        }
-            //        else
-            //        {
-            //            GameState.Initialize(GameStateManager);
-            //        }
-            //    }
-            //    else
-            //    {
-            //        GameState.Initialize(GameStateManager);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    string jsonContent = File.ReadAllText(savePath);
-            //    GameStateContent savedState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, _serializerOptions);
-            //    GameStateLoader.RestoreGameState(savedState);
-            //    GameState.Initialize(GameStateManager);
-            //}
 
             // Initialize UI and other components
             _uiManager = new GameUiManager(
