@@ -42,7 +42,7 @@ namespace Superorganism.Core.SaveLoadSystem
                 }
             }
 
-            List<EntityData> entityDataList = new List<EntityData>();
+            List<EntityData> entityDataList = [];
 
             // Save player (Ant)
             Ant player = gameState.Entities.OfType<Ant>().FirstOrDefault();

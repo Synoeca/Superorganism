@@ -1,17 +1,15 @@
-﻿using System.Collections.Generic;
-using System;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using ContentPipeline;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
-using static System.TimeZoneInfo;
+using Superorganism.Core.Managers;
 using Superorganism.Core.SaveLoadSystem;
 using Superorganism.ScreenManagement;
-using Superorganism.Core.Managers;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 
 namespace Superorganism.Screens
 {
@@ -39,8 +37,7 @@ namespace Superorganism.Screens
         private readonly InputAction _menuDelete;
 
         private KeyboardState _previousKeyboardState;
-        private HashSet<Keys> _pressedKeys = new();
-        private bool _isShiftActive = false;
+        private HashSet<Keys> _pressedKeys = [];
 
         private int _selectedEntry;
 
@@ -63,8 +60,8 @@ namespace Superorganism.Screens
             );
 
             _menuDelete = new InputAction(
-                new Buttons[] { },  // No gamepad button for delete
-                new Keys[] { Keys.Delete },
+                [],  // No gamepad button for delete
+                [Keys.Delete],
                 true);
 
             // Initialize input actions
@@ -96,7 +93,7 @@ namespace Superorganism.Screens
             List<SaveFileEntry> currentPage = [];
 
             // Add back button
-            _backButton = new SaveFileEntry("Back", "", true);
+            _backButton = new SaveFileEntry("Back", "");
 
             // Create save directory if it doesn't exist
             if (!Directory.Exists(_savePath))
@@ -108,7 +105,7 @@ namespace Superorganism.Screens
                 }
                 else
                 {
-                    _pages.Add([new SaveFileEntry("Create New Save", "", true)]);
+                    _pages.Add([new SaveFileEntry("Create New Save", "")]);
                     _selectedEntry = 0; // Focus on Create New Save
                 }
                 return;
@@ -117,7 +114,7 @@ namespace Superorganism.Screens
             // If in save mode, add "Create New Save" at the beginning of the first page 
             if (!_isLoadingMode)
             {
-                currentPage.Add(new SaveFileEntry("Create New Save", "", true));
+                currentPage.Add(new SaveFileEntry("Create New Save", ""));
                 _selectedEntry = 0; // Focus on Create New Save
             }
 
@@ -141,7 +138,7 @@ namespace Superorganism.Screens
                     int cropsCount = saveState.Entities.Count(e => e.Type == "Crop");
 
                     string entryText = $"{saveFileName} - HP: {playerEntity?.Health ?? 0}, Crops: {cropsCount}";
-                    currentPage.Add(new SaveFileEntry(entryText, saveFileName, true));
+                    currentPage.Add(new SaveFileEntry(entryText, saveFileName));
                 }
                 catch
                 {
@@ -170,7 +167,7 @@ namespace Superorganism.Screens
                 }
                 else
                 {
-                    _pages.Add([new SaveFileEntry("Create New Save", "", true)]);
+                    _pages.Add([new SaveFileEntry("Create New Save", "")]);
                     _selectedEntry = 0; // Focus on Create New Save
                 }
             }
@@ -189,7 +186,7 @@ namespace Superorganism.Screens
                 string fileName = string.IsNullOrWhiteSpace(_currentInput)
                     ? _defaultSaveName
                     : _currentInput;  // We no longer append ".sav" here, as the user provides the full name
-                SaveToFile(fileName, ControllingPlayer ?? PlayerIndex.One);
+                SaveToFile(fileName);
                 _isNaming = false;
                 _currentInput = "";
                 _pressedKeys.Clear();
@@ -258,7 +255,7 @@ namespace Superorganism.Screens
             // Handle digits (top row)
             if (key >= Keys.D0 && key <= Keys.D9)
             {
-                char[] shiftChars = { ')', '!', '@', '#', '$', '%', '^', '&', '*', '(' };
+                char[] shiftChars = [')', '!', '@', '#', '$', '%', '^', '&', '*', '('];
                 int index = key - Keys.D0;
                 return shiftPressed ? shiftChars[index] : (char)('0' + index);
             }
@@ -306,7 +303,7 @@ namespace Superorganism.Screens
 
             const string message = "Are you sure you want to delete this save file?";
             MessageBoxScreen confirmBox = new(message);
-            confirmBox.Accepted += (s, e) => DeleteSaveFile(selectedEntry.FileName);
+            confirmBox.Accepted += (_, _) => DeleteSaveFile(selectedEntry.FileName);
             ScreenManager.AddScreen(confirmBox, ControllingPlayer);
         }
 
@@ -321,29 +318,12 @@ namespace Superorganism.Screens
                     PopulateEntries();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 const string message = "Failed to delete save file.";
                 MessageBoxScreen errorBox = new(message);
                 ScreenManager.AddScreen(errorBox, ControllingPlayer);
             }
-        }
-
-        private void StartNaming()
-        {
-            _isNaming = true;
-            _currentInput = "";
-            int nextNumber = Directory
-                .GetFiles(_savePath, "Save*.sav")
-                .Select(f =>
-                {
-                    string fileName = Path.GetFileNameWithoutExtension(f);
-                    string numberPart = fileName.Replace("Save", "");
-                    return int.TryParse(numberPart, out int num) ? num : 0;
-                })
-                .DefaultIfEmpty(0)
-                .Max() + 1;
-            _defaultSaveName = $"Save{nextNumber}.sav";
         }
 
         public override void HandleInput(GameTime gameTime, InputState input)
@@ -399,9 +379,9 @@ namespace Superorganism.Screens
                 }
             }
 
-            if (_menuSelect.Occurred(input, ControllingPlayer, out PlayerIndex playerIndex))
+            if (_menuSelect.Occurred(input, ControllingPlayer, out PlayerIndex _))
             {
-                HandleSelection(playerIndex);
+                HandleSelection();
             }
 
             if (_menuCancel.Occurred(input, ControllingPlayer, out _))
@@ -410,7 +390,7 @@ namespace Superorganism.Screens
             }
         }
 
-        private void HandleSelection(PlayerIndex playerIndex)
+        private void HandleSelection()
         {
             List<SaveFileEntry> currentEntries = _pages[_currentPage];
             if (_selectedEntry < 0 || _selectedEntry >= currentEntries.Count)
@@ -433,7 +413,7 @@ namespace Superorganism.Screens
                 {
                     const string message = "Are you sure you want to load this save?\nUnsaved progress will be lost.";
                     MessageBoxScreen confirmBox = new(message);
-                    confirmBox.Accepted += (s, e) => LoadSaveFile(selectedEntry.FileName, e.PlayerIndex);
+                    confirmBox.Accepted += (_, e) => LoadSaveFile(selectedEntry.FileName, e.PlayerIndex);
                     ScreenManager.AddScreen(confirmBox, ControllingPlayer);
                 }
             }
@@ -441,11 +421,11 @@ namespace Superorganism.Screens
             {
                 if (selectedEntry.Text == "Create New Save")
                 {
-                    CreateNewSave(playerIndex);
+                    CreateNewSave();
                 }
                 else
                 {
-                    SaveToFile(selectedEntry.FileName, playerIndex);
+                    SaveToFile(selectedEntry.FileName);
                 }
             }
         }
@@ -456,7 +436,7 @@ namespace Superorganism.Screens
             LoadingScreen.Load(ScreenManager, true, playerIndex, newGameplayScreen);
         }
 
-        private void SaveToFile(string fileName, PlayerIndex playerIndex)
+        private void SaveToFile(string fileName)
         {
             GameplayScreen gameplayScreen = GetGameplayScreen();
             if (gameplayScreen?.GameStateManager == null) return;
@@ -472,11 +452,11 @@ namespace Superorganism.Screens
 
             const string message = "Game saved successfully!";
             MessageBoxScreen confirmationBox = new(message);
-            confirmationBox.Accepted += (s, e) => PopulateEntries();
+            confirmationBox.Accepted += (_, _) => PopulateEntries();
             ScreenManager.AddScreen(confirmationBox, ControllingPlayer);
         }
 
-        private void CreateNewSave(PlayerIndex playerIndex)
+        private void CreateNewSave()
         {
             GameplayScreen gameplayScreen = GetGameplayScreen();
             if (gameplayScreen?.GameStateManager == null) return;
@@ -502,11 +482,6 @@ namespace Superorganism.Screens
         private GameplayScreen GetGameplayScreen()
         {
             return ScreenManager.GetScreens().OfType<GameplayScreen>().FirstOrDefault();
-        }
-
-        private int GetSelectedIndex()
-        {
-            return _selectedEntry;
         }
 
         public override void Draw(GameTime gameTime)

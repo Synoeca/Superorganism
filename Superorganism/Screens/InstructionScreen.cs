@@ -121,7 +121,7 @@ namespace Superorganism.Screens
 
             // Draw instructions
             foreach (InstructionEntry instruction in _pages[_currentPage])
-                instruction.Draw(this, false);
+                instruction.Draw(this);
 
             // Draw back button
             _backButton.Draw(this, true);

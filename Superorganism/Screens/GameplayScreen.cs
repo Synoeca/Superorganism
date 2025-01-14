@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -11,10 +10,7 @@ using Superorganism.ScreenManagement;
 using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
-using ContentPipeline;
 using Superorganism.Core.SaveLoadSystem;
-using System.Text.Json;
-using Superorganism.Entities;
 
 #pragma warning disable CA1416
 
@@ -50,12 +46,6 @@ namespace Superorganism.Screens
             //ContentReaders.Register(_content); // Register content readers
             InitializeComponents();
         }
-
-        private readonly JsonSerializerOptions _serializerOptions = new()
-        {
-            WriteIndented = true,
-            Converters = { new Vector2Converter() }
-        };
 
         private void InitializeComponents()
         {

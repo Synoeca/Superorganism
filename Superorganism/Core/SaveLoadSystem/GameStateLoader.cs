@@ -46,7 +46,7 @@ namespace Superorganism.Core.SaveLoadSystem
             GameStateInfo gameState = new GameStateInfo
             {
                 GameProgressTime = TimeSpan.FromSeconds(savedState.GameProgressTime.TotalSeconds),
-                Entities = new List<Entity>()
+                Entities = []
             };
 
             foreach (EntityData entityData in savedState.Entities)
@@ -106,10 +106,7 @@ namespace Superorganism.Core.SaveLoadSystem
         {
             return new GameStateInfo
             {
-                Entities = new List<Entity>
-            {
-                new Ant { Position = new Vector2(100, 100), HitPoints = 100 }
-            },
+                Entities = [new Ant { Position = new Vector2(100, 100), HitPoints = 100 }],
                 GameProgressTime = TimeSpan.Zero
             };
         }
