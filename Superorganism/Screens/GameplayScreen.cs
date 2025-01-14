@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -13,6 +14,7 @@ using System.IO;
 using ContentPipeline;
 using Superorganism.Core.SaveLoadSystem;
 using System.Text.Json;
+using Superorganism.Entities;
 
 #pragma warning disable CA1416
 
@@ -33,7 +35,7 @@ namespace Superorganism.Screens
         public readonly float Zoom = 1f;
         private float _pauseAlpha;
 
-        public string SaveFileToLoad { get; set; } = "save1.sav";
+        public string SaveFileToLoad { get; set; }
 
         public GameplayScreen()
         {
@@ -60,19 +62,43 @@ namespace Superorganism.Screens
             _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev4");
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
+            GameStateInfo loadedState = new();
+
+            if (SaveFileToLoad != null)
+            {
+                try
+                {
+                    string savePath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "Superorganism",
+                        "Saves",
+                        SaveFileToLoad);
+
+                    if (File.Exists(savePath))
+                    {
+                        // Load state using GameStateLoader
+                        loadedState = GameStateLoader.LoadGameState(SaveFileToLoad);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to load save file: {ex.Message}");
+                }
+            }
+
+            
+
             GameStateManager = new GameStateManager(
                 ScreenManager.Game,
                 _content,
                 ScreenManager.GraphicsDevice,
                 _camera,
                 ScreenManager.GameAudioManager,
-                _map
+                _map,
+                loadedState
             );
 
             GameState.Initialize(GameStateManager);
-
-            //string contentPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content"));
-            //string savePath = Path.Combine(contentPath, "Saves", SaveFileToLoad);
 
             //try
             //{
@@ -81,7 +107,7 @@ namespace Superorganism.Screens
             //        GameStateContent savedState = _content.Load<GameStateContent>($"Saves/{Path.GetFileNameWithoutExtension(SaveFileToLoad)}");
             //        if (savedState != null)
             //        {
-            //            GameStateLoader.RestoreGameState(GameStateManager, savedState);
+            //            GameStateLoader.RestoreGameState(savedState);
             //        }
             //        else
             //        {
@@ -97,7 +123,7 @@ namespace Superorganism.Screens
             //{
             //    string jsonContent = File.ReadAllText(savePath);
             //    GameStateContent savedState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, _serializerOptions);
-            //    GameStateLoader.RestoreGameState(GameStateManager, savedState);
+            //    GameStateLoader.RestoreGameState(savedState);
             //    GameState.Initialize(GameStateManager);
             //}
 

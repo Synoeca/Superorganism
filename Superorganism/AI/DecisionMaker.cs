@@ -22,6 +22,7 @@ namespace Superorganism.AI
 		public static Strategy Strategy { get; set; }
 		public static int GroundY { get; set; }
         public static DateTime GameStartTime { get; set; }
+        public static GameTime GameTime { get; set; }
 
 		private static double GetNewDirectionInterval()
 		{

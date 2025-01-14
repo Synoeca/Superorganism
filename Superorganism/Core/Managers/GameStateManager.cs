@@ -30,11 +30,13 @@ namespace Superorganism.Core.Managers
         public int CropsLeft { get; set; }
         public double ElapsedTime { get; set; }
 
+        public GameTime GameTime { get; set; }
+
         private double _enemyCollisionTimer;
         private const double EnemyCollisionInterval = 0.2;
 
         public GameStateManager(Game game, ContentManager content, GraphicsDevice graphicsDevice, 
-            Camera2D camera, GameAudioManager audio, TiledMap map)
+            Camera2D camera, GameAudioManager audio, TiledMap map, GameStateInfo gameStateInfo)
         {
             DecisionMaker.Entities.Clear();
             _audioManager = audio;
@@ -42,7 +44,7 @@ namespace Superorganism.Core.Managers
             _map = map;
             _content = content;
 
-            _entityManager = new EntityManager(game, content, graphicsDevice, map);
+            _entityManager = new EntityManager(game, content, graphicsDevice, map, gameStateInfo);
 
             _pauseAction = new InputAction(
                 [Buttons.Start, Buttons.Back],
@@ -109,7 +111,7 @@ namespace Superorganism.Core.Managers
         public void Update(GameTime gameTime)
         {
             if (IsGameOver || IsGameWon) return;
-
+            GameTime = gameTime;
             UpdateTimers(gameTime);
             _entityManager.Update(gameTime);
             CheckCollisions();

@@ -7,9 +7,11 @@ using ContentPipeline;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Superorganism.AI;
 using static System.TimeZoneInfo;
 using Superorganism.Core.SaveLoadSystem;
 using Superorganism.ScreenManagement;
+using Superorganism.Core.Managers;
 
 namespace Superorganism.Screens
 {
@@ -31,6 +33,15 @@ namespace Superorganism.Screens
         private readonly InputAction _menuSelect;
         private readonly InputAction _menuCancel;
 
+        private bool _isNaming;
+        private string _currentInput = "";
+        private string _defaultSaveName;
+        private readonly InputAction _menuDelete;
+
+        private KeyboardState _previousKeyboardState;
+        private HashSet<Keys> _pressedKeys = new();
+        private bool _isShiftActive = false;
+
         private int _selectedEntry;
 
         public SaveFileMenuScreen(bool isLoadingMode)
@@ -45,8 +56,16 @@ namespace Superorganism.Screens
                 Converters = { new Vector2Converter() }
             };
 
-            _savePath = Path.GetFullPath(Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content", "Saves"));
+            _savePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Superorganism",
+                "Saves"
+            );
+
+            _menuDelete = new InputAction(
+                new Buttons[] { },  // No gamepad button for delete
+                new Keys[] { Keys.Delete },
+                true);
 
             // Initialize input actions
             _menuUp = new InputAction(
@@ -95,16 +114,17 @@ namespace Superorganism.Screens
                 return;
             }
 
-            // If in save mode, add "Create New Save" at the beginning of the first page
+            // If in save mode, add "Create New Save" at the beginning of the first page 
             if (!_isLoadingMode)
             {
                 currentPage.Add(new SaveFileEntry("Create New Save", "", true));
                 _selectedEntry = 0; // Focus on Create New Save
             }
 
+            // Get all .sav files in the directory, regardless of prefix
             List<string> saveFiles = Directory
-                .GetFiles(_savePath, "Save*.sav")
-                .OrderByDescending(f => int.Parse(Path.GetFileNameWithoutExtension(f).Replace("Save", "")))
+                .GetFiles(_savePath, "*.sav") // Use *.sav to match any save file
+                .OrderByDescending(f => File.GetLastWriteTime(f))
                 .ToList();
 
             foreach (string file in saveFiles)
@@ -114,7 +134,13 @@ namespace Superorganism.Screens
                 {
                     string jsonContent = File.ReadAllText(file);
                     GameStateContent saveState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, _serializerOptions);
-                    string entryText = $"{saveFileName} - HP: {saveState.PlayerHealth}, Crops: {saveState.CropsLeft}";
+
+                    // Find the player (Ant) entity
+                    EntityData playerEntity = saveState.Entities.FirstOrDefault(e => e.Type == "Ant");
+                    // Count remaining crops
+                    int cropsCount = saveState.Entities.Count(e => e.Type == "Crop");
+
+                    string entryText = $"{saveFileName} - HP: {playerEntity?.Health ?? 0}, Crops: {cropsCount}";
                     currentPage.Add(new SaveFileEntry(entryText, saveFileName, true));
                 }
                 catch
@@ -150,8 +176,191 @@ namespace Superorganism.Screens
             }
         }
 
+
+        private void HandleNamingInput(InputState input)
+        {
+            // Get current keyboard state
+            KeyboardState currentKeyboard = input.CurrentKeyboardStates[0];
+
+            // Handle Enter/Space to confirm
+            if (_menuSelect.Occurred(input, ControllingPlayer, out _))
+            {
+                // If the current input is empty, fall back to the default name
+                string fileName = string.IsNullOrWhiteSpace(_currentInput)
+                    ? _defaultSaveName
+                    : _currentInput;  // We no longer append ".sav" here, as the user provides the full name
+                SaveToFile(fileName, ControllingPlayer ?? PlayerIndex.One);
+                _isNaming = false;
+                _currentInput = "";
+                _pressedKeys.Clear();
+                return;
+            }
+
+            // Handle Escape to cancel
+            if (_menuCancel.Occurred(input, ControllingPlayer, out _))
+            {
+                _isNaming = false;
+                _currentInput = "";
+                _pressedKeys.Clear();
+                return;
+            }
+
+            // Check for modifier keys
+            bool shiftPressed = currentKeyboard.IsKeyDown(Keys.LeftShift) || currentKeyboard.IsKeyDown(Keys.RightShift);
+            bool capsLockActive = Console.CapsLock; // Or use input-dependent CapsLock check
+            bool numLockActive = currentKeyboard.IsKeyDown(Keys.NumLock);
+
+            // Track currently pressed keys
+            foreach (Keys key in currentKeyboard.GetPressedKeys())
+            {
+                if (_previousKeyboardState.IsKeyUp(key))
+                {
+                    _pressedKeys.Add(key);
+                }
+            }
+
+            // Handle key releases
+            foreach (Keys key in _pressedKeys.ToList())
+            {
+                if (currentKeyboard.IsKeyUp(key))
+                {
+                    if (key == Keys.Back && _currentInput.Length > 0)
+                    {
+                        _currentInput = _currentInput[..^1]; // Remove last character
+                    }
+                    else if (_currentInput.Length < 20) // Limit name length
+                    {
+                        char? c = ConvertKeyToChar(key, shiftPressed, capsLockActive, numLockActive);
+                        if (c.HasValue && (char.IsLetterOrDigit(c.Value) || c == '_' || c == '-'))
+                        {
+                            _currentInput += c.Value;
+                        }
+                    }
+                    _pressedKeys.Remove(key);
+                }
+            }
+
+            _previousKeyboardState = currentKeyboard;
+        }
+
+
+
+        public static char? ConvertKeyToChar(Keys key, bool shiftPressed, bool capsLockActive, bool numLockActive)
+        {
+            // Handle alphabetic keys
+            if (key >= Keys.A && key <= Keys.Z)
+            {
+                char baseChar = (char)(key - Keys.A + 'A');
+                // Adjust for Shift and CapsLock
+                return (shiftPressed ^ capsLockActive) ? baseChar : char.ToLower(baseChar);
+            }
+
+            // Handle digits (top row)
+            if (key >= Keys.D0 && key <= Keys.D9)
+            {
+                char[] shiftChars = { ')', '!', '@', '#', '$', '%', '^', '&', '*', '(' };
+                int index = key - Keys.D0;
+                return shiftPressed ? shiftChars[index] : (char)('0' + index);
+            }
+
+            // Handle NumPad keys
+            if (key >= Keys.NumPad0 && key <= Keys.NumPad9)
+            {
+                // Only output numbers if NumLock is active
+                return numLockActive ? (char)('0' + (key - Keys.NumPad0)) : null;
+            }
+
+            // Handle special keys with shift
+            switch (key)
+            {
+                case Keys.OemPlus: return shiftPressed ? '+' : '=';
+                case Keys.OemComma: return shiftPressed ? '<' : ',';
+                case Keys.OemMinus: return shiftPressed ? '_' : '-';
+                case Keys.OemPeriod: return shiftPressed ? '>' : '.';
+                case Keys.OemQuestion: return shiftPressed ? '?' : '/';
+                case Keys.OemTilde: return shiftPressed ? '~' : '`';
+                case Keys.OemOpenBrackets: return shiftPressed ? '{' : '[';
+                case Keys.OemCloseBrackets: return shiftPressed ? '}' : ']';
+                case Keys.OemPipe: return shiftPressed ? '|' : '\\';
+                case Keys.OemSemicolon: return shiftPressed ? ':' : ';';
+                case Keys.OemQuotes: return shiftPressed ? '"' : '\'';
+            }
+
+            // Return null for unmapped keys
+            return null;
+        }
+
+
+
+
+        private void HandleDeleteOption()
+        {
+            List<SaveFileEntry> currentEntries = _pages[_currentPage];
+            if (_selectedEntry < 0 || _selectedEntry >= currentEntries.Count)
+                return;
+
+            SaveFileEntry selectedEntry = currentEntries[_selectedEntry];
+            if (!selectedEntry.IsValid || selectedEntry.Text == "Create New Save" ||
+                selectedEntry.FileName == "")
+                return;
+
+            const string message = "Are you sure you want to delete this save file?";
+            MessageBoxScreen confirmBox = new(message);
+            confirmBox.Accepted += (s, e) => DeleteSaveFile(selectedEntry.FileName);
+            ScreenManager.AddScreen(confirmBox, ControllingPlayer);
+        }
+
+        private void DeleteSaveFile(string fileName)
+        {
+            try
+            {
+                string filePath = Path.Combine(_savePath, fileName);
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                    PopulateEntries();
+                }
+            }
+            catch (Exception ex)
+            {
+                const string message = "Failed to delete save file.";
+                MessageBoxScreen errorBox = new(message);
+                ScreenManager.AddScreen(errorBox, ControllingPlayer);
+            }
+        }
+
+        private void StartNaming()
+        {
+            _isNaming = true;
+            _currentInput = "";
+            int nextNumber = Directory
+                .GetFiles(_savePath, "Save*.sav")
+                .Select(f =>
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(f);
+                    string numberPart = fileName.Replace("Save", "");
+                    return int.TryParse(numberPart, out int num) ? num : 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max() + 1;
+            _defaultSaveName = $"Save{nextNumber}.sav";
+        }
+
         public override void HandleInput(GameTime gameTime, InputState input)
         {
+            if (_isNaming)
+            {
+                HandleNamingInput(input);
+                return;
+            }
+
+            // Handle delete key
+            if (_menuDelete.Occurred(input, ControllingPlayer, out _))
+            {
+                HandleDeleteOption();
+                return;
+            }
+
             // Handle page navigation
             if (_menuLeft.Occurred(input, ControllingPlayer, out _))
             {
@@ -253,8 +462,11 @@ namespace Superorganism.Screens
             if (gameplayScreen?.GameStateManager == null) return;
 
             GameStateSaver.SaveGameState(
-                gameplayScreen.GameStateManager,
-                ScreenManager.Game.Content,
+                new GameStateInfo
+                {
+                    Entities = DecisionMaker.Entities,
+                    GameProgressTime = gameplayScreen.GameStateManager.GameTime.TotalGameTime
+                },
                 fileName
             );
 
@@ -269,16 +481,22 @@ namespace Superorganism.Screens
             GameplayScreen gameplayScreen = GetGameplayScreen();
             if (gameplayScreen?.GameStateManager == null) return;
 
-            GameStateSaver.SaveGameState(
-                gameplayScreen.GameStateManager,
-                ScreenManager.Game.Content,
-                null
-            );
+            // Start naming process
+            _isNaming = true;
+            _currentInput = "";
 
-            const string message = "Game saved successfully!";
-            MessageBoxScreen confirmationBox = new(message);
-            confirmationBox.Accepted += (s, e) => PopulateEntries();
-            ScreenManager.AddScreen(confirmationBox, ControllingPlayer);
+            // Generate default save name
+            int nextNumber = Directory
+                .GetFiles(_savePath, "Save*.sav")
+                .Select(f =>
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(f);
+                    string numberPart = fileName.Replace("Save", "");
+                    return int.TryParse(numberPart, out int num) ? num : 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max() + 1;
+            _defaultSaveName = $"Save{nextNumber}.sav";
         }
 
         private GameplayScreen GetGameplayScreen()
@@ -300,24 +518,70 @@ namespace Superorganism.Screens
 
             spriteBatch.Begin();
 
-            string title = _isLoadingMode ? "Load Game" : "Save Game";
-            DrawTitle(title, new Vector2(viewport.Width / 2f, viewport.Height * 0.1f));
-
-            // Draw entries with selection highlight
-            for (int i = 0; i < _pages[_currentPage].Count; i++)
+            if (_isNaming)
             {
-                SaveFileEntry entry = _pages[_currentPage][i];
-                bool isSelected = i == _selectedEntry;
-                entry.Draw(this, isSelected);
+                DrawNamingInterface(viewport);
             }
-
-            // Draw page indicator if there are multiple pages
-            if (_pages.Count > 1)
+            else
             {
-                DrawPageIndicator();
+                string title = _isLoadingMode ? "Load Game" : "Save Game";
+                DrawTitle(title, new Vector2(viewport.Width / 2f, viewport.Height * 0.1f));
+
+                // Draw entries with selection highlight
+                for (int i = 0; i < _pages[_currentPage].Count; i++)
+                {
+                    SaveFileEntry entry = _pages[_currentPage][i];
+                    bool isSelected = i == _selectedEntry;
+                    entry.Draw(this, isSelected);
+                }
+
+                // Draw page indicator if there are multiple pages
+                if (_pages.Count > 1)
+                {
+                    DrawPageIndicator();
+                }
             }
 
             spriteBatch.End();
+        }
+
+        private void DrawNamingInterface(Viewport viewport)
+        {
+            string title = "Enter Save Name";
+            Vector2 titlePos = new(viewport.Width / 2f, viewport.Height * 0.3f);
+            DrawTitle(title, titlePos);
+
+            string displayText = string.IsNullOrEmpty(_currentInput) ?
+                $"Default: {_defaultSaveName}" :
+                _currentInput;
+
+            Vector2 textSize = ScreenManager.Font.MeasureString(displayText);
+            Vector2 textPos = new(
+                viewport.Width / 2f - textSize.X / 2f,
+                viewport.Height * 0.5f
+            );
+
+            ScreenManager.SpriteBatch.DrawString(
+                ScreenManager.Font,
+                displayText,
+                textPos,
+                Color.White * TransitionAlpha
+            );
+
+            // Draw instructions
+            string instructions = "Press Enter to save, Escape to cancel";
+            Vector2 instrSize = ScreenManager.Font.MeasureString(instructions);
+            Vector2 instrPos = new(
+                viewport.Width / 2f - instrSize.X / 2f,
+                viewport.Height * 0.7f
+            );
+
+            ScreenManager.SpriteBatch.DrawString(
+                ScreenManager.Font,
+                instructions,
+                instrPos,
+                Color.Gray * TransitionAlpha
+            );
         }
 
         private void UpdateEntryLocations()

@@ -8,19 +8,19 @@ using System.Threading.Tasks;
 
 namespace ContentPipeline
 {
-    [ContentImporter(".sav", DisplayName = "GameState Importer", DefaultProcessor = "GameStateProcessor")]
-    public class GameStateImporter : ContentImporter<GameStateContent>
-    {
-        public override GameStateContent Import(string filename, ContentImporterContext context)
-        {
-            // Read the save file
-            string jsonContent = File.ReadAllText(filename);
+    //[ContentImporter(".sav", DisplayName = "GameState Importer", DefaultProcessor = "GameStateProcessor")]
+    ////public class GameStateImporter : ContentImporter<GameStateContent>
+    ////{
+    ////    public override GameStateContent Import(string filename, ContentImporterContext context)
+    ////    {
+    ////        // Read the save file
+    ////        string jsonContent = File.ReadAllText(filename);
 
-            // Deserialize into our content object
-            GameStateContent? gameState = JsonSerializer.Deserialize<GameStateContent>(jsonContent);
-            gameState.SaveFilename = filename;
+    ////        // Deserialize into our content object
+    ////        GameStateContent? gameState = JsonSerializer.Deserialize<GameStateContent>(jsonContent);
+    ////        gameState.SaveFilename = filename;
 
-            return gameState;
-        }
-    }
+    ////        return gameState;
+    ////    }
+    ////}
 }

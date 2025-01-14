@@ -9,13 +9,13 @@ using Microsoft.Xna.Framework;
 namespace ContentPipeline
 {
     [ContentSerializerRuntimeType("Superorganism.Core.SaveLoadSystem.GameState, Superorganism")]
-    public class GameStateContent
+    public class GameStateContentObsolete
     {
         public bool IsGameOver { get; set; }
         public bool IsGameWon { get; set; }
         public int CropsLeft { get; set; }
         public double ElapsedTime { get; set; }
-
+        
 
         public Vector2 PlayerPosition { get; set; }
         public int PlayerHealth { get; set; }
