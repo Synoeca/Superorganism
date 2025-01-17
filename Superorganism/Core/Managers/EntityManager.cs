@@ -190,7 +190,7 @@ public class EntityManager
     private void InitializeCrops(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 10;
+        int count = 100;
         for (int i = 0; i < count; i++)
         {
             //_crops[i] = new Crop();
@@ -212,7 +212,7 @@ public class EntityManager
     private void InitializeFlies(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 10;
+        int count = 100;
         for (int i = 0; i < count; i++)
         {
             //_flies[i] = new Fly();
@@ -228,6 +228,7 @@ public class EntityManager
             fly.Direction = (Direction)(rand.Next(4));
             //_flies[i].Position = position;
             //_flies[i].Direction = (Direction)(rand.Next(4));
+            _flies.Add(fly);
             DecisionMaker.Entities.Add(fly);
         }
     }

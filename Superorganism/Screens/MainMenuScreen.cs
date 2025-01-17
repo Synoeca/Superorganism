@@ -10,11 +10,19 @@ namespace Superorganism.Screens
         public MainMenuScreen() : base("")
         {
             // Check if any save files exist
-            string savePath = Path.GetFullPath(Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content", "Saves"));
+            //string savePath = Path.GetFullPath(Path.Combine(
+            //    AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content", "Saves"));
+            //string savePath = Path.Combine(
+            //    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            //    "Superorganism",
+            //    "Saves");
+            string savePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Superorganism",
+                "Saves");
 
             bool hasSaveFiles = Directory.Exists(savePath) &&
-                Directory.GetFiles(savePath, "Save*.sav").Any();
+                Directory.GetFiles(savePath, "*.sav").Any();
 
             // Add Continue option if save files exist
             if (hasSaveFiles)
@@ -47,12 +55,22 @@ namespace Superorganism.Screens
         private void ContinueGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
             // Load the most recent save file
-            string savePath = Path.GetFullPath(Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content", "Saves"));
+            //string savePath = Path.GetFullPath(Path.Combine(
+            //    AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content", "Saves"));
+
+            //string savePath = Path.Combine(
+            //    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            //    "Superorganism",
+            //    "Saves");
+
+            string savePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Superorganism",
+                "Saves");
 
             string mostRecentSave = Directory
-                .GetFiles(savePath, "Save*.sav")
-                .OrderByDescending(f => int.Parse(Path.GetFileNameWithoutExtension(f).Replace("Save", "")))
+                .GetFiles(savePath, "*.sav")
+                .OrderByDescending(f => File.GetLastWriteTime(f))
                 .FirstOrDefault();
 
             if (mostRecentSave != null)
