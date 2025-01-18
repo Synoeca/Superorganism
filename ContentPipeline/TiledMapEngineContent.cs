@@ -152,6 +152,7 @@ namespace ContentPipeline
     public class GroupContent
     {
         public Dictionary<string, ObjectGroupContent> ObjectGroups;
+        public Dictionary<string, LayerContent> Layers;
         public Dictionary<string, string> Properties;
         public string Name;
         public int Id;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended.Tiled;
 using Color = Microsoft.Xna.Framework.Color;
 
 namespace Superorganism.Tiles
@@ -76,7 +77,7 @@ namespace Superorganism.Tiles
             // Draw the groups
             foreach (Group group in Groups.Values)
             {
-                group.Draw(this, batch, visibleArea, cameraPosition);
+                group.Draw(this, batch, visibleArea, cameraPosition, Tilesets, visibleArea, cameraPosition, TileWidth, TileHeight);
             }
         }
     }
@@ -606,16 +607,22 @@ namespace Superorganism.Tiles
     public class Group
     {
         public Dictionary<string, ObjectGroup> ObjectGroups { get; set; }
+        public Dictionary<string, Layer> Layers { get; set; }
         public Dictionary<string, string> Properties { get; set; }
         public string Name { get; set; }
         public int Id { get; set; }
         public bool Locked { get; set; }
 
-        public void Draw(TiledMap result, SpriteBatch batch, Rectangle rectangle, Vector2 viewportPosition)
+        public void Draw(TiledMap result, SpriteBatch batch, Rectangle visibleArea, Vector2 viewportPosition, Dictionary<string, Tileset> tilesets, Rectangle rectangle, Vector2 cameraPosition, int tileWidth, int tileHeight)
         {
             foreach (ObjectGroup objectGroup in ObjectGroups.Values)
             {
                 objectGroup.Draw(result, batch, rectangle, viewportPosition);
+            }
+
+            foreach (Layer layer in Layers.Values)
+            {
+                layer.Draw(batch, tilesets.Values, visibleArea, cameraPosition, tileWidth, tileHeight);
             }
         }
     }

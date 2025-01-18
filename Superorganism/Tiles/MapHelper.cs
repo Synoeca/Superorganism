@@ -175,6 +175,17 @@ namespace Superorganism.Tiles
                         return (tileY * TileSize);
                     }
                 }
+                foreach (Group group in map.Groups.Values)
+                {
+                    foreach (Layer layer in group.Layers.Values)
+                    {
+                        if (layer.GetTile(tileX, tileY) != 0)
+                        {
+                            // Found ground - return the top of this tile minus entity height
+                            return (tileY * TileSize);
+                        }
+                    }
+                }
             }
 
             return MapHeight * TileSize;

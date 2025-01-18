@@ -170,6 +170,7 @@ namespace Superorganism.Entities
             {
                 int tileId = layer.GetTile(tileX, tileY);
                 // Skip collision check for diagonal tiles (20, 24, 25, 30, 52, 53, 56)
+                
                 if (tileId != 0 &&
                     tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
                     tileId != 53 && tileId != 54 && tileId != 57)

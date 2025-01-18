@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Content.Pipeline;
+using SharpDX;
 using System.Globalization;
 using System.IO.Compression;
 using System.Xml;
@@ -91,7 +92,7 @@ namespace ContentPipeline
                                 {
                                     st.Read();
                                     context.Logger.LogMessage("Loading group...");
-                                    GroupContent group = LoadGroup(st, context);
+                                    GroupContent group = LoadGroup(st, context, filename);
                                     result.Groups.Add(group.Name, group);
                                     context.Logger.LogMessage($"Loaded group: {group.Name}");
                                 }
@@ -230,22 +231,20 @@ namespace ContentPipeline
                                     {
                                         if (tileReader.NodeType == XmlNodeType.Element && tileReader.Name == "properties")
                                         {
-                                            using (XmlReader propertiesReader = tileReader.ReadSubtree())
+                                            using XmlReader propertiesReader = tileReader.ReadSubtree();
+                                            while (propertiesReader.Read())
                                             {
-                                                while (propertiesReader.Read())
+                                                if (propertiesReader.NodeType == XmlNodeType.Element &&
+                                                    propertiesReader.Name == "property")
                                                 {
-                                                    if (propertiesReader.NodeType == XmlNodeType.Element &&
-                                                        propertiesReader.Name == "property")
-                                                    {
-                                                        string propName = propertiesReader.GetAttribute("name");
-                                                        string propType = propertiesReader.GetAttribute("type");
-                                                        string propValue = propertiesReader.GetAttribute("value");
+                                                    string propName = propertiesReader.GetAttribute("name");
+                                                    string propType = propertiesReader.GetAttribute("type");
+                                                    string propValue = propertiesReader.GetAttribute("value");
 
-                                                        if (!string.IsNullOrEmpty(propName) && !string.IsNullOrEmpty(propValue))
-                                                        {
-                                                            tile.Properties[propName] = propValue;
-                                                            context.Logger.LogMessage($"    Property: {propName} ({propType ?? "string"}) = {propValue}");
-                                                        }
+                                                    if (!string.IsNullOrEmpty(propName) && !string.IsNullOrEmpty(propValue))
+                                                    {
+                                                        tile.Properties[propName] = propValue;
+                                                        context.Logger.LogMessage($"    Property: {propName} ({propType ?? "string"}) = {propValue}");
                                                     }
                                                 }
                                             }
@@ -480,13 +479,14 @@ namespace ContentPipeline
             return result;
         }
 
-        public GroupContent LoadGroup(XmlReader reader, ContentImporterContext context)
+        public GroupContent LoadGroup(XmlReader reader, ContentImporterContext context, string filename)
         {
             context.Logger.LogMessage("Loading group...");
 
             GroupContent group = new()
             {
                 ObjectGroups = new Dictionary<string, ObjectGroupContent>(),
+                Layers = new Dictionary<string, LayerContent>(),
                 Properties = new Dictionary<string, string>()
             };
 
@@ -506,6 +506,24 @@ namespace ContentPipeline
                                 {
                                     st.Read();
                                     LoadProperties(st, group.Properties, context);
+                                }
+                                break;
+
+                            case "layer":
+                                using (XmlReader layerReader = reader.ReadSubtree())
+                                {
+                                    layerReader.Read();
+                                    context.Logger.LogMessage("Loading layer...");
+                                    LayerContent layer = LoadBasicLayer(layerReader, filename, context);
+                                    if (layer != null)
+                                    {
+                                        group.Layers[layer.Name] = layer;
+                                        context.Logger.LogMessage($"Loaded layer: {layer.Name} ({layer.Width}x{layer.Height})");
+                                    }
+                                    else
+                                    {
+                                        context.Logger.LogMessage("Couldn't load layer!");
+                                    }
                                 }
                                 break;
 
