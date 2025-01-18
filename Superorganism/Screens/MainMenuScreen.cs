@@ -1,9 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
-using Superorganism.Graphics;
 using System;
 using System.IO;
 using System.Linq;
-using Superorganism.ScreenManagement;
 
 namespace Superorganism.Screens
 {

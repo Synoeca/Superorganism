@@ -1,14 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using static Assimp.Metadata;
 using Superorganism.AI;
-using Superorganism.Core.Managers;
 
 namespace Superorganism.Core.SaveLoadSystem
 {

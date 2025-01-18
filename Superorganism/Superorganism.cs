@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Superorganism.Core.Managers;
 using Superorganism.ScreenManagement;
 using Superorganism.Screens;
-using MonoGame.Extended.Tiled;
 using Color = Microsoft.Xna.Framework.Color;
 
 namespace Superorganism;

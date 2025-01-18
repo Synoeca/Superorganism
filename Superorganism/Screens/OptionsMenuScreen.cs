@@ -2,10 +2,7 @@
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
 using System;
-using Assimp;
 using Superorganism.Core.Managers;
-using Microsoft.Xna.Framework.Graphics;
-using Superorganism.Graphics;
 
 namespace Superorganism.Screens
 {
@@ -16,7 +13,6 @@ namespace Superorganism.Screens
         private readonly MenuEntry _fullscreenEntry;
         private readonly MenuEntry _borderlessWindowEntry;
         private readonly MenuEntry _resolutionEntry;
-        private PixelTextRenderer _titleRenderer;
 
         private int _currentResolutionIndex;
 
