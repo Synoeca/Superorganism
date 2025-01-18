@@ -60,7 +60,7 @@ namespace Superorganism.Entities
 			set => _position = value;
 		}
 
-		protected double _directionTimer = 0;
+		protected double _directionTimer;
 		public virtual double DirectionTimer
 		{
 			get => _directionTimer;

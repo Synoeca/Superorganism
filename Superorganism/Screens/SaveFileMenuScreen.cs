@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Superorganism.Graphics;
 
 namespace Superorganism.Screens
 {
@@ -23,6 +24,8 @@ namespace Superorganism.Screens
         private int _currentPage;
         private Vector2 _pageIndicatorPosition;
         private readonly JsonSerializerOptions _serializerOptions;
+        private PixelTextRenderer _titleRenderer;
+        private string _menuTitle = "";
 
         private readonly InputAction _menuLeft;
         private readonly InputAction _menuRight;
@@ -44,6 +47,8 @@ namespace Superorganism.Screens
         public SaveFileMenuScreen(bool isLoadingMode)
         {
             _isLoadingMode = isLoadingMode;
+            _menuTitle = _isLoadingMode ? "LOAD GAME" : "SAVE GAME";
+
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
@@ -85,6 +90,37 @@ namespace Superorganism.Screens
                 [Keys.Escape], true);
 
             PopulateEntries();
+        }
+
+        public override void Activate()
+        {
+            base.Activate();
+
+            // Initialize the title renderer if it doesn't exist
+            if (_titleRenderer == null && !string.IsNullOrEmpty(_menuTitle))
+            {
+                _titleRenderer = new PixelTextRenderer(
+                    ScreenManager.Game,
+                    _menuTitle
+                );
+            }
+        }
+
+        public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
+        {
+            base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
+
+            // Update the title renderer
+            if (_titleRenderer != null && !string.IsNullOrEmpty(_menuTitle))
+            {
+                _titleRenderer.Update(gameTime, TransitionPosition, ScreenState);
+            }
+
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+                Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
+                ExitScreen();
+            }
         }
 
         private void PopulateEntries()
@@ -489,6 +525,19 @@ namespace Superorganism.Screens
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
             Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
 
+
+            // Draw the 3D title first if it exists
+            if (_titleRenderer != null && !string.IsNullOrEmpty(_menuTitle) && !IsExiting)
+            {
+                float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
+                if (ScreenState == ScreenState.TransitionOn ||
+                    ScreenState == ScreenState.Active ||
+                    ScreenState == ScreenState.TransitionOff)
+                {
+                    _titleRenderer.Draw();
+                }
+            }
+
             UpdateEntryLocations();
 
             spriteBatch.Begin();
@@ -499,9 +548,6 @@ namespace Superorganism.Screens
             }
             else
             {
-                string title = _isLoadingMode ? "Load Game" : "Save Game";
-                DrawTitle(title, new Vector2(viewport.Width / 2f, viewport.Height * 0.1f));
-
                 // Draw entries with selection highlight
                 for (int i = 0; i < _pages[_currentPage].Count; i++)
                 {

@@ -35,7 +35,7 @@ namespace Superorganism.Core.SaveLoadSystem
 
                 return RestoreGameState(savedState);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return CreateNewGameState();
             }

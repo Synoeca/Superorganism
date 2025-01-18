@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Superorganism.Graphics;
 using Superorganism.ScreenManagement;
 
 namespace Superorganism.Screens
@@ -15,6 +16,7 @@ namespace Superorganism.Screens
         private readonly List<MenuEntry> _menuEntries = [];
         private int _selectedEntry;
         private readonly string _menuTitle;
+        public PixelTextRenderer TitleRenderer;
 
         private readonly InputAction _menuUp;
         private readonly InputAction _menuDown;
@@ -105,6 +107,7 @@ namespace Superorganism.Screens
             float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
 
             // Calculate the center of the screen
+            float centerX = ScreenManager.GraphicsDevice.Viewport.Width / 2f;
             float centerY = ScreenManager.GraphicsDevice.Viewport.Height / 2f;
 
             // Calculate total height of all menu entries
@@ -115,14 +118,14 @@ namespace Superorganism.Screens
 
             foreach (MenuEntry menuEntry in _menuEntries)
             {
-                // Center horizontally
-                position.X = ScreenManager.GraphicsDevice.Viewport.Width / 2f - menuEntry.GetWidth(this) / 2f;
+                // First center the text
+                float baseX = centerX - menuEntry.GetWidth(this) / 2f;
 
-                // Apply transition effect
+                // Then apply the transition offset
                 if (ScreenState == ScreenState.TransitionOn)
-                    position.X -= transitionOffset * 256;
+                    position.X = baseX - transitionOffset * 256;
                 else
-                    position.X += transitionOffset * 512;
+                    position.X = baseX + transitionOffset * 512;
 
                 // Set the entry's position
                 menuEntry.Position = position;
@@ -132,11 +135,31 @@ namespace Superorganism.Screens
             }
         }
 
+        public override void Activate()
+        {
+            base.Activate();
+
+            // Initialize the title renderer if it doesn't exist
+            if (TitleRenderer == null && !string.IsNullOrEmpty(_menuTitle))
+            {
+                TitleRenderer = new PixelTextRenderer(
+                    ScreenManager.Game,
+                    _menuTitle  // or whatever text you want to display
+                );
+            }
+        }
+
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
             base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
 
-            // Update each nested MenuEntry object.
+            // Update the title renderer
+            if (TitleRenderer != null && !string.IsNullOrEmpty(_menuTitle))
+            {
+                TitleRenderer.Update(gameTime, TransitionPosition, ScreenState);
+            }
+
+            // Update menu entries
             for (int i = 0; i < _menuEntries.Count; i++)
             {
                 bool isSelected = IsActive && i == _selectedEntry;
@@ -153,16 +176,26 @@ namespace Superorganism.Screens
             SpriteFont font = ScreenManager.Font;
             const float shadowOffset = 3f;
 
+            // Draw the 3D title first if it exists
+            if (TitleRenderer != null && !string.IsNullOrEmpty(_menuTitle) && !IsExiting)
+            {
+                if (ScreenState == ScreenState.TransitionOn ||
+                    ScreenState == ScreenState.Active ||
+                    ScreenState == ScreenState.TransitionOff)
+                {
+                    TitleRenderer.Draw();
+                }
+            }
+
+            // Draw menu entries
             spriteBatch.Begin();
 
-            // Menu entries
             for (int i = 0; i < _menuEntries.Count; i++)
             {
                 MenuEntry menuEntry = _menuEntries[i];
                 bool isSelected = IsActive && i == _selectedEntry;
                 Color color = isSelected ? Color.Yellow : Color.White;
 
-                // Replace single spaces with three consecutive spaces in menu entry text
                 string adjustedMenuEntryText = menuEntry.Text.Replace(" ", "   ");
 
                 // Draw shadow
@@ -176,27 +209,13 @@ namespace Superorganism.Screens
                     color * TransitionAlpha);
             }
 
-            // Title with existing shadow
-            Vector2 titlePosition = new(graphics.Viewport.Width / 2f, 100);
-            Vector2 titleOrigin = font.MeasureString(_menuTitle) / 2;
-            const float titleScale = 1.5f;
-
-            // Replace single spaces with three consecutive spaces in title text
-            string adjustedTitleText = _menuTitle.Replace(" ", "   ");
-
-            // Draw title shadow
-            spriteBatch.DrawString(font, adjustedTitleText,
-                titlePosition + new Vector2(4),
-                Color.Black * TransitionAlpha,
-                0, titleOrigin, titleScale, SpriteEffects.None, 0);
-
-            // Draw title text
-            spriteBatch.DrawString(font, adjustedTitleText,
-                titlePosition,
-                new Color(220, 220, 220) * TransitionAlpha,
-                0, titleOrigin, titleScale, SpriteEffects.None, 0);
-
             spriteBatch.End();
+        }
+
+        public override void Unload()
+        {
+            base.Unload();
+            TitleRenderer = null;
         }
 
     }
