@@ -6,9 +6,13 @@ namespace Superorganism.Tiles
 {
     public static class MapHelper
     {
-        public const int TileSize = 64;  // Each tile is 64x64 pixels
-        public const int MapWidth = 200; // Width in tiles
-        public const int MapHeight = 50; // Height in tiles
+        //public const int TileSize = 64;  // Each tile is 64x64 pixels
+        //public const int MapWidth = 200; // Width in tiles
+        //public const int MapHeight = 50; // Height in tiles
+
+        public static int TileSize { get; set; }
+        public static int MapWidth { get; set; }
+        public static int MapHeight { get; set; }
 
         private static readonly Dictionary<int, int> GroundLevels = new();
 

@@ -49,6 +49,9 @@ namespace Superorganism.Screens
         {
             _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev5");
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
+            MapHelper.TileSize = _map.TileWidth;
+            MapHelper.MapWidth = _map.Width;
+            MapHelper.MapHeight = _map.Height;
 
             GameStateInfo loadedState = new();
 
