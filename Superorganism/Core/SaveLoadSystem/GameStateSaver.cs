@@ -3,13 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using ContentPipeline;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Superorganism.AI;
 using Superorganism.Core.Managers;
 using Superorganism.Entities;
-using static Assimp.Metadata;
 
 namespace Superorganism.Core.SaveLoadSystem
 {

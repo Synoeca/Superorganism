@@ -3,11 +3,9 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.ScreenManagement;
-using static System.TimeZoneInfo;
+using Superorganism.Graphics;
 
 namespace Superorganism.Screens
 {
@@ -20,6 +18,8 @@ namespace Superorganism.Screens
         private const float InitialY = 175f;
         private const float YSpacing = 35f;
         private Vector2 _pageIndicatorPosition;
+        private PixelTextRenderer _titleRenderer;
+        private readonly string _menuTitle = "Instructions";
 
         private readonly InputAction _menuLeft;
         private readonly InputAction _menuRight;
@@ -28,6 +28,9 @@ namespace Superorganism.Screens
 
         public InstructionsScreen()
         {
+            TransitionOnTime = TimeSpan.FromSeconds(0.5);
+            TransitionOffTime = TimeSpan.FromSeconds(0.5);
+
             string[] instructions =
             [
                 // Page 1 - Basic Controls
@@ -98,9 +101,29 @@ namespace Superorganism.Screens
             }
         }
 
+        public override void Activate()
+        {
+            base.Activate();
+
+            // Initialize the title renderer if it doesn't exist
+            if (_titleRenderer == null && !string.IsNullOrEmpty(_menuTitle))
+            {
+                _titleRenderer = new PixelTextRenderer(
+                    ScreenManager.Game,
+                    _menuTitle
+                );
+            }
+        }
+
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
             base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
+
+            // Update the title renderer
+            if (_titleRenderer != null && !string.IsNullOrEmpty(_menuTitle))
+            {
+                _titleRenderer.Update(gameTime, TransitionPosition, ScreenState);
+            }
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -114,10 +137,19 @@ namespace Superorganism.Screens
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
             Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
 
+            // Draw the 3D title first if it exists
+            if (_titleRenderer != null && !string.IsNullOrEmpty(_menuTitle) && !IsExiting)
+            {
+                if (ScreenState == ScreenState.TransitionOn ||
+                    ScreenState == ScreenState.Active ||
+                    ScreenState == ScreenState.TransitionOff)
+                {
+                    _titleRenderer.Draw();
+                }
+            }
+
             UpdateEntryLocations();
             spriteBatch.Begin();
-
-            DrawTitle("Instructions", new Vector2(viewport.Width / 2f, 100));
 
             // Draw instructions
             foreach (InstructionEntry instruction in _pages[_currentPage])
@@ -184,26 +216,10 @@ namespace Superorganism.Screens
             _pageIndicatorPosition = new Vector2(viewportWidth * 0.8f, backButtonY);
         }
 
-        private void DrawTitle(string title, Vector2 position)
+        public override void Unload()
         {
-            SpriteFont font = ScreenManager.Font;
-            Vector2 origin = font.MeasureString(title) / 2;
-            const float scale = 1.5f;
-            const float shadowOffset = 4f;
-
-            Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
-            (float x, float y) = position;
-            position = new Vector2(viewport.Width / 2f, viewport.Height * 0.1f);
-
-            ScreenManager.SpriteBatch.DrawString(font, title,
-                position + new Vector2(shadowOffset),
-                Color.Black * TransitionAlpha,
-                0, origin, scale, SpriteEffects.None, 0);
-
-            ScreenManager.SpriteBatch.DrawString(font, title,
-                position,
-                new Color(220, 220, 220) * TransitionAlpha,
-                0, origin, scale, SpriteEffects.None, 0);
+            base.Unload();
+            _titleRenderer = null;
         }
     }
 }

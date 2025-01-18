@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.AI;
-using Superorganism.Collisions;
 using Superorganism.Enums;
 using Superorganism.Interfaces;
 
@@ -17,9 +12,9 @@ namespace Superorganism.Entities
 		protected bool Flipped;
 		public virtual bool IsSpriteAtlas { get; set; }
 		public virtual bool HasDirection { get; set; } = true;
-		public virtual double AnimationTimer { get; set; } = 0;
+		public virtual double AnimationTimer { get; set; }
 		public virtual float AnimationSpeed { get; set; }
-		public virtual short AnimationFrame { get; set; } = 0;
+		public virtual short AnimationFrame { get; set; }
 
         protected bool UseRotation { get; set; }
         protected float Rotation { get; set; }

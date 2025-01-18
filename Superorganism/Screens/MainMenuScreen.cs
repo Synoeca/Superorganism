@@ -7,15 +7,11 @@ namespace Superorganism.Screens
 {
     public class MainMenuScreen : MenuScreen
     {
-        public MainMenuScreen() : base("")
+        public MainMenuScreen() : base("Superorganism")
         {
-            // Check if any save files exist
-            //string savePath = Path.GetFullPath(Path.Combine(
-            //    AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content", "Saves"));
-            //string savePath = Path.Combine(
-            //    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            //    "Superorganism",
-            //    "Saves");
+            TransitionOnTime = TimeSpan.FromSeconds(1.0);
+            TransitionOffTime = TimeSpan.FromSeconds(0.5);
+
             string savePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "Superorganism",
@@ -54,15 +50,6 @@ namespace Superorganism.Screens
 
         private void ContinueGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
-            // Load the most recent save file
-            //string savePath = Path.GetFullPath(Path.Combine(
-            //    AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Content", "Saves"));
-
-            //string savePath = Path.Combine(
-            //    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            //    "Superorganism",
-            //    "Saves");
-
             string savePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "Superorganism",

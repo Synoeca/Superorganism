@@ -7,7 +7,6 @@ using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
 using Superorganism.Collisions;
 using Superorganism.Entities;
-using Superorganism.Enums;
 using Superorganism.Tiles;
 
 namespace Superorganism.Core.Managers

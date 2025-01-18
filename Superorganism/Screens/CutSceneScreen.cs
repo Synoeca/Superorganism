@@ -11,7 +11,7 @@ namespace Superorganism.Screens
 		private ContentManager _content;
 		private Video _video;
 		private VideoPlayer _player;
-		private bool _isPlaying = false;
+		private bool _isPlaying;
 		private InputAction _skip;
 
 		public CutSceneScreen()

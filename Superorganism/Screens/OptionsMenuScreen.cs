@@ -2,9 +2,7 @@
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
 using System;
-using Assimp;
 using Superorganism.Core.Managers;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace Superorganism.Screens
 {
@@ -30,7 +28,7 @@ namespace Superorganism.Screens
             new(2560, 1440) // 1440p
         ];
 
-        public OptionsMenuScreen() : base("Options")
+        public OptionsMenuScreen() : base("Option")
         {
             _backgroundMusicVolumeEntry = new MenuEntry(string.Empty);
             _soundEffectVolumeEntry = new MenuEntry(string.Empty);
@@ -122,7 +120,6 @@ namespace Superorganism.Screens
             // Get GraphicsDeviceManager from ScreenManager
             ScreenManager.GraphicsDeviceManager = ScreenManager.GraphicsDeviceManager;
 
-            // Now we can safely initialize the current resolution index
             Point currentRes = new(
                 ScreenManager.GraphicsDeviceManager.PreferredBackBufferWidth,
                 ScreenManager.GraphicsDeviceManager.PreferredBackBufferHeight

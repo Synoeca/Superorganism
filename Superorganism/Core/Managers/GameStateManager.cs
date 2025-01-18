@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,7 +6,6 @@ using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
 using Superorganism.Collisions;
 using Superorganism.Core.Camera;
-using Superorganism.Core.SaveLoadSystem;
 using Superorganism.Entities;
 using Superorganism.ScreenManagement;
 using Superorganism.Tiles;

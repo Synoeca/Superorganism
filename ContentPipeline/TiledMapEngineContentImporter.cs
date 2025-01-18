@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework.Content.Pipeline;
-using Microsoft.Xna.Framework;
 using System.Globalization;
 using System.IO.Compression;
 using System.Xml;

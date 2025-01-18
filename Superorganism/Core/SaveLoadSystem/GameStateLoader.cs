@@ -1,16 +1,10 @@
-﻿using ContentPipeline;
-using Superorganism.AI;
-using Superorganism.Core.Managers;
+﻿using Superorganism.Core.Managers;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Superorganism.Entities;
-using static Assimp.Metadata;
 
 namespace Superorganism.Core.SaveLoadSystem
 {
@@ -35,7 +29,7 @@ namespace Superorganism.Core.SaveLoadSystem
 
                 return RestoreGameState(savedState);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return CreateNewGameState();
             }

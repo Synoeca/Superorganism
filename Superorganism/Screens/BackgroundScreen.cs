@@ -31,7 +31,7 @@ namespace Superorganism.Screens
         {
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
 
-            _backgroundTexture = _content.Load<Texture2D>("mainmenu_background");
+            _backgroundTexture = _content.Load<Texture2D>("mainmenu_background_Rev1");
         }
 
         public override void Unload()
