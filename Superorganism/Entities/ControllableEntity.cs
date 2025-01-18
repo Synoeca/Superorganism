@@ -170,7 +170,7 @@ namespace Superorganism.Entities
             {
                 int tileId = layer.GetTile(tileX, tileY);
                 // Skip collision check for diagonal tiles (20, 24, 25, 30, 52, 53, 56)
-                
+
                 if (tileId != 0 &&
                     tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
                     tileId != 53 && tileId != 54 && tileId != 57)
@@ -182,6 +182,16 @@ namespace Superorganism.Entities
                         break;
                     }
                 }
+
+                //if (GameState.CurrentMap.)
+                //{
+                //    // Check collision with non-diagonal tiles
+                //    if (MapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
+                //    {
+                //        hasCollision = true;
+                //        break;
+                //    }
+                //}
             }
 
             // Only apply horizontal movement if there's no collision with non-diagonal tiles
