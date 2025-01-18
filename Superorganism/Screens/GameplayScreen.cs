@@ -41,15 +41,13 @@ namespace Superorganism.Screens
 
         public override void Activate()
         {
-            //DecisionMaker.GameStartTime = DateTime.Now;
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
-            //ContentReaders.Register(_content); // Register content readers
             InitializeComponents();
         }
 
         private void InitializeComponents()
         {
-            _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev4");
+            _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev5");
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
             GameStateInfo loadedState = new();

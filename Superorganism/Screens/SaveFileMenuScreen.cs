@@ -25,7 +25,7 @@ namespace Superorganism.Screens
         private Vector2 _pageIndicatorPosition;
         private readonly JsonSerializerOptions _serializerOptions;
         private PixelTextRenderer _titleRenderer;
-        private string _menuTitle = "";
+        private readonly string _menuTitle;
 
         private readonly InputAction _menuLeft;
         private readonly InputAction _menuRight;
@@ -40,7 +40,7 @@ namespace Superorganism.Screens
         private readonly InputAction _menuDelete;
 
         private KeyboardState _previousKeyboardState;
-        private HashSet<Keys> _pressedKeys = [];
+        private readonly HashSet<Keys> _pressedKeys = [];
 
         private int _selectedEntry;
 
@@ -157,7 +157,7 @@ namespace Superorganism.Screens
             // Get all .sav files in the directory, regardless of prefix
             List<string> saveFiles = Directory
                 .GetFiles(_savePath, "*.sav") // Use *.sav to match any save file
-                .OrderByDescending(f => File.GetLastWriteTime(f))
+                .OrderByDescending(File.GetLastWriteTime)
                 .ToList();
 
             foreach (string file in saveFiles)
@@ -529,7 +529,6 @@ namespace Superorganism.Screens
             // Draw the 3D title first if it exists
             if (_titleRenderer != null && !string.IsNullOrEmpty(_menuTitle) && !IsExiting)
             {
-                float transitionOffset = (float)Math.Pow(TransitionPosition, 2);
                 if (ScreenState == ScreenState.TransitionOn ||
                     ScreenState == ScreenState.Active ||
                     ScreenState == ScreenState.TransitionOff)

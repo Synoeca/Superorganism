@@ -155,7 +155,7 @@ namespace Superorganism.Entities
             Vector2 proposedPosition = _position + new Vector2(proposedXVelocity, 0);
 
             // Create a slightly smaller hitbox for better feeling collisions
-            Vector2 collisionSize = new Vector2(
+            Vector2 collisionSize = new(
                 TextureInfo.UnitTextureWidth * TextureInfo.SizeScale * 0.8f,
                 TextureInfo.UnitTextureHeight * TextureInfo.SizeScale * 0.9f
             );

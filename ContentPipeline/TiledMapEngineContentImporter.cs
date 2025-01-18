@@ -142,14 +142,17 @@ namespace ContentPipeline
             context.Logger.LogMessage($"  tilecount: {reader.GetAttribute("tilecount")}");
             context.Logger.LogMessage($"  columns: {reader.GetAttribute("columns")}");
 
-            TilesetContent result = new();
-            result.Name = reader.GetAttribute("name")!;
-            result.FirstTileId = ParseIntAttribute(reader, "firstgid");
-            result.TileWidth = ParseIntAttribute(reader, "tilewidth");
-            result.TileHeight = ParseIntAttribute(reader, "tileheight");
-            result.Margin = ParseIntAttribute(reader, "margin");
-            result.Spacing = ParseIntAttribute(reader, "spacing");
-            result.Filename = reader.GetAttribute("name")!;
+            TilesetContent result = new()
+            {
+                Name = reader.GetAttribute("name")!,
+                FirstTileId = ParseIntAttribute(reader, "firstgid"),
+                TileWidth = ParseIntAttribute(reader, "tilewidth"),
+                TileHeight = ParseIntAttribute(reader, "tileheight"),
+                Margin = ParseIntAttribute(reader, "margin"),
+                Spacing = ParseIntAttribute(reader, "spacing"),
+                Tiles = new Dictionary<int, TileContent>(),
+                Filename = reader.GetAttribute("name")!
+            };
 
             context.Logger.LogMessage("\nParsed initial values:");
             context.Logger.LogMessage($"  Name: {result.Name}");
@@ -177,6 +180,9 @@ namespace ContentPipeline
                                 string width = reader.GetAttribute("width");
                                 string height = reader.GetAttribute("height");
                                 result.Image = source;
+                                result.TexWidth = Convert.ToInt32(width);
+                                result.TexHeight = Convert.ToInt32(height);
+
 
                                 context.Logger.LogMessage("Found image element:");
                                 context.Logger.LogMessage($"  Source: {source}");
@@ -186,24 +192,69 @@ namespace ContentPipeline
 
                             case "tile":
                                 string idAttr = reader.GetAttribute("id");
-                                currentTileId = int.Parse(idAttr ?? throw new InvalidOperationException($"Tile missing id attribute"));
-                                if (currentTileId != -1)
+                                int tileId = int.Parse(idAttr ?? throw new InvalidOperationException($"Tile missing id attribute"));
+
+                                // Create new tile instance
+                                TileContent tile = new()
                                 {
-                                    string propName = reader.GetAttribute("name");
-                                    string propValue = reader.GetAttribute("value");
+                                    Id = tileId,
+                                    Properties = new Dictionary<string, string>()
+                                };
 
-                                    if (!result.TileProperties.TryGetValue(currentTileId, out TilesetContent.TilePropertyList props))
-                                    {
-                                        props = new TilesetContent.TilePropertyList();
-                                        result.TileProperties[currentTileId] = props;
-                                    }
-
-                                    props[propName ?? throw new InvalidOperationException("Property missing name attribute")] = propValue;
-
-                                    context.Logger.LogMessage($"Added property to tile {currentTileId}:");
-                                    context.Logger.LogMessage($"  Name: {propName}");
-                                    context.Logger.LogMessage($"  Value: {propValue}");
+                                // Get tile type if specified
+                                string tileType = reader.GetAttribute("type");
+                                if (!string.IsNullOrEmpty(tileType))
+                                {
+                                    tile.Type = tileType;
                                 }
+
+                                // Get probability if specified
+                                string probability = reader.GetAttribute("probability");
+                                if (!string.IsNullOrEmpty(probability) && float.TryParse(probability, out float prob))
+                                {
+                                    tile.Probability = prob;
+                                }
+                                else
+                                {
+                                    tile.Probability = 1.000f;
+                                }
+
+                                context.Logger.LogMessage($"\nProcessing tile {tileId}:");
+                                context.Logger.LogMessage($"  Type: {tileType ?? "none"}");
+                                context.Logger.LogMessage($"  Probability: {probability ?? "1"}");
+
+                                // Process properties if they exist
+                                using (XmlReader tileReader = reader.ReadSubtree())
+                                {
+                                    while (tileReader.Read())
+                                    {
+                                        if (tileReader.NodeType == XmlNodeType.Element && tileReader.Name == "properties")
+                                        {
+                                            using (XmlReader propertiesReader = tileReader.ReadSubtree())
+                                            {
+                                                while (propertiesReader.Read())
+                                                {
+                                                    if (propertiesReader.NodeType == XmlNodeType.Element &&
+                                                        propertiesReader.Name == "property")
+                                                    {
+                                                        string propName = propertiesReader.GetAttribute("name");
+                                                        string propType = propertiesReader.GetAttribute("type");
+                                                        string propValue = propertiesReader.GetAttribute("value");
+
+                                                        if (!string.IsNullOrEmpty(propName) && !string.IsNullOrEmpty(propValue))
+                                                        {
+                                                            tile.Properties[propName] = propValue;
+                                                            context.Logger.LogMessage($"    Property: {propName} ({propType ?? "string"}) = {propValue}");
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Add the tile to the tileset
+                                result.Tiles[tileId] = tile;
                                 break;
                         }
                         break;

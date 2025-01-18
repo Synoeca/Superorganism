@@ -87,11 +87,11 @@ namespace Superorganism.Entities
 				}
 				else
 				{
-					// For walking animation: use frames 1 and 2 when movings
+					// For walking animation: use frames 1 and 2 when moving
 					if (Math.Abs(_velocity.X) > 0.1f)
 					{
 						AnimationFrame++;
-						if (AnimationFrame < 1 || AnimationFrame > 2)  // Ensure we only use frames 1 and 2
+						if (AnimationFrame < 1 || AnimationFrame > 2)  // Ensure only use frames 1 and 2
 						{
 							AnimationFrame = 1;
 						}
