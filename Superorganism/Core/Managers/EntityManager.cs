@@ -362,7 +362,7 @@ public class EntityManager
             if (fly.CollisionBounding.CollidesWith(_ant.CollisionBounding))
             {
                 fly.Destroyed = true;
-                _explosions.PlaceExplosion(fly.Position);
+                //_explosions.PlaceExplosion(fly.Position);
                 _ant.HitPoints = Math.Max(0, _ant.HitPoints - FlyDamage);
 
                 // Add flash effect

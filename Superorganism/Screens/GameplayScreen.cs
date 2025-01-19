@@ -26,6 +26,10 @@ namespace Superorganism.Screens
         //private Map _map;
         private TiledMap _map;
         private ContentManager _content;
+        //private TSXTileset _tileset64;
+        //private TSXTileset _tileset12;
+        private Tileset _tileset64;
+        private Tileset _tileset12;
 
         // Constants
         public readonly float Zoom = 1f;
@@ -48,6 +52,10 @@ namespace Superorganism.Screens
         private void InitializeComponents()
         {
             _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev5");
+            _tileset64 = _content.Load<Tileset>("Tileset/Maps/tileset64");
+            _tileset12 = _content.Load<Tileset>("Tileset/Maps/tileset12");
+            _map.Tilesets.Add(_tileset64.Name, _tileset64);
+            _map.Tilesets.Add(_tileset12.Name, _tileset12);
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
             MapHelper.TileSize = _map.TileWidth;
             MapHelper.MapWidth = _map.Width;

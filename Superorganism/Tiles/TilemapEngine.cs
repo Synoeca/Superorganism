@@ -47,7 +47,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The Map's Tilesets
         /// </summary>
-        public Dictionary<string, Tileset> Tilesets { get; set; }
+        public Dictionary<string, Tileset> Tilesets { get; set; } = new();
 
         /// <summary>
         /// Draws the Map
@@ -304,7 +304,7 @@ namespace Superorganism.Tiles
             get => Texture;
             set
             {
-                Texture = value;
+                Texture ??= value;
                 TexWidth = value.Width;
                 TexHeight = value.Height;
             }

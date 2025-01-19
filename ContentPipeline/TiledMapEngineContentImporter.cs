@@ -63,7 +63,7 @@ namespace ContentPipeline
                                     context.Logger.LogMessage("Loading tileset...");
                                     TilesetContent tileset = LoadBasicTileset(st, context);
                                     //result.Tilesets[tileset.Name] = tileset;
-                                    result.Tilesets.Add(tileset.Name, tileset);
+                                    //result.Tilesets.Add(tileset.Name, tileset);
                                     context.Logger.LogMessage($"tileset.Name: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
                                     context.Logger.LogMessage($"Loaded tileset: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
                                 }

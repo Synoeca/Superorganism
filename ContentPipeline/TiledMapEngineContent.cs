@@ -25,6 +25,7 @@ namespace ContentPipeline
 
         public Dictionary<string, LayerContent> Layers;
 
+
         public Dictionary<string, TilesetContent> Tilesets;
     }
 
