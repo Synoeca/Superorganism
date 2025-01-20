@@ -148,7 +148,7 @@ public class EntityManager
     private void InitializeEntities(GraphicsDevice graphicsDevice)
     {
         _ant = new Ant();
-        _ant.InitializeAtTile(72, 19);
+        _ant.InitializeAtTile(72, 10);
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
@@ -189,7 +189,7 @@ public class EntityManager
     private void InitializeCrops(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 100;
+        int count = 2;
         for (int i = 0; i < count; i++)
         {
             //_crops[i] = new Crop();
@@ -211,7 +211,7 @@ public class EntityManager
     private void InitializeFlies(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 100;
+        int count = 2;
         for (int i = 0; i < count; i++)
         {
             //_flies[i] = new Fly();

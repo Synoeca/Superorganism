@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Superorganism.Core.Managers;
 
 namespace Superorganism.Tiles
 {
@@ -149,6 +150,34 @@ namespace Superorganism.Tiles
                             if (tileRect.Intersects(entityRect))
                             {
                                 return true;
+                            }
+                        }
+                    }
+
+                    foreach (Group group in GameState.CurrentMap.Groups.Values)
+                    {
+                        foreach (Layer layer in group.Layers.Values)
+                        {
+                            if (layer.GetTile(x, y) != 0) // Non-empty tile
+                            {
+                                Rectangle tileRect = new(
+                                    x * TileSize,
+                                    y * TileSize,
+                                    TileSize,
+                                    TileSize
+                                );
+
+                                Rectangle entityRect = new(
+                                    (int)position.X,
+                                    (int)(position.Y),
+                                    (int)size.X,
+                                    (int)size.Y
+                                );
+
+                                if (tileRect.Intersects(entityRect))
+                                {
+                                    return true;
+                                }
                             }
                         }
                     }

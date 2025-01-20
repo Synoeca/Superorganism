@@ -126,8 +126,6 @@ namespace Superorganism.Entities
                 JumpSound?.Play();
             }
 
-            // Store the original position for collision checking
-            Vector2 originalPosition = _position;
             float proposedXVelocity = 0;
 
             // Calculate proposed horizontal movement
@@ -151,51 +149,12 @@ namespace Superorganism.Entities
                 }
             }
 
-            // Check horizontal collision before applying movement
-            Vector2 proposedPosition = _position + new Vector2(proposedXVelocity, 0);
+            // Handle X-axis collision first
+            Vector2 proposedXPosition = _position + new Vector2(proposedXVelocity, 0);
+            bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap);
 
-            // Create a slightly smaller hitbox for better feeling collisions
-            Vector2 collisionSize = new(
-                TextureInfo.UnitTextureWidth * TextureInfo.SizeScale * 0.8f,
-                TextureInfo.UnitTextureHeight * TextureInfo.SizeScale * 0.9f
-            );
-
-            // Get the tile at the proposed position
-            int tileX = (int)(proposedPosition.X / MapHelper.TileSize);
-            int tileY = (int)(proposedPosition.Y / MapHelper.TileSize);
-            bool hasCollision = false;
-
-            // Check each layer for collision, excluding diagonal tiles
-            foreach (Layer layer in GameState.CurrentMap.Layers.Values)
-            {
-                int tileId = layer.GetTile(tileX, tileY);
-                // Skip collision check for diagonal tiles (20, 24, 25, 30, 52, 53, 56)
-
-                if (tileId != 0 &&
-                    tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
-                    tileId != 53 && tileId != 54 && tileId != 57)
-                {
-                    // Check collision with non-diagonal tiles
-                    if (MapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
-                    {
-                        hasCollision = true;
-                        break;
-                    }
-                }
-
-                //if (GameState.CurrentMap.)
-                //{
-                //    // Check collision with non-diagonal tiles
-                //    if (MapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
-                //    {
-                //        hasCollision = true;
-                //        break;
-                //    }
-                //}
-            }
-
-            // Only apply horizontal movement if there's no collision with non-diagonal tiles
-            if (!hasCollision)
+            // Apply horizontal movement
+            if (!hasXCollision)
             {
                 _velocity.X = proposedXVelocity;
                 if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
@@ -205,14 +164,30 @@ namespace Superorganism.Entities
             }
             else
             {
-                // If there's a collision, stop horizontal movement
-                _velocity.X = 0;
+                _velocity.X = 0;  // Only zero out X velocity on X collision
             }
 
-            // Apply gravity
+            // Apply gravity and calculate Y movement
             _velocity.Y += Gravity;
+            Vector2 proposedYPosition = _position + new Vector2(0, _velocity.Y);
+            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap);
 
-            // Calculate new position
+            // Handle Y movement and ground detection
+            if (hasYCollision)
+            {
+                if (_velocity.Y > 0) // Moving downward
+                {
+                    IsOnGround = true;
+                    if (IsJumping) IsJumping = false;
+                }
+                _velocity.Y = 0;
+            }
+            else
+            {
+                IsOnGround = false;
+            }
+
+            // Calculate final position using both axes
             Vector2 newPosition = _position + _velocity;
 
             // Check map bounds
@@ -220,23 +195,6 @@ namespace Superorganism.Entities
             newPosition.X = MathHelper.Clamp(newPosition.X,
                 (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f,
                 mapBounds.Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
-
-            // Get ground level at new position
-            float groundY = MapHelper.GetGroundYPosition(
-                GameState.CurrentMap,
-                newPosition.X,
-                _position.Y,
-                TextureInfo.UnitTextureHeight * TextureInfo.SizeScale
-            );
-
-            // Update position and handle ground collision
-            if (newPosition.Y > groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale))
-            {
-                newPosition.Y = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                _velocity.Y = 0;
-                IsOnGround = true;
-                if (IsJumping) IsJumping = false;
-            }
 
             _position = newPosition;
 
@@ -251,6 +209,101 @@ namespace Superorganism.Entities
             _velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
         }
 
+        private bool CheckCollisionAtPosition(Vector2 position, TiledMap map)
+        {
+            int leftTile = 0;
+            int rightTile = 0;
+            int topTile = 0;
+            int bottomTile = 0;
+
+            // Update collision bounds for test position
+            if (CollisionBounding is BoundingRectangle br)
+            {
+                BoundingRectangle testBounds = new(
+                    position.X,
+                    position.Y,
+                    br.Width,
+                    br.Height
+                );
+
+                leftTile = (int)(testBounds.Left / MapHelper.TileSize);
+                rightTile = (int)Math.Ceiling(testBounds.Right / MapHelper.TileSize);
+                topTile = (int)(testBounds.Top / MapHelper.TileSize);
+                bottomTile = (int)Math.Ceiling(testBounds.Bottom / MapHelper.TileSize);
+            }
+            else if (CollisionBounding is BoundingCircle bc)
+            {
+                Vector2 testCenter = new(position.X, position.Y);
+                leftTile = (int)((testCenter.X - bc.Radius) / MapHelper.TileSize);
+                rightTile = (int)Math.Ceiling((testCenter.X + bc.Radius) / MapHelper.TileSize);
+                topTile = (int)((testCenter.Y - bc.Radius) / MapHelper.TileSize);
+                bottomTile = (int)Math.Ceiling((testCenter.Y + bc.Radius) / MapHelper.TileSize);
+            }
+
+            // Check collision with map layers
+            foreach (Layer layer in map.Layers.Values)
+            {
+                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position))
+                    return true;
+            }
+
+            // Check collision with group layers
+            foreach (Group group in map.Groups.Values)
+            {
+                foreach (Layer layer in group.Layers.Values)
+                {
+                    if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool CheckLayerCollision(Layer layer, int leftTile, int rightTile, int topTile, int bottomTile, Vector2 position)
+        {
+            for (int y = topTile; y <= bottomTile; y++)
+            {
+                for (int x = leftTile; x <= rightTile; x++)
+                {
+                    int tileId = layer.GetTile(x, y);
+
+                    if (tileId != 0 &&
+                        tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
+                        tileId != 53 && tileId != 54 && tileId != 57)
+                    {
+                        BoundingRectangle tileRect = new(
+                            x * MapHelper.TileSize + 5,
+                            y * MapHelper.TileSize,
+                            (float)(MapHelper.TileSize * 0.8),
+                            MapHelper.TileSize
+                        );
+
+                        // Create a test collision bounds at the proposed position
+                        ICollisionBounding testBounds;
+                        if (CollisionBounding is BoundingRectangle br)
+                        {
+                            testBounds = new BoundingRectangle(position.X, position.Y, br.Width, br.Height);
+                            CollisionBounding = testBounds;
+                        }
+                        else if (CollisionBounding is BoundingCircle bc)
+                        {
+                            testBounds = new BoundingCircle(new Vector2(position.X, position.Y), bc.Radius);
+                            CollisionBounding = testBounds;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+
+                        if (CollisionBounding.CollidesWith(tileRect))
+                            return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public void LoadSound(ContentManager content)
 		{
 			MoveSound = content.Load<SoundEffect>("move");
@@ -260,7 +313,18 @@ namespace Superorganism.Entities
 		public override void Update(GameTime gameTime)
 		{
 			CollisionBounding ??= TextureInfo.CollisionType;
-			HandleInput(KeyboardState, GamePadState, gameTime);
+            if (CollisionBounding is BoundingCircle bc)
+            {
+                bc.Center = new Vector2(Position.X + (bc.Radius / 2), Position.Y + (bc.Radius / 2));
+                
+                CollisionBounding = bc;
+            }
+            else if (CollisionBounding is BoundingRectangle br)
+            {
+                br = new BoundingRectangle(Position, br.Width, br.Height);
+                CollisionBounding = br;
+            }
+            HandleInput(KeyboardState, GamePadState, gameTime);
 		}
 	}
 }
