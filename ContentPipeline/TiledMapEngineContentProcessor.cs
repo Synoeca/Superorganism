@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
+using Microsoft.Xna.Framework;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace ContentPipeline
 {
@@ -178,30 +180,42 @@ namespace ContentPipeline
             context.Logger.LogMessage($" Opacity: {objGroup.Opacity}");
             context.Logger.LogMessage($" ParallaxX: {objGroup.ParallaxX}");
             context.Logger.LogMessage($" ParallaxY: {objGroup.ParallaxY}");
-            //context.Logger.LogMessage($" Color: {objGroup.Color}");
-            //context.Logger.LogMessage($" TintColor: {objGroup.TintColor}");
-            //if (objGroup.Color != null)
-            //{
-            //    context.Logger.LogMessage($"  color A: {objGroup.Color} -> {objGroup.Color.Value.A}");
-            //    context.Logger.LogMessage($"  color B: {objGroup.Color} -> {objGroup.Color.Value.B}");
-            //    context.Logger.LogMessage($"  color G: {objGroup.Color} -> {objGroup.Color.Value.G}");
-            //    context.Logger.LogMessage($"  color R: {objGroup.Color} -> {objGroup.Color.Value.R}");
-            //}
-            //else
-            //{
-            //    context.Logger.LogMessage($"  color is null!!");
-            //}
-            //if (objGroup.TintColor != null)
-            //{
-            //    context.Logger.LogMessage($"  Tint color A: {objGroup.TintColor} -> {objGroup.TintColor.Value.A}");
-            //    context.Logger.LogMessage($"  Tint color B: {objGroup.TintColor} -> {objGroup.TintColor.Value.B}");
-            //    context.Logger.LogMessage($"  Tint color G: {objGroup.TintColor} -> {objGroup.TintColor.Value.G}");
-            //    context.Logger.LogMessage($"  Tint color R: {objGroup.TintColor} -> {objGroup.TintColor.Value.R}");
-            //}
-            //else
-            //{
-            //    context.Logger.LogMessage($"  tint color is null!!");
-            //}
+
+            try
+            {
+                if (objGroup.Color.HasValue)
+                {
+                    Color color = objGroup.Color.Value;
+                    string colorHex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+                    context.Logger.LogMessage($"  color A: {colorHex} -> {color.A}");
+                    context.Logger.LogMessage($"  color B: {colorHex} -> {color.B}");
+                    context.Logger.LogMessage($"  color G: {colorHex} -> {color.G}");
+                    context.Logger.LogMessage($"  color R: {colorHex} -> {color.R}");
+                }
+                else
+                {
+                    context.Logger.LogMessage($"  color is null!!");
+                }
+
+                if (objGroup.TintColor.HasValue)
+                {
+                    Color tintColor = objGroup.TintColor.Value;
+                    string tintColorHex = $"#{tintColor.R:X2}{tintColor.G:X2}{tintColor.B:X2}";
+                    context.Logger.LogMessage($"  Tint color A: {tintColorHex} -> {tintColor.A}");
+                    context.Logger.LogMessage($"  Tint color B: {tintColorHex} -> {tintColor.B}");
+                    context.Logger.LogMessage($"  Tint color G: {tintColorHex} -> {tintColor.G}");
+                    context.Logger.LogMessage($"  Tint color R: {tintColorHex} -> {tintColor.R}");
+                }
+                else
+                {
+                    context.Logger.LogMessage($"  tint color is null!!");
+                }
+            }
+            catch (Exception ex)
+            {
+                context.Logger.LogMessage($"  Error logging colors: {ex.Message}");
+            }
+
             context.Logger.LogMessage($" Visible: {objGroup.Visible}");
             context.Logger.LogMessage($" Locked: {objGroup.Locked}");
             context.Logger.LogMessage($" Properties Count: {objGroup.ObjectProperties?.Count ?? 0}");

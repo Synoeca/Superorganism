@@ -24,13 +24,8 @@ namespace Superorganism.Screens
         private GameUiManager _uiManager;
         private Camera2D _camera;
         private ParallaxBackground _parallaxBackground;
-        //private Map _map;
         private TiledMap _map;
         private ContentManager _content;
-        //private TSXTileset _tileset64;
-        //private TSXTileset _tileset12;
-        private Tileset _tileset64;
-        private Tileset _tileset12;
 
         // Constants
         public readonly float Zoom = 1f;
