@@ -12,7 +12,6 @@ using Superorganism.Tiles;
 using System.IO;
 using Superorganism.Core.SaveLoadSystem;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 
 #pragma warning disable CA1416
 
@@ -55,20 +54,10 @@ namespace Superorganism.Screens
         {
             _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev5");
 
-            //_tileset64 = _content.Load<Tileset>("Tileset/Maps/tileset64");
-            //_tileset12 = _content.Load<Tileset>("Tileset/Maps/tileset12");
-            //_map.Tilesets.Add(_tileset64.Name, _tileset64);
-            //_map.Tilesets.Add(_tileset12.Name, _tileset12);
-
             foreach (KeyValuePair<string, int> tilesetInfo in _map.TilesetFirstGid)
             {
-                // Load tileset using the key (tileset name)
                 Tileset tileset = _content.Load<Tileset>($"Tileset/Maps/{tilesetInfo.Key}");
-
-                // Set the FirstTileId from the value in the dictionary
-                tileset.FirstTileId = tilesetInfo.Value;
-
-                // Add to map's tilesets
+                tileset.FirstGid = tilesetInfo.Value;
                 _map.Tilesets.Add(tileset.Name, tileset);
             }
 
@@ -91,7 +80,6 @@ namespace Superorganism.Screens
 
                     if (File.Exists(savePath))
                     {
-                        // Load state using GameStateLoader
                         loadedState = GameStateLoader.LoadGameState(SaveFileToLoad);
                     }
                 }

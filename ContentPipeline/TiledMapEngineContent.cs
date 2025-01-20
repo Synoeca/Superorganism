@@ -47,7 +47,7 @@ namespace ContentPipeline
     {
         public string Name;
 
-        public int FirstTileId;
+        public int FirstGid;
 
         [ContentSerializerIgnore]
         public string Source;

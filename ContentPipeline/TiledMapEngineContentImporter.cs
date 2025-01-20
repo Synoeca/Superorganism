@@ -63,11 +63,9 @@ namespace ContentPipeline
                                     st.Read();
                                     context.Logger.LogMessage("Loading tileset...");
                                     TilesetContent tileset = LoadBasicTileset(st, context);
-                                    result.TilesetFirstGid.Add(tileset.Source, tileset.FirstTileId);
-                                    //result.Tilesets[tileset.Name] = tileset;
-                                    //result.Tilesets.Add(tileset.Name, tileset);
-                                    context.Logger.LogMessage($"tileset.Name: {tileset.Name} (FirstTileId: {tileset.Filename})");
-                                    context.Logger.LogMessage($"Loaded tileset: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
+                                    result.TilesetFirstGid.Add(tileset.Source, tileset.FirstGid);
+                                    context.Logger.LogMessage($"Loaded source: {tileset.Name} (Source: {tileset.Source})");
+                                    context.Logger.LogMessage($"Loaded firstgid: {tileset.Name} (FirstGid: {tileset.FirstGid})");
                                 }
                                 break;
 
@@ -137,147 +135,18 @@ namespace ContentPipeline
 
             // Log raw attribute values before parsing
             context.Logger.LogMessage("Raw XML Attributes:");
-            context.Logger.LogMessage($"  name: {reader.GetAttribute("name")}");
             context.Logger.LogMessage($"  firstgid: {reader.GetAttribute("firstgid")}");
-            context.Logger.LogMessage($"  tilewidth: {reader.GetAttribute("tilewidth")}");
-            context.Logger.LogMessage($"  tileheight: {reader.GetAttribute("tileheight")}");
-            context.Logger.LogMessage($"  margin: {reader.GetAttribute("margin")}");
-            context.Logger.LogMessage($"  spacing: {reader.GetAttribute("spacing")}");
-            context.Logger.LogMessage($"  tilecount: {reader.GetAttribute("tilecount")}");
-            context.Logger.LogMessage($"  columns: {reader.GetAttribute("columns")}");
+            context.Logger.LogMessage($"  source: {reader.GetAttribute("source")}");
 
             TilesetContent result = new()
             {
-                Name = reader.GetAttribute("name")!,
-                FirstTileId = ParseIntAttribute(reader, "firstgid"),
+                FirstGid = ParseIntAttribute(reader, "firstgid"),
                 Source = Path.GetFileNameWithoutExtension(reader.GetAttribute("source")),
-                TileWidth = ParseIntAttribute(reader, "tilewidth"),
-                TileHeight = ParseIntAttribute(reader, "tileheight"),
-                Margin = ParseIntAttribute(reader, "margin"),
-                Spacing = ParseIntAttribute(reader, "spacing"),
-                Tiles = new Dictionary<int, TileContent>(),
-                Filename = reader.GetAttribute("name")!
             };
 
             context.Logger.LogMessage("\nParsed initial values:");
-            context.Logger.LogMessage($"  Name: {result.Name}");
-            context.Logger.LogMessage($"  FirstTileId: {result.FirstTileId}");
-            context.Logger.LogMessage($"  TileWidth: {result.TileWidth}");
-            context.Logger.LogMessage($"  TileHeight: {result.TileHeight}");
-            context.Logger.LogMessage($"  Margin: {result.Margin}");
-            context.Logger.LogMessage($"  Spacing: {result.Spacing}");
-
-            int currentTileId = -1;
-            context.Logger.LogMessage("\nProcessing tileset child elements...");
-
-            while (reader.Read())
-            {
-                context.Logger.LogMessage($"\nNode: {reader.Name} (Type: {reader.NodeType})");
-                string name = reader.Name;
-
-                switch (reader.NodeType)
-                {
-                    case XmlNodeType.Element:
-                        switch (name)
-                        {
-                            case "image":
-                                string source = reader.GetAttribute("source");
-                                string width = reader.GetAttribute("width");
-                                string height = reader.GetAttribute("height");
-                                result.Image = source;
-                                result.TexWidth = Convert.ToInt32(width);
-                                result.TexHeight = Convert.ToInt32(height);
-
-
-                                context.Logger.LogMessage("Found image element:");
-                                context.Logger.LogMessage($"  Source: {source}");
-                                context.Logger.LogMessage($"  Width: {width}");
-                                context.Logger.LogMessage($"  Height: {height}");
-                                break;
-
-                            case "tile":
-                                string idAttr = reader.GetAttribute("id");
-                                int tileId = int.Parse(idAttr ?? throw new InvalidOperationException($"Tile missing id attribute"));
-
-                                // Create new tile instance
-                                TileContent tile = new()
-                                {
-                                    Id = tileId,
-                                    Properties = new Dictionary<string, string>()
-                                };
-
-                                // Get tile type if specified
-                                string tileType = reader.GetAttribute("type");
-                                if (!string.IsNullOrEmpty(tileType))
-                                {
-                                    tile.Type = tileType;
-                                }
-
-                                // Get probability if specified
-                                string probability = reader.GetAttribute("probability");
-                                if (!string.IsNullOrEmpty(probability) && float.TryParse(probability, out float prob))
-                                {
-                                    tile.Probability = prob;
-                                }
-                                else
-                                {
-                                    tile.Probability = 1.000f;
-                                }
-
-                                context.Logger.LogMessage($"\nProcessing tile {tileId}:");
-                                context.Logger.LogMessage($"  Type: {tileType ?? "none"}");
-                                context.Logger.LogMessage($"  Probability: {probability ?? "1"}");
-
-                                // Process properties if they exist
-                                using (XmlReader tileReader = reader.ReadSubtree())
-                                {
-                                    while (tileReader.Read())
-                                    {
-                                        if (tileReader.NodeType == XmlNodeType.Element && tileReader.Name == "properties")
-                                        {
-                                            using XmlReader propertiesReader = tileReader.ReadSubtree();
-                                            while (propertiesReader.Read())
-                                            {
-                                                if (propertiesReader.NodeType == XmlNodeType.Element &&
-                                                    propertiesReader.Name == "property")
-                                                {
-                                                    string propName = propertiesReader.GetAttribute("name");
-                                                    string propType = propertiesReader.GetAttribute("type");
-                                                    string propValue = propertiesReader.GetAttribute("value");
-
-                                                    if (!string.IsNullOrEmpty(propName) && !string.IsNullOrEmpty(propValue))
-                                                    {
-                                                        tile.Properties[propName] = propValue;
-                                                        context.Logger.LogMessage($"    Property: {propName} ({propType ?? "string"}) = {propValue}");
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // Add the tile to the tileset
-                                result.Tiles[tileId] = tile;
-                                break;
-                        }
-                        break;
-
-                    case XmlNodeType.EndElement:
-                        if (name == "tile")
-                        {
-                            context.Logger.LogMessage($"Finished processing tile {currentTileId}");
-                            currentTileId = -1;
-                        }
-                        else if (name == "tileset")
-                        {
-                            context.Logger.LogMessage("\nFinished processing tileset");
-                            context.Logger.LogMessage($"Final image path: {result.Image}");
-                            //context.Logger.LogMessage($"Total properties: {result.TileProperties.Count}");
-                            return result;
-                        }
-                        break;
-                }
-            }
+            context.Logger.LogMessage($"  FirstGid: {result.FirstGid}");
+            context.Logger.LogMessage($"  Source: {result.Source}");
 
             context.Logger.LogMessage("=== Completed Tileset Loading ===");
             return result;

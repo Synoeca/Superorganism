@@ -231,7 +231,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The first tile ID in the tileset
         /// </summary>
-        public int FirstTileId { get; set; }
+        public int FirstGid { get; set; }
 
         /// <summary>
         /// The width of each tile
@@ -254,7 +254,7 @@ namespace Superorganism.Tiles
         public int Margin { get; set; }
 
         /// <summary>
-        /// Dictionary of all tiles in this tileset, indexed by their local ID (index - FirstTileId)
+        /// Dictionary of all tiles in this tileset, indexed by their local ID (index - FirstGid)
         /// </summary>
         public Dictionary<int, Tile> Tiles { get; set; }
 
@@ -293,7 +293,7 @@ namespace Superorganism.Tiles
         /// <returns>The tile at the specified index, or null if not found</returns>
         public Tile GetTile(int index)
         {
-            int localIndex = index - FirstTileId;
+            int localIndex = index - FirstGid;
             if (localIndex < 0)
                 return null;
 
@@ -318,7 +318,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// Adds a new tile to the tileset
         /// </summary>
-        /// <param name="localId">The local ID of the tile (global ID - FirstTileId)</param>
+        /// <param name="localId">The local ID of the tile (global ID - FirstGid)</param>
         /// <param name="tile">The tile to add</param>
         public void AddTile(int localId, Tile tile)
         {
@@ -334,7 +334,7 @@ namespace Superorganism.Tiles
         /// <returns>True if the tile index exists in the tileset</returns>
         internal bool MapTileToRect(int index, ref Rectangle rect)
         {
-            index -= FirstTileId;
+            index -= FirstGid;
             if (index < 0)
                 return false;
 
