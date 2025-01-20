@@ -25,8 +25,9 @@ namespace ContentPipeline
 
         public Dictionary<string, LayerContent> Layers;
 
-
         public Dictionary<string, TilesetContent> Tilesets;
+
+        public Dictionary<string, int> TilesetFirstGid;
     }
 
     [ContentSerializerRuntimeType("Superorganism.Tiles.Tile, Superorganism")]
@@ -47,6 +48,9 @@ namespace ContentPipeline
         public string Name;
 
         public int FirstTileId;
+
+        [ContentSerializerIgnore]
+        public string Source;
 
         public int TileWidth;
 

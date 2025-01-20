@@ -22,6 +22,65 @@ namespace ContentPipeline
             context.Logger.LogMessage($"  Tile Dimensions: {mapEngine.TileWidth}x{mapEngine.TileHeight}");
             context.Logger.LogMessage($"  Number of Tilesets: {mapEngine.Tilesets.Count}");
 
+            foreach (KeyValuePair<string, int> tilesetEntry in mapEngine.TilesetFirstGid)
+            {
+                context.Logger.LogMessage($"\nKey: {tilesetEntry.Key}");
+                context.Logger.LogMessage($"Value: {tilesetEntry.Value}");
+                //string texturePath = GetTexturePath(tilesetEntry.Value, mapEngine.Filename, context);
+                //context.Logger.LogMessage($"Processing firstgid texture: {texturePath}");
+                //try
+                //{
+
+                //    //tilesetEntry.Value.Texture = context.BuildAndLoadAsset<TextureContent, Texture2DContent>(
+                //    //    new ExternalReference<TextureContent>(texturePath),
+                //    //    "TextureProcessor"
+                //    //);
+                //}
+                //catch (Exception e)
+                //{
+                //    Console.WriteLine(e);
+                //    throw;
+                //}
+
+                //LogTilesetState(tilesetEntry.Value, context, "Pre-processing");
+
+                //if (!string.IsNullOrEmpty(tilesetEntry.Value.Image))
+                //{
+                //    string texturePath = GetTexturePath(tilesetEntry.Value.Image, tilesetEntry.Value.Filename, context);
+                //    context.Logger.LogMessage($"Processing texture: {texturePath}");
+
+                //    try
+                //    {
+                //        tilesetEntry.Value.Texture = context.BuildAndLoadAsset<TextureContent, Texture2DContent>(
+                //            new ExternalReference<TextureContent>(texturePath),
+                //            "TextureProcessor"
+                //        );
+
+                //        if (tilesetEntry.Value.Texture?.Mipmaps.Count > 0)
+                //        {
+                //            //tilesetEntry.Value.TexWidth = tilesetEntry.Value.Texture.Mipmaps[0].Width;
+                //            //tilesetEntry.Value.TexHeight = tilesetEntry.Value.Texture.Mipmaps[0].Height;
+                //            context.Logger.LogMessage($"Texture processed successfully:");
+                //            context.Logger.LogMessage($" Width: {tilesetEntry.Value.TexWidth}");
+                //            context.Logger.LogMessage($" Height: {tilesetEntry.Value.TexHeight}");
+                //        }
+                //        else
+                //        {
+                //            context.Logger.LogWarning("", new ContentIdentity(),
+                //                "No mipmaps found in processed texture!");
+                //        }
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        context.Logger.LogImportantMessage($"Error processing texture: {ex.Message}");
+                //        throw;
+                //    }
+
+                //    LogTilesetState(tilesetEntry.Value, context, "Post-processing");
+                //}
+            }
+
+
             //foreach (KeyValuePair<string, TilesetContent> tilesetEntry in mapEngine.Tilesets)
             //{
             //    context.Logger.LogMessage($"\nKey: {tilesetEntry.Key}");

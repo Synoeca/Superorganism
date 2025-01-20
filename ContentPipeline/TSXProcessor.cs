@@ -29,7 +29,7 @@ namespace ContentPipeline
                     ContentIdentity textureIdentity = new ContentIdentity(texturePath);
                     textureIdentity.SourceTool = content.Name;
 
-                    var textureReference = new ExternalReference<TextureContent>(texturePath, textureIdentity);
+                    ExternalReference<TextureContent> textureReference = new ExternalReference<TextureContent>(texturePath, textureIdentity);
                     content.Texture = context.BuildAndLoadAsset<TextureContent, Texture2DContent>(
                         textureReference,
                         "TextureProcessor"

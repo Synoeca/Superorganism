@@ -18,6 +18,7 @@ namespace ContentPipeline
                 Filename = Path.GetFullPath(filename),
                 Properties = new Dictionary<string, string>(),
                 Tilesets = new Dictionary<string, TilesetContent>(),
+                TilesetFirstGid = new Dictionary<string, int>(),
                 Layers = new Dictionary<string, LayerContent>(),
                 Groups = new Dictionary<string, GroupContent>()
             };
@@ -62,9 +63,10 @@ namespace ContentPipeline
                                     st.Read();
                                     context.Logger.LogMessage("Loading tileset...");
                                     TilesetContent tileset = LoadBasicTileset(st, context);
+                                    result.TilesetFirstGid.Add(tileset.Source, tileset.FirstTileId);
                                     //result.Tilesets[tileset.Name] = tileset;
                                     //result.Tilesets.Add(tileset.Name, tileset);
-                                    context.Logger.LogMessage($"tileset.Name: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
+                                    context.Logger.LogMessage($"tileset.Name: {tileset.Name} (FirstTileId: {tileset.Filename})");
                                     context.Logger.LogMessage($"Loaded tileset: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
                                 }
                                 break;
@@ -148,6 +150,7 @@ namespace ContentPipeline
             {
                 Name = reader.GetAttribute("name")!,
                 FirstTileId = ParseIntAttribute(reader, "firstgid"),
+                Source = Path.GetFileNameWithoutExtension(reader.GetAttribute("source")),
                 TileWidth = ParseIntAttribute(reader, "tilewidth"),
                 TileHeight = ParseIntAttribute(reader, "tileheight"),
                 Margin = ParseIntAttribute(reader, "margin"),

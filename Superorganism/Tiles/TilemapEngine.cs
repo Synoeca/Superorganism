@@ -47,7 +47,12 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The Map's Tilesets
         /// </summary>
-        public Dictionary<string, Tileset> Tilesets { get; set; } = new();
+        public Dictionary<string, Tileset> Tilesets { get; set; }
+
+        /// <summary>
+        /// The tileset's first global id
+        /// </summary>
+        public Dictionary<string, int> TilesetFirstGid { get; set; }
 
         /// <summary>
         /// Draws the Map

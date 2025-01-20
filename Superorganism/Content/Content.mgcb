@@ -732,14 +732,10 @@
 /build:tileset.png
 
 #begin Tileset/Maps/TestMapRev1.tmx
-/importer:TiledMapEngineContentImporter
-/processor:TiledMapEngineContentProcessor
-/build:Tileset/Maps/TestMapRev1.tmx
+/copy:Tileset/Maps/TestMapRev1.tmx
 
 #begin Tileset/Maps/TestMapRev4.tmx
-/importer:TiledMapEngineContentImporter
-/processor:TiledMapEngineContentProcessor
-/build:Tileset/Maps/TestMapRev4.tmx
+/copy:Tileset/Maps/TestMapRev4.tmx
 
 #begin Tileset/Maps/TestMapRev5.tmx
 /importer:TiledMapEngineContentImporter
