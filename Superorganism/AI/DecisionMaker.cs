@@ -363,6 +363,25 @@ namespace Superorganism.AI
                         Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
                         position = newPosition;
 
+                        foreach (Entity entity in Entities)
+                        {
+                            switch (entity)
+                            {
+                                case ControllableEntity { IsControlled: true } controllableEntity:
+                                {
+                                    float distance = Vector2.Distance(position, controllableEntity.Position);
+                                    if (distance < 100)
+                                    {
+                                        TransitionToStrategy(ref strategy, Strategy.ChaseEnemy, ref strategyHistory, gameTime);
+                                        _lastKnownTargetPosition = controllableEntity.Position;
+                                        return; // Exit early during transition
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+
                         /*
                         // Apply gravity
                         velocity.Y += gravity;
