@@ -16,6 +16,8 @@ namespace Superorganism.Entities
 		public virtual float AnimationSpeed { get; set; }
 		public virtual short AnimationFrame { get; set; }
 
+
+
         protected bool UseRotation { get; set; }
         protected float Rotation { get; set; }
         protected const float RotationSmoothing = 0.05f;
@@ -178,7 +180,7 @@ namespace Superorganism.Entities
             if (UseRotation) { UpdateRotation(); }
 
             DecisionMaker.Action(ref _strategy, ref _strategyHistory, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
-				ref _velocity, 800, 420, TextureInfo, EntityStatus);
+				ref _velocity, 800, 420, TextureInfo, EntityStatus, ref _isOnGround, ref _isJumping, ref _friction);
 		}
 	}
 }

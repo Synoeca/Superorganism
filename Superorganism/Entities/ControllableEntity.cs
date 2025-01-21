@@ -27,7 +27,7 @@ namespace Superorganism.Entities
 
 		public float JumpStrength { get; set; } = -14f;
 
-		public float Friction { get; set; }
+		//public float Friction { get; set; }
 
 		public float Gravity { get; set; } = 0.5f;
 
@@ -167,7 +167,7 @@ namespace Superorganism.Entities
             }
             else
             {
-                // We're in the middle of a jump, apply gravity
+                // in the middle of a jump, apply gravity
                 _velocity.Y += Gravity;
             }
 
@@ -251,10 +251,6 @@ namespace Superorganism.Entities
 
             // Clamp velocity
             _velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
-            if (_velocity.X > 0)
-            {
-
-            }
         }
 
         private bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding)

@@ -152,7 +152,7 @@ public class EntityManager
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        int count = 10;
+        int count = 15;
         Random rand = new();
         //for (int i = 0; i < count; i++)
         //{
@@ -235,7 +235,7 @@ public class EntityManager
     private void LoadContent(ContentManager content)
     {
         _ant.LoadContent(content, "ant-side_Rev2", 3, 1,
-            new BoundingRectangle(), 0.25f);
+            new BoundingRectangle(), 0.23f);
         _ant.LoadSound(content);
 
         // Load content for all ant enemies
