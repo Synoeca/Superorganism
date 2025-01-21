@@ -227,7 +227,7 @@ namespace Superorganism.AI
                     }
                 case Strategy.Patrol:
                     {
-                        const float movementSpeed = 1.0f;
+                        const float movementSpeed = 0.7f;
                         const float gravity = 0.5f;
 
                         float proposedXVelocity = velocity.X;
@@ -456,116 +456,246 @@ namespace Superorganism.AI
                     }
 
                 case Strategy.ChaseEnemy:
-                {
-                    const float chaseSpeed = 3.0f;
-                    const float gravity = 0.5f;
-                    velocity.Y += gravity;
-                    Vector2? targetPosition = null;
-                    float closestDistance = float.MaxValue;
-
-                    foreach (Entity entity in Entities)
                     {
-                        if (entity is ControllableEntity { IsControlled: true } controllableEntity)
+                        const float chaseSpeed = 3.0f;
+                        const float gravity = 0.5f;
+
+                        // Find target
+                        Vector2? targetPosition = null;
+                        float closestDistance = float.MaxValue;
+                        foreach (Entity entity in Entities)
                         {
-                            float distance = Vector2.Distance(position, controllableEntity.Position);
-                            if (distance < closestDistance)
+                            if (entity is ControllableEntity { IsControlled: true } controllableEntity)
                             {
-                                closestDistance = distance;
-                                targetPosition = controllableEntity.Position;
-                                _lastKnownTargetPosition = controllableEntity.Position;
+                                float distance = Vector2.Distance(position, controllableEntity.Position);
+                                if (distance < closestDistance)
+                                {
+                                    closestDistance = distance;
+                                    targetPosition = controllableEntity.Position;
+                                    _lastKnownTargetPosition = controllableEntity.Position;
+                                }
                             }
                         }
-                    }
 
-                    if ((!targetPosition.HasValue || closestDistance > 300) && currentStrategyDuration >= Rand.Next(Rand.Next(3, 21), 21))
-                    {
-                        targetPosition = GetLastTargetPosition(strategyHistory, gameTime);
-                        if (!targetPosition.HasValue)
+                        // Check if we should switch to patrol
+                        if ((!targetPosition.HasValue || closestDistance > 300) && currentStrategyDuration >= Rand.Next(Rand.Next(3, 21), 21))
                         {
-                            TransitionToStrategy(ref strategy, Strategy.Patrol, ref strategyHistory, gameTime);
-                            return;
+                            targetPosition = GetLastTargetPosition(strategyHistory, gameTime);
+                            if (!targetPosition.HasValue)
+                            {
+                                TransitionToStrategy(ref strategy, Strategy.Patrol, ref strategyHistory, gameTime);
+                                return;
+                            }
                         }
+
+                        // Calculate chase direction and velocity
+                        Vector2 targetPos = targetPosition ?? _lastKnownTargetPosition;
+                        Vector2 chaseDirection = Vector2.Normalize(targetPos - position);
+                        float proposedXVelocity = chaseDirection.X * chaseSpeed;
+
+                        if (!isOnGround)
+                        {
+                            // in the middle of a jump, apply gravity
+                            velocity.Y += gravity;
+                        }
+
+                        if (!isJumping)
+                        {
+                            Vector2 groundCheckPos = position + new Vector2(0, 1.0f);
+                            bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding);
+
+                            if (!hasGroundBelow)
+                            {
+                                isOnGround = false;
+                                if (velocity.Y >= 0) // Only apply gravity if we're not moving upward
+                                {
+                                    velocity.Y += gravity;
+                                }
+                            }
+                        }
+
+                        // Try X movement first
+                        Vector2 proposedXPosition = position + new Vector2(proposedXVelocity, 0);
+                        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, collisionBounding);
+
+                        // Apply X movement if no collision
+                        if (!hasXCollision)
+                        {
+                            position.X = proposedXPosition.X;
+                            velocity.X = proposedXVelocity;
+                        }
+                        else
+                        {
+                            velocity.X = 0;
+                        }
+
+                        // Then try Y movement
+                        if (velocity.Y != 0)
+                        {
+                            Vector2 proposedYPosition = position + new Vector2(0, velocity.Y);
+                            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, collisionBounding);
+                            if (!hasYCollision)
+                            {
+                                position.Y = proposedYPosition.Y;
+                                isOnGround = false;
+                            }
+                            else
+                            {
+                                if (velocity.Y > 0) // Moving downward
+                                {
+                                    // Check ground at both bottom corners
+                                    float leftGroundY = MapHelper.GetGroundYPosition(
+                                        GameState.CurrentMap,
+                                        position.X,
+                                        position.Y,
+                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                                    );
+
+                                    float rightGroundY = MapHelper.GetGroundYPosition(
+                                        GameState.CurrentMap,
+                                        position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
+                                        position.Y,
+                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                                    );
+
+                                    float groundY = Math.Min(leftGroundY, rightGroundY);
+                                    if (groundY < position.Y)
+                                    {
+                                        position.Y = Math.Max(leftGroundY, rightGroundY) - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                        isOnGround = true;
+                                        if (isJumping) isJumping = false;
+                                    }
+                                    else
+                                    {
+                                        position.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                        isOnGround = true;
+                                        if (isJumping) isJumping = false;
+                                    }
+                                }
+                                velocity.Y = 0;
+                            }
+                        }
+
+                        mapBounds = MapHelper.GetMapWorldBounds();
+                        position.X = MathHelper.Clamp(position.X,
+                            (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
+                            mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
+
+                        // Clamp velocity
+                        velocity.X = MathHelper.Clamp(velocity.X, -chaseSpeed * 2, chaseSpeed * 2);
+
+                        Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
+                        position = newPosition;
+
+                        break;
                     }
-
-                    Vector2 targetPos = targetPosition ?? _lastKnownTargetPosition;
-                    Vector2 chaseDirection = Vector2.Normalize(targetPos - position);
-                    velocity.X = chaseDirection.X * chaseSpeed;
-
-                    Vector2 proposedXPosition = position + new Vector2(velocity.X, 0);
-                    if (CheckCollisionExcludingDiagonalTiles(proposedXPosition, textureInfo))
-                    {
-                        velocity.X = 0; // Stop at walls when chasing
-                    }
-
-                        // Calculate new position
-                        Vector2 newPosition = position + velocity;
-
-                    // Check map bounds
-                    newPosition.X = MathHelper.Clamp(newPosition.X,
-                        (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
-                        mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
-
-                    // Get ground level at new position
-                    float groundY = MapHelper.GetGroundYPosition(
-                        GameState.CurrentMap,
-                        newPosition.X,
-                        position.Y,
-                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
-                    );
-
-                    // Handle ground collision
-                    if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
-                    {
-                        newPosition.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                        velocity.Y = 0;
-                    }
-
-                    position = newPosition;
-                    break;
-                }
                 case Strategy.Transition:
-                {
-                    velocity.X = 0;
-                    velocity.Y += 0.5f;
-                    Vector2 proposedXPosition = position + new Vector2(velocity.X, 0);
-                    if (CheckCollisionExcludingDiagonalTiles(proposedXPosition, textureInfo))
                     {
-                        velocity.X = 0;
-                    }
-                    Vector2 newPosition = position + velocity;
+                        const float gravity = 0.5f;
+                        float proposedXVelocity = 0; // Stay still during transition
 
-                    // Check map bounds
-                    newPosition.X = MathHelper.Clamp(newPosition.X,
-                        (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
-                        mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
-
-                    // Get ground level at new position
-                    float groundY = MapHelper.GetGroundYPosition(
-                        GameState.CurrentMap,
-                        newPosition.X,
-                        position.Y,
-                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
-                    );
-
-                    // Handle ground collision
-                    if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
-                    {
-                        newPosition.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                        velocity.Y = 0;
-                    }
-
-                    position = newPosition;
-
-                    if (currentStrategyDuration >= TransitionDuration)
-                    {
-                        AddStrategyToHistory(ref strategy, _targetStrategy, ref strategyHistory, gameTime);
-                        if (_targetStrategy == Strategy.Patrol)
+                        if (!isOnGround)
                         {
-                            velocity.X = 1.0f;
+                            // in the middle of a jump, apply gravity
+                            velocity.Y += gravity;
                         }
+
+                        if (!isJumping)
+                        {
+                            Vector2 groundCheckPos = position + new Vector2(0, 1.0f);
+                            bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding);
+
+                            if (!hasGroundBelow)
+                            {
+                                isOnGround = false;
+                                if (velocity.Y >= 0) // Only apply gravity if we're not moving upward
+                                {
+                                    velocity.Y += gravity;
+                                }
+                            }
+                        }
+
+                        // Try X movement first
+                        Vector2 proposedXPosition = position + new Vector2(proposedXVelocity, 0);
+                        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, collisionBounding);
+
+                        // Apply X movement if no collision
+                        if (!hasXCollision)
+                        {
+                            position.X = proposedXPosition.X;
+                            velocity.X = proposedXVelocity;
+                        }
+                        else
+                        {
+                            velocity.X = 0;
+                        }
+
+                        // Then try Y movement
+                        if (velocity.Y != 0)
+                        {
+                            Vector2 proposedYPosition = position + new Vector2(0, velocity.Y);
+                            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, collisionBounding);
+                            if (!hasYCollision)
+                            {
+                                position.Y = proposedYPosition.Y;
+                                isOnGround = false;
+                            }
+                            else
+                            {
+                                if (velocity.Y > 0) // Moving downward
+                                {
+                                    // Check ground at both bottom corners
+                                    float leftGroundY = MapHelper.GetGroundYPosition(
+                                        GameState.CurrentMap,
+                                        position.X,
+                                        position.Y,
+                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                                    );
+
+                                    float rightGroundY = MapHelper.GetGroundYPosition(
+                                        GameState.CurrentMap,
+                                        position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
+                                        position.Y,
+                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                                    );
+
+                                    float groundY = Math.Min(leftGroundY, rightGroundY);
+                                    if (groundY < position.Y)
+                                    {
+                                        position.Y = Math.Max(leftGroundY, rightGroundY) - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                        isOnGround = true;
+                                        if (isJumping) isJumping = false;
+                                    }
+                                    else
+                                    {
+                                        position.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                        isOnGround = true;
+                                        if (isJumping) isJumping = false;
+                                    }
+                                }
+                                velocity.Y = 0;
+                            }
+                        }
+
+                        mapBounds = MapHelper.GetMapWorldBounds();
+                        position.X = MathHelper.Clamp(position.X,
+                            (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
+                            mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
+
+                        Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
+                        position = newPosition;
+
+                        // Check if transition is complete
+                        if (currentStrategyDuration >= TransitionDuration)
+                        {
+                            AddStrategyToHistory(ref strategy, _targetStrategy, ref strategyHistory, gameTime);
+                            if (_targetStrategy == Strategy.Patrol)
+                            {
+                                velocity.X = 1.0f;
+                            }
+                        }
+                        break;
                     }
-                    break;
-                }
                 case Strategy.Idle:
                     break;
                 case Strategy.AvoidEnemy:
