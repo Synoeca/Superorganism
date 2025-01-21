@@ -774,15 +774,14 @@ namespace Superorganism.AI
             int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
             int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
 
-            //leftTile = tilex - 1;
-            //rightTile = tilex + 1;
-            //topTile = tiley - 1;
-            //bottomTile = tiley + 1;
-
-            if (leftTile < 0)
-            {
-                leftTile = 0;
-            }
+            if (leftTile < 0) leftTile = 0;
+            if (leftTile >= MapHelper.MapWidth) leftTile = MapHelper.MapWidth - 1;
+            if (rightTile < 0) rightTile = 0;
+            if (rightTile >= MapHelper.MapWidth) rightTile = MapHelper.MapWidth - 1;
+            if (topTile < 0) topTile = 0;
+            if (topTile >= MapHelper.MapHeight) topTile = MapHelper.MapHeight - 1;
+            if (bottomTile < 0) bottomTile = 0;
+            if (bottomTile >= MapHelper.MapHeight) bottomTile = MapHelper.MapHeight - 1;
 
             for (int y = topTile; y <= bottomTile; y++)
             {
@@ -808,8 +807,8 @@ namespace Superorganism.AI
                         BoundingRectangle tileRect = new(
                             x * MapHelper.TileSize,
                             y * MapHelper.TileSize,
-                            MapHelper.TileSize - 1,
-                            MapHelper.TileSize - 1
+                            MapHelper.TileSize - 5,
+                            MapHelper.TileSize - 5
                         );
 
                         // Create a test collision bounds at the proposed position
