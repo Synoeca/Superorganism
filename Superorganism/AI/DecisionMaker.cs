@@ -624,15 +624,22 @@ namespace Superorganism.AI
         {
             int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
             int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
+
             //leftTile = tilex - 1;
             //rightTile = tilex + 1;
             //topTile = tiley - 1;
             //bottomTile = tiley + 1;
 
+            if (leftTile < 0)
+            {
+                leftTile = 0;
+            }
+
             for (int y = topTile; y <= bottomTile; y++)
             {
                 for (int x = leftTile; x <= rightTile; x++)
                 {
+
                     int tileId = layer.GetTile(x, y);
                     //int tiledId
                     if (x == tilex && y == tiley)

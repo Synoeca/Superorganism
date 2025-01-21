@@ -242,7 +242,7 @@ public class EntityManager
         foreach (AntEnemy enemy in _antEnemies)
         {
             enemy.LoadContent(content, "antEnemy-side_Rev3", 3, 1,
-                new BoundingRectangle(), 0.3f);
+                new BoundingRectangle(), 0.23f);
         }
 
         foreach (Crop crop in _crops)
