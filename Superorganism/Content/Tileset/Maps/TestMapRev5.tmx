@@ -16,7 +16,7 @@
   </objectgroup>
   <layer id="12" name="Grass" width="200" height="50">
    <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAACu3WMQrAIAwAwGy+om/wDYX+/03FSRGHtohIuYOQkCFkCSQCAAAAAAAAAAAAAAAAeCK/jGNSwApp0LuWbwF7SFFvoq1hB6OfY9bM4uwy/IHfGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAD44gZLbV7CQJwAAA==
+   H4sIAAAAAAAACu3WMQqAMAwF0G49gaNncBPcvf+ZrJMOHayEkuE9+BAyhCyBlAIAAAAAAAAAAAAAAAB8sQ1mDQrMUDu9c/oWkEMtz028a8ig93NEzbztLUfLEjAXsvB7AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAB/XIVanJ5AnAAA
   </data>
   </layer>
   <layer id="1" name="Terrain" width="200" height="50">

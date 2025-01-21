@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Superorganism.Core.Managers;
 
@@ -202,9 +203,20 @@ namespace Superorganism.Tiles
             {
                 foreach (Layer layer in map.Layers.Values)
                 {
-                    if (layer.GetTile(tileX, tileY) != 0)
+                    int tileId = layer.GetTile(tileX, tileY);
+                    if (tileId != 0)
                     {
-                        // Found ground - return the top of this tile minus entity height
+                        // Check tile properties
+                        Dictionary<string, string> property = GetTileProperties(tileId);
+
+                        // Skip diagonal tiles and non-collidable tiles
+                        if ((property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true") ||
+                            (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false"))
+                        {
+                            continue;
+                        }
+
+                        // Found valid ground - return the top of this tile
                         return (tileY * TileSize);
                     }
                 }
@@ -212,16 +224,51 @@ namespace Superorganism.Tiles
                 {
                     foreach (Layer layer in group.Layers.Values)
                     {
-                        if (layer.GetTile(tileX, tileY) != 0)
+                        int tileId = layer.GetTile(tileX, tileY);
+                        if (tileId != 0)
                         {
-                            // Found ground - return the top of this tile minus entity height
+                            // Check tile properties
+                            Dictionary<string, string> property = GetTileProperties(tileId);
+
+                            // Skip diagonal tiles and non-collidable tiles
+                            if ((property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true") ||
+                                (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false"))
+                            {
+                                continue;
+                            }
+
+                            // Found valid ground - return the top of this tile
                             return (tileY * TileSize);
                         }
                     }
                 }
             }
-
             return MapHeight * TileSize;
+        }
+
+        public static Dictionary<string, string> GetTileProperties(int tileId)
+        {
+            // Find the correct tileset based on FirstGid
+            Tileset targetTileset = null;
+            int localTileId = tileId;
+
+            // Sort tilesets by FirstGid in descending order to find correct tileset
+            List<Tileset> sortedTilesets = GameState.CurrentMap.Tilesets.Values
+                .OrderByDescending(t => t.FirstGid)
+                .ToList();
+
+            foreach (Tileset tileset in sortedTilesets)
+            {
+                if (tileId >= tileset.FirstGid)
+                {
+                    targetTileset = tileset;
+                    localTileId = tileId - tileset.FirstGid;
+                    break;
+                }
+            }
+
+            return targetTileset?.Tiles?.GetValueOrDefault(localTileId)?.Properties
+                   ?? new Dictionary<string, string>();
         }
     }
 }

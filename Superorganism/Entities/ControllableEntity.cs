@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
@@ -323,21 +324,23 @@ namespace Superorganism.Entities
                 for (int x = leftTile; x <= rightTile; x++)
                 {
                     int tileId = layer.GetTile(x, y);
-                    //int tiledId
                     if (x == tilex && y == tiley)
                     {
                         continue;
-                    }
-
-                    if (x == 71 && y == 19)
-                    {
-
                     }
 
                     if (tileId != 0 /*&&
                         tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
                         tileId != 53 && tileId != 54 && tileId != 57*/)
                     {
+                        Dictionary<string, string> property = MapHelper.GetTileProperties(tileId);
+
+                        if ((property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true") ||
+                            (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false"))
+                        {
+                            continue;
+                        }
+
                         BoundingRectangle tileRect = new(
                             x * MapHelper.TileSize,
                             y * MapHelper.TileSize,

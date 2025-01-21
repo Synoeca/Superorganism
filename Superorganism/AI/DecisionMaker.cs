@@ -804,6 +804,14 @@ namespace Superorganism.AI
                         tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
                         tileId != 53 && tileId != 54 && tileId != 57*/)
                     {
+                        Dictionary<string, string> property = MapHelper.GetTileProperties(tileId);
+
+                        if ((property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true") ||
+                            (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false"))
+                        {
+                            continue;
+                        }
+
                         BoundingRectangle tileRect = new(
                             x * MapHelper.TileSize,
                             y * MapHelper.TileSize,
