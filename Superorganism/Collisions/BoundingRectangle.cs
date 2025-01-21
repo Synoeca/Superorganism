@@ -31,7 +31,8 @@ namespace Superorganism.Collisions
 			Y = y;
 			Width = width;
 			Height = height;
-		}
+            Center = new Vector2(X + (Width / 2), Y + (Height / 2));
+        }
 
 		public BoundingRectangle(Vector2 position, float width, float height)
 		{
@@ -39,7 +40,8 @@ namespace Superorganism.Collisions
 			Y = position.Y;
 			Width = width;
 			Height = height;
-		}
+            Center = new Vector2(X + (Width / 2), Y + (Height / 2));
+        }
 
 		public bool CollidesWith(ICollisionBounding other)
         {

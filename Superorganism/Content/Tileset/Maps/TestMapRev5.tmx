@@ -14,9 +14,9 @@
     <property name="Level" type="int" value="1"/>
    </properties>
   </objectgroup>
-  <layer id="12" name="Grass" width="200" height="50" locked="1">
+  <layer id="12" name="Grass" width="200" height="50">
    <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAACu3WoREAIAwEwTSSGui/OxQugjCIiN2Zs68/AgAAAAAAAAAAAAAAALixmuWnAACO6nNM3IRJfG8AAAAAAAAAAAAAAAAAAAAAAAAAAAAA4MUG95sXiECcAAA=
+   H4sIAAAAAAAACu3WMQrAIAwAwGy+om/wDYX+/03FSRGHtohIuYOQkCFkCSQCAAAAAAAAAAAAAAAAeCK/jGNSwApp0LuWbwF7SFFvoq1hB6OfY9bM4uwy/IHfGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAD44gZLbV7CQJwAAA==
   </data>
   </layer>
   <layer id="1" name="Terrain" width="200" height="50">

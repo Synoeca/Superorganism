@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.Collisions;
+using Superorganism.Common;
 using Superorganism.Core.Managers;
 using Superorganism.Interfaces;
 using Superorganism.Tiles;
@@ -117,15 +118,6 @@ namespace Superorganism.Entities
                 AnimationSpeed = 0.15f;
             }
 
-            // Handle jumping
-            if (IsOnGround && KeyboardState.IsKeyDown(Keys.Space))
-            {
-                _velocity.Y = JumpStrength;
-                IsOnGround = false;
-                IsJumping = true;
-                JumpSound?.Play();
-            }
-
             float proposedXVelocity = 0;
 
             // Calculate proposed horizontal movement
@@ -149,13 +141,44 @@ namespace Superorganism.Entities
                 }
             }
 
-            // Handle X-axis collision first
-            Vector2 proposedXPosition = _position + new Vector2(proposedXVelocity, 0);
-            bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap);
+            // Handle jumping
+            bool startingJump = IsOnGround && KeyboardState.IsKeyDown(Keys.Space);
+            if (startingJump)
+            {
+                _velocity.Y = JumpStrength;
+                IsOnGround = false;
+                IsJumping = true;
+                JumpSound?.Play();
+            }
+            else if (!IsJumping) // Only check for falling if we're not in a jump
+            {
+                // Check if there's ground below us
+                Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
+                bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, CollisionBounding);
 
-            // Apply horizontal movement
+                if (!hasGroundBelow)
+                {
+                    IsOnGround = false;
+                    if (_velocity.Y >= 0) // Only apply gravity if we're not moving upward
+                    {
+                        _velocity.Y += Gravity;
+                    }
+                }
+            }
+            else
+            {
+                // We're in the middle of a jump, apply gravity
+                _velocity.Y += Gravity;
+            }
+
+            // Try X movement first
+            Vector2 proposedXPosition = _position + new Vector2(proposedXVelocity, 0);
+            bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, CollisionBounding);
+
+            // Apply X movement if no collision
             if (!hasXCollision)
             {
+                _position.X = proposedXPosition.X;
                 _velocity.X = proposedXVelocity;
                 if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
                 {
@@ -164,52 +187,77 @@ namespace Superorganism.Entities
             }
             else
             {
-                _velocity.X = 0;  // Only zero out X velocity on X collision
+                _velocity.X = 0;
             }
 
-            // Apply gravity and calculate Y movement
-            _velocity.Y += Gravity;
-            Vector2 proposedYPosition = _position + new Vector2(0, _velocity.Y);
-            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap);
-
-            // Handle Y movement and ground detection
-            if (hasYCollision)
+            // Then try Y movement
+            if (_velocity.Y != 0)
             {
-                if (_velocity.Y > 0) // Moving downward
+                Vector2 proposedYPosition = _position + new Vector2(0, _velocity.Y);
+                bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, CollisionBounding);
+                if (!hasYCollision)
                 {
-                    IsOnGround = true;
-                    if (IsJumping) IsJumping = false;
+                    _position.Y = proposedYPosition.Y;
+                    IsOnGround = false;
                 }
-                _velocity.Y = 0;
-            }
-            else
-            {
-                IsOnGround = false;
-            }
+                else
+                {
+                    if (_velocity.Y > 0) // Moving downward
+                    {
+                        
+                        // Check ground at both bottom corners
+                        float leftGroundY = MapHelper.GetGroundYPosition(
+                            GameState.CurrentMap,
+                            _position.X,
+                            _position.Y,
+                            TextureInfo.UnitTextureHeight * TextureInfo.SizeScale
+                        );
 
-            // Calculate final position using both axes
-            Vector2 newPosition = _position + _velocity;
+                        float rightGroundY = MapHelper.GetGroundYPosition(
+                            GameState.CurrentMap,
+                            _position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale),
+                            _position.Y,
+                            TextureInfo.UnitTextureHeight * TextureInfo.SizeScale
+                        );
+
+                        // Use the highest ground position (lowest Y value)
+
+
+                        float groundY = Math.Min(leftGroundY, rightGroundY);
+                        if (groundY < _position.Y)
+                        {
+                            _position.Y = Math.Max(leftGroundY, rightGroundY) - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            IsOnGround = true;
+                            if (IsJumping) IsJumping = false;
+                        }
+                        else
+                        {
+                            _position.Y = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            IsOnGround = true;
+                            if (IsJumping) IsJumping = false;
+                        }
+
+
+                    }
+                    _velocity.Y = 0;
+                }
+            }
 
             // Check map bounds
             Rectangle mapBounds = MapHelper.GetMapWorldBounds();
-            newPosition.X = MathHelper.Clamp(newPosition.X,
+            _position.X = MathHelper.Clamp(_position.X,
                 (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f,
                 mapBounds.Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
 
-            _position = newPosition;
-
-            // Update collision bounds
-            if (CollisionBounding is BoundingRectangle boundingRectangle)
-            {
-                boundingRectangle.X = _position.X;
-                boundingRectangle.Y = _position.Y;
-                CollisionBounding = boundingRectangle;
-            }
-
+            // Clamp velocity
             _velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
+            if (_velocity.X > 0)
+            {
+
+            }
         }
 
-        private bool CheckCollisionAtPosition(Vector2 position, TiledMap map)
+        private bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding)
         {
             int leftTile = 0;
             int rightTile = 0;
@@ -226,10 +274,10 @@ namespace Superorganism.Entities
                     br.Height
                 );
 
-                leftTile = (int)(testBounds.Left / MapHelper.TileSize);
+                leftTile = (int)(testBounds.Left / MapHelper.TileSize) - 1;
                 rightTile = (int)Math.Ceiling(testBounds.Right / MapHelper.TileSize);
-                topTile = (int)(testBounds.Top / MapHelper.TileSize);
-                bottomTile = (int)Math.Ceiling(testBounds.Bottom / MapHelper.TileSize);
+                topTile = (int)(testBounds.Top / MapHelper.TileSize) - 1;
+                bottomTile = (int)Math.Ceiling(testBounds.Bottom / MapHelper.TileSize) - 1;
             }
             else if (CollisionBounding is BoundingCircle bc)
             {
@@ -243,7 +291,7 @@ namespace Superorganism.Entities
             // Check collision with map layers
             foreach (Layer layer in map.Layers.Values)
             {
-                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position))
+                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding))
                     return true;
             }
 
@@ -252,7 +300,7 @@ namespace Superorganism.Entities
             {
                 foreach (Layer layer in group.Layers.Values)
                 {
-                    if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position))
+                    if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding))
                         return true;
                 }
             }
@@ -260,30 +308,47 @@ namespace Superorganism.Entities
             return false;
         }
 
-        private bool CheckLayerCollision(Layer layer, int leftTile, int rightTile, int topTile, int bottomTile, Vector2 position)
+        private bool CheckLayerCollision(Layer layer, int leftTile, int rightTile, int topTile, int bottomTile, Vector2 position, ICollisionBounding collisionBounding)
         {
+            int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
+            int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
+            //leftTile = tilex - 1;
+            //rightTile = tilex + 1;
+            //topTile = tiley - 1;
+            //bottomTile = tiley + 1;
+
             for (int y = topTile; y <= bottomTile; y++)
             {
                 for (int x = leftTile; x <= rightTile; x++)
                 {
                     int tileId = layer.GetTile(x, y);
+                    //int tiledId
+                    if (x == tilex && y == tiley)
+                    {
+                        continue;
+                    }
 
-                    if (tileId != 0 &&
+                    if (x == 71 && y == 19)
+                    {
+
+                    }
+
+                    if (tileId != 0 /*&&
                         tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
-                        tileId != 53 && tileId != 54 && tileId != 57)
+                        tileId != 53 && tileId != 54 && tileId != 57*/)
                     {
                         BoundingRectangle tileRect = new(
-                            x * MapHelper.TileSize + 5,
+                            x * MapHelper.TileSize,
                             y * MapHelper.TileSize,
-                            (float)(MapHelper.TileSize * 0.8),
-                            MapHelper.TileSize
+                            MapHelper.TileSize - 1,
+                            MapHelper.TileSize - 1
                         );
 
                         // Create a test collision bounds at the proposed position
                         ICollisionBounding testBounds;
                         if (CollisionBounding is BoundingRectangle br)
                         {
-                            testBounds = new BoundingRectangle(position.X, position.Y, br.Width, br.Height);
+                            testBounds = new BoundingRectangle(position.X, position.Y, br.Width , br.Height);
                             CollisionBounding = testBounds;
                         }
                         else if (CollisionBounding is BoundingCircle bc)
@@ -298,6 +363,10 @@ namespace Superorganism.Entities
 
                         if (CollisionBounding.CollidesWith(tileRect))
                             return true;
+                    }
+                    else
+                    {
+                        
                     }
                 }
             }
@@ -316,7 +385,6 @@ namespace Superorganism.Entities
             if (CollisionBounding is BoundingCircle bc)
             {
                 bc.Center = new Vector2(Position.X + (bc.Radius / 2), Position.Y + (bc.Radius / 2));
-                
                 CollisionBounding = bc;
             }
             else if (CollisionBounding is BoundingRectangle br)
