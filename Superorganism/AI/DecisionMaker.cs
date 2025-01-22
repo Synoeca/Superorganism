@@ -228,7 +228,7 @@ namespace Superorganism.AI
                 case Strategy.Patrol:
                     {
                         const float movementSpeed = 0.7f;
-                        const float gravity = 0.5f;
+                        const float gravity = 0.1f;
 
                         float proposedXVelocity = velocity.X;
 
@@ -381,76 +381,6 @@ namespace Superorganism.AI
                                 }
                             }
                         }
-
-                        /*
-                        // Apply gravity
-                        velocity.Y += gravity;
-
-                        // Initialize movement if needed
-                        if (velocity.X == 0)
-                        {
-                            velocity.X = movementSpeed;
-                        }
-
-                        // Change direction every 3 seconds based on strategy duration
-                        if (currentStrategyDuration >= Rand.Next(Rand.Next(3, 21), 21))
-                        {
-                            velocity.X = -velocity.X; // Reverse direction
-                            (Strategy Strategy, double StartTime, double LastActionTime) current = strategyHistory[^1];
-                            //strategyHistory[^1] = (current.Strategy, current.StartTime, (DateTime.Now - GameStartTime).TotalSeconds);
-                            strategyHistory[^1] = (current.Strategy, current.StartTime, gameTime.TotalGameTime.TotalSeconds);
-                        }
-
-                        Vector2 proposedXPosition = position + new Vector2(velocity.X, 0);
-                        if (CheckCollisionExcludingDiagonalTiles(proposedXPosition, textureInfo))
-                        {
-                            velocity.X = -velocity.X; // Reverse direction when hitting a wall
-                        }
-
-                        // Update position
-                        Vector2 newPosition = position + velocity;
-
-                        // Check map bounds
-                        newPosition.X = MathHelper.Clamp(newPosition.X,
-                            (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
-                            mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
-
-                        // Get ground level at new position
-                        float groundY = MapHelper.GetGroundYPosition(
-                            GameState.CurrentMap,
-                            newPosition.X,
-                            position.Y,
-                            textureInfo.UnitTextureHeight * textureInfo.SizeScale
-                        );
-
-                        if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
-                        {
-                            newPosition.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                            velocity.Y = 0;
-                        }
-
-                        position = newPosition;
-
-                        // Check for transition to chase
-                        foreach (Entity entity in Entities)
-                        {
-                            switch (entity)
-                            {
-                                case ControllableEntity { IsControlled: true } controllableEntity:
-                                {
-                                    float distance = Vector2.Distance(position, controllableEntity.Position);
-                                    if (distance < 100)
-                                    {
-                                        TransitionToStrategy(ref strategy, Strategy.ChaseEnemy, ref strategyHistory, gameTime);
-                                        _lastKnownTargetPosition = controllableEntity.Position;
-                                        return; // Exit early during transition
-                                    }
-
-                                    break;
-                                }
-                            }
-                        }
-                        */
 
                         break;
                     }

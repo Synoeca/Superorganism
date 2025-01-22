@@ -310,33 +310,24 @@ namespace Superorganism.Entities
             int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
             int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
 
-            if (leftTile < 0) leftTile = 0;
-            if (leftTile >= MapHelper.MapWidth) leftTile = MapHelper.MapWidth - 1;
-            if (rightTile < 0) rightTile = 0;
-            if (rightTile >= MapHelper.MapWidth) rightTile = MapHelper.MapWidth - 1;
-            if (topTile < 0) topTile = 0;
-            if (topTile >= MapHelper.MapHeight) topTile = MapHelper.MapHeight - 1;
-            if (bottomTile < 0) bottomTile = 0;
-            if (bottomTile >= MapHelper.MapHeight) bottomTile = MapHelper.MapHeight - 1;
+            if (leftTile < 0 || rightTile < 0) { leftTile = rightTile = 0; }
+            if (leftTile >= MapHelper.MapWidth || rightTile >= MapHelper.MapWidth) { leftTile = rightTile = MapHelper.MapWidth - 1; }
+            if (topTile < 0 || bottomTile < 0) { topTile = bottomTile = 0; }
+            if (topTile >= MapHelper.MapHeight || bottomTile >= MapHelper.MapHeight) { topTile = bottomTile = MapHelper.MapHeight - 1; }
 
             for (int y = topTile; y <= bottomTile; y++)
             {
                 for (int x = leftTile; x <= rightTile; x++)
                 {
                     int tileId = layer.GetTile(x, y);
-                    if (x == tilex && y == tiley)
-                    {
-                        continue;
-                    }
 
-                    if (tileId != 0 /*&&
-                        tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
-                        tileId != 53 && tileId != 54 && tileId != 57*/)
+
+                    if (tileId != 0)
                     {
                         Dictionary<string, string> property = MapHelper.GetTileProperties(tileId);
 
-                        if ((property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true") ||
-                            (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false"))
+                        // Skip non-collidable tiles
+                        if (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false")
                         {
                             continue;
                         }
@@ -348,11 +339,84 @@ namespace Superorganism.Entities
                             MapHelper.TileSize - 5
                         );
 
-                        // Create a test collision bounds at the proposed position
-                        ICollisionBounding testBounds;
-                        if (CollisionBounding is BoundingRectangle br)
+                        // Check for diagonal tile
+                        // Inside the diagonal tile check:
+                        if (property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true")
                         {
-                            testBounds = new BoundingRectangle(position.X, position.Y, br.Width , br.Height);
+                            // Get slope values
+                            if (property.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
+                                property.TryGetValue("SlopeRight", out string slopeRightStr) &&
+                                int.TryParse(slopeLeftStr, out int slopeLeft) &&
+                                int.TryParse(slopeRightStr, out int slopeRight))
+                            {
+        
+
+                                //if (CollisionBounding is BoundingRectangle br)
+                                //{
+                                //    float tileLeft = tileRect.Left;
+                                //    float tileRight = tileRect.Right;
+                                //    float slope = (slopeRight - slopeLeft) / (float)MapHelper.TileSize;
+
+                                //    // Calculate collision point
+                                //    Vector2 collisionPoint = new(br.Center.X, br.Bottom);
+
+                                //    if (collisionPoint.X >= tileLeft && collisionPoint.X <= tileRight)
+                                //    {
+                                //        // Calculate the Y position on the slope at this X coordinate
+                                //        float distanceFromLeft = collisionPoint.X - tileLeft;
+                                //        float slopeY = tileRect.Bottom + slopeLeft + (slope * distanceFromLeft);
+
+                                //        if (collisionPoint.Y >= slopeY - 10)  // 10 pixel tolerance
+                                //        {
+                                //            // Adjust position to place entity on slope
+                                //            float newCenterY = slopeY - br.Height / 2;
+                                //            position.Y = newCenterY - br.Height / 2;  // Convert center Y to top-left position
+                                //            CollisionBounding = new BoundingRectangle(position, br.Width, br.Height);
+                                //            _position.Y = position.Y;
+                                //            IsOnGround = true;
+                                //            return true;
+                                //        }
+                                //    }
+                                //}
+                                //else if (CollisionBounding is BoundingCircle bc)
+                                //{
+                                //    float tileLeft = tileRect.Left;
+                                //    float tileRight = tileRect.Right;
+                                //    float slope = (slopeRight - slopeLeft) / (float)MapHelper.TileSize;
+
+                                //    // Calculate collision point (bottom center of circle)
+                                //    Vector2 collisionPoint = new(bc.Center.X, bc.Center.Y + bc.Radius);
+
+                                //    if (collisionPoint.X >= tileLeft && collisionPoint.X <= tileRight)
+                                //    {
+                                //        // Calculate the Y position on the slope at this X coordinate
+                                //        float distanceFromLeft = collisionPoint.X - tileLeft;
+                                //        float slopeY = tileRect.Bottom + slopeLeft + (slope * distanceFromLeft);
+
+                                //        if (collisionPoint.Y >= slopeY - 10)  // 10 pixel tolerance
+                                //        {
+                                //            // Adjust position to place entity on slope
+                                //            float newCenterY = slopeY - bc.Radius;
+                                //            position.Y = newCenterY;  // For circle, position is the center
+                                //            CollisionBounding = new BoundingCircle(position, bc.Radius);
+                                //            return true;
+                                //        }
+                                //    }
+                                //}
+                                //continue;  // Skip regular collision check for diagonal tiles
+                            }
+                        }
+
+                        if (x == tilex && y == tiley)
+                        {
+                            continue;
+                        }
+
+                        // Regular collision check for non-diagonal tiles
+                        ICollisionBounding testBounds;
+                        if (CollisionBounding is BoundingRectangle bra)
+                        {
+                            testBounds = new BoundingRectangle(position.X, position.Y, bra.Width, bra.Height);
                             CollisionBounding = testBounds;
                         }
                         else if (CollisionBounding is BoundingCircle bc)
@@ -367,10 +431,6 @@ namespace Superorganism.Entities
 
                         if (CollisionBounding.CollidesWith(tileRect))
                             return true;
-                    }
-                    else
-                    {
-                        
                     }
                 }
             }

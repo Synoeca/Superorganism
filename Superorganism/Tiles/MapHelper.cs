@@ -188,9 +188,6 @@ namespace Superorganism.Tiles
             return false;
         }
 
-        /// <summary>
-        /// Gets the ground Y position at a given world X coordinate
-        /// </summary>
         public static float GetGroundYPosition(TiledMap map, float worldX, float positionY, float entityHeight)
         {
             // Convert world X to tile X
@@ -206,20 +203,45 @@ namespace Superorganism.Tiles
                     int tileId = layer.GetTile(tileX, tileY);
                     if (tileId != 0)
                     {
-                        // Check tile properties
                         Dictionary<string, string> property = GetTileProperties(tileId);
 
-                        // Skip diagonal tiles and non-collidable tiles
-                        if ((property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true") ||
-                            (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false"))
+                        // Skip non-collidable tiles
+                        if (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false")
                         {
                             continue;
                         }
 
-                        // Found valid ground - return the top of this tile
+                        // Handle diagonal tiles
+                        if (property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true")
+                        {
+                            // Check for slope properties
+                            if (property.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
+                                property.TryGetValue("SlopeRight", out string slopeRightStr) &&
+                                int.TryParse(slopeLeftStr, out int slopeLeft) &&
+                                int.TryParse(slopeRightStr, out int slopeRight))
+                            {
+                                float tileLeft = tileX * TileSize;
+                                float tileRight = tileLeft + TileSize;
+                                float tileBottom = tileY * TileSize;
+                                float slope = (slopeRight - slopeLeft) / (float)TileSize;
+
+                                // Check if worldX is within tile bounds
+                                if (worldX >= tileLeft && worldX <= tileRight)
+                                {
+                                    // Calculate Y position on slope at worldX
+                                    float distanceFromLeft = worldX - tileLeft;
+                                    float slopeY = tileBottom + slopeLeft + (slope * distanceFromLeft);
+                                    return slopeY;
+                                }
+                            }
+                            continue;
+                        }
+
+                        // Found regular ground tile
                         return (tileY * TileSize);
                     }
                 }
+
                 foreach (Group group in map.Groups.Values)
                 {
                     foreach (Layer layer in group.Layers.Values)
@@ -227,17 +249,41 @@ namespace Superorganism.Tiles
                         int tileId = layer.GetTile(tileX, tileY);
                         if (tileId != 0)
                         {
-                            // Check tile properties
                             Dictionary<string, string> property = GetTileProperties(tileId);
 
-                            // Skip diagonal tiles and non-collidable tiles
-                            if ((property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true") ||
-                                (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false"))
+                            // Skip non-collidable tiles
+                            if (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false")
                             {
                                 continue;
                             }
 
-                            // Found valid ground - return the top of this tile
+                            // Handle diagonal tiles
+                            if (property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true")
+                            {
+                                //// Check for slope properties
+                                //if (property.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
+                                //    property.TryGetValue("SlopeRight", out string slopeRightStr) &&
+                                //    int.TryParse(slopeLeftStr, out int slopeLeft) &&
+                                //    int.TryParse(slopeRightStr, out int slopeRight))
+                                //{
+                                //    float tileLeft = tileX * TileSize;
+                                //    float tileRight = tileLeft + TileSize;
+                                //    float tileBottom = tileY * TileSize;
+                                //    float slope = (slopeRight - slopeLeft) / (float)TileSize;
+
+                                //    // Check if worldX is within tile bounds
+                                //    if (worldX >= tileLeft && worldX <= tileRight)
+                                //    {
+                                //        // Calculate Y position on slope at worldX
+                                //        float distanceFromLeft = worldX - tileLeft;
+                                //        float slopeY = tileBottom + slopeLeft + (slope * distanceFromLeft);
+                                //        return slopeY;
+                                //    }
+                                //}
+                                //continue;
+                            }
+
+                            // Found regular ground tile
                             return (tileY * TileSize);
                         }
                     }

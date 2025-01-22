@@ -125,6 +125,8 @@
  </tile>
  <tile id="20">
   <properties>
+   <property name="SlopeLeft" type="int" value="64"/>
+   <property name="SlopeRight" type="int" value="0"/>
    <property name="TileId" type="int" value="21"/>
    <property name="isCollidable" type="bool" value="true"/>
    <property name="isDiagonal" type="bool" value="true"/>
@@ -150,6 +152,8 @@
  </tile>
  <tile id="24">
   <properties>
+   <property name="SlopeLeft" type="int" value="64"/>
+   <property name="SlopeRight" type="int" value="32"/>
    <property name="TileId" type="int" value="25"/>
    <property name="isCollidable" type="bool" value="true"/>
    <property name="isDiagonal" type="bool" value="true"/>
@@ -157,6 +161,8 @@
  </tile>
  <tile id="25">
   <properties>
+   <property name="SlopeLeft" type="int" value="32"/>
+   <property name="SlopeRight" type="int" value="0"/>
    <property name="TileId" type="int" value="26"/>
    <property name="isCollidable" type="bool" value="true"/>
    <property name="isDiagonal" type="bool" value="true"/>
@@ -188,6 +194,8 @@
  </tile>
  <tile id="30">
   <properties>
+   <property name="SlopeLeft" type="int" value="64"/>
+   <property name="SlopeRight" type="int" value="32"/>
    <property name="TileId" type="int" value="31"/>
    <property name="isCollidable" type="bool" value="true"/>
    <property name="isDiagonal" type="bool" value="true"/>
@@ -321,6 +329,8 @@
  </tile>
  <tile id="52">
   <properties>
+   <property name="SlopeLeft" type="int" value="0"/>
+   <property name="SlopeRight" type="int" value="32"/>
    <property name="TileId" type="int" value="53"/>
    <property name="isCollidable" type="bool" value="true"/>
    <property name="isDiagonal" type="bool" value="true"/>
@@ -328,6 +338,8 @@
  </tile>
  <tile id="53">
   <properties>
+   <property name="SlopeLeft" type="int" value="32"/>
+   <property name="SlopeRight" type="int" value="64"/>
    <property name="TileId" type="int" value="54"/>
    <property name="isCollidable" type="bool" value="true"/>
    <property name="isDiagonal" type="bool" value="true"/>
@@ -349,6 +361,8 @@
  </tile>
  <tile id="56">
   <properties>
+   <property name="SlopeLeft" type="int" value="0"/>
+   <property name="SlopeRight" type="int" value="64"/>
    <property name="TileId" type="int" value="57"/>
    <property name="isCollidable" type="bool" value="true"/>
    <property name="isDiagonal" type="bool" value="true"/>
