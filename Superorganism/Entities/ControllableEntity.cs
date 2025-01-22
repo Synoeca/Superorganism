@@ -349,60 +349,60 @@ namespace Superorganism.Entities
                                 int.TryParse(slopeLeftStr, out int slopeLeft) &&
                                 int.TryParse(slopeRightStr, out int slopeRight))
                             {
-        
 
-                                //if (CollisionBounding is BoundingRectangle br)
-                                //{
-                                //    float tileLeft = tileRect.Left;
-                                //    float tileRight = tileRect.Right;
-                                //    float slope = (slopeRight - slopeLeft) / (float)MapHelper.TileSize;
 
-                                //    // Calculate collision point
-                                //    Vector2 collisionPoint = new(br.Center.X, br.Bottom);
+                                if (CollisionBounding is BoundingRectangle br)
+                                {
+                                    //float tileLeft = tileRect.Left;
+                                    //float tileRight = tileRect.Right;
+                                    //float slope = (slopeRight - slopeLeft) / (float)MapHelper.TileSize;
 
-                                //    if (collisionPoint.X >= tileLeft && collisionPoint.X <= tileRight)
-                                //    {
-                                //        // Calculate the Y position on the slope at this X coordinate
-                                //        float distanceFromLeft = collisionPoint.X - tileLeft;
-                                //        float slopeY = tileRect.Bottom + slopeLeft + (slope * distanceFromLeft);
+                                    //// Calculate collision point
+                                    //Vector2 collisionPoint = new(br.Center.X, br.Bottom);
 
-                                //        if (collisionPoint.Y >= slopeY - 10)  // 10 pixel tolerance
-                                //        {
-                                //            // Adjust position to place entity on slope
-                                //            float newCenterY = slopeY - br.Height / 2;
-                                //            position.Y = newCenterY - br.Height / 2;  // Convert center Y to top-left position
-                                //            CollisionBounding = new BoundingRectangle(position, br.Width, br.Height);
-                                //            _position.Y = position.Y;
-                                //            IsOnGround = true;
-                                //            return true;
-                                //        }
-                                //    }
-                                //}
-                                //else if (CollisionBounding is BoundingCircle bc)
-                                //{
-                                //    float tileLeft = tileRect.Left;
-                                //    float tileRight = tileRect.Right;
-                                //    float slope = (slopeRight - slopeLeft) / (float)MapHelper.TileSize;
+                                    //if (collisionPoint.X >= tileLeft && collisionPoint.X <= tileRight)
+                                    //{
+                                    //    // Calculate the Y position on the slope at this X coordinate
+                                    //    float distanceFromLeft = collisionPoint.X - tileLeft;
+                                    //    float slopeY = tileRect.Bottom + slopeLeft + (slope * distanceFromLeft);
 
-                                //    // Calculate collision point (bottom center of circle)
-                                //    Vector2 collisionPoint = new(bc.Center.X, bc.Center.Y + bc.Radius);
+                                    //    if (collisionPoint.Y >= slopeY - 10)  // 10 pixel tolerance
+                                    //    {
+                                    //        // Adjust position to place entity on slope
+                                    //        float newCenterY = slopeY - br.Height / 2;
+                                    //        position.Y = newCenterY - br.Height / 2;  // Convert center Y to top-left position
+                                    //        CollisionBounding = new BoundingRectangle(position, br.Width, br.Height);
+                                    //        _position.Y = position.Y;
+                                    //        IsOnGround = true;
+                                    //        return true;
+                                    //    }
+                                    //}
+                                }
+                                else if (CollisionBounding is BoundingCircle bc)
+                                {
+                                    //float tileLeft = tileRect.Left;
+                                    //float tileRight = tileRect.Right;
+                                    //float slope = (slopeRight - slopeLeft) / (float)MapHelper.TileSize;
 
-                                //    if (collisionPoint.X >= tileLeft && collisionPoint.X <= tileRight)
-                                //    {
-                                //        // Calculate the Y position on the slope at this X coordinate
-                                //        float distanceFromLeft = collisionPoint.X - tileLeft;
-                                //        float slopeY = tileRect.Bottom + slopeLeft + (slope * distanceFromLeft);
+                                    //// Calculate collision point (bottom center of circle)
+                                    //Vector2 collisionPoint = new(bc.Center.X, bc.Center.Y + bc.Radius);
 
-                                //        if (collisionPoint.Y >= slopeY - 10)  // 10 pixel tolerance
-                                //        {
-                                //            // Adjust position to place entity on slope
-                                //            float newCenterY = slopeY - bc.Radius;
-                                //            position.Y = newCenterY;  // For circle, position is the center
-                                //            CollisionBounding = new BoundingCircle(position, bc.Radius);
-                                //            return true;
-                                //        }
-                                //    }
-                                //}
+                                    //if (collisionPoint.X >= tileLeft && collisionPoint.X <= tileRight)
+                                    //{
+                                    //    // Calculate the Y position on the slope at this X coordinate
+                                    //    float distanceFromLeft = collisionPoint.X - tileLeft;
+                                    //    float slopeY = tileRect.Bottom + slopeLeft + (slope * distanceFromLeft);
+
+                                    //    if (collisionPoint.Y >= slopeY - 10)  // 10 pixel tolerance
+                                    //    {
+                                    //        // Adjust position to place entity on slope
+                                    //        float newCenterY = slopeY - bc.Radius;
+                                    //        position.Y = newCenterY;  // For circle, position is the center
+                                    //        CollisionBounding = new BoundingCircle(position, bc.Radius);
+                                    //        return true;
+                                    //    }
+                                    //}
+                                }
                                 //continue;  // Skip regular collision check for diagonal tiles
                             }
                         }

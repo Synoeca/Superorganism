@@ -260,26 +260,26 @@ namespace Superorganism.Tiles
                             // Handle diagonal tiles
                             if (property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true")
                             {
-                                //// Check for slope properties
-                                //if (property.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
-                                //    property.TryGetValue("SlopeRight", out string slopeRightStr) &&
-                                //    int.TryParse(slopeLeftStr, out int slopeLeft) &&
-                                //    int.TryParse(slopeRightStr, out int slopeRight))
-                                //{
-                                //    float tileLeft = tileX * TileSize;
-                                //    float tileRight = tileLeft + TileSize;
-                                //    float tileBottom = tileY * TileSize;
-                                //    float slope = (slopeRight - slopeLeft) / (float)TileSize;
+                                // Check for slope properties
+                                if (property.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
+                                    property.TryGetValue("SlopeRight", out string slopeRightStr) &&
+                                    int.TryParse(slopeLeftStr, out int slopeLeft) &&
+                                    int.TryParse(slopeRightStr, out int slopeRight))
+                                {
+                                    //float tileLeft = tileX * TileSize;
+                                    //float tileRight = tileLeft + TileSize;
+                                    //float tileBottom = tileY * TileSize;
+                                    //float slope = (slopeRight - slopeLeft) / (float)TileSize;
 
-                                //    // Check if worldX is within tile bounds
-                                //    if (worldX >= tileLeft && worldX <= tileRight)
-                                //    {
-                                //        // Calculate Y position on slope at worldX
-                                //        float distanceFromLeft = worldX - tileLeft;
-                                //        float slopeY = tileBottom + slopeLeft + (slope * distanceFromLeft);
-                                //        return slopeY;
-                                //    }
-                                //}
+                                    //// Check if worldX is within tile bounds
+                                    //if (worldX >= tileLeft && worldX <= tileRight)
+                                    //{
+                                    //    // Calculate Y position on slope at worldX
+                                    //    float distanceFromLeft = worldX - tileLeft;
+                                    //    float slopeY = tileBottom + slopeLeft + (slope * distanceFromLeft);
+                                    //    return slopeY;
+                                    //}
+                                }
                                 //continue;
                             }
 
