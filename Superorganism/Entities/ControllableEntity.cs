@@ -188,7 +188,13 @@ namespace Superorganism.Entities
             }
             else
             {
-                _velocity.X = 0;
+                _position.X = proposedXPosition.X;
+                _velocity.X = proposedXVelocity;
+                if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
+                {
+                    PlayMoveSound(gameTime);
+                }
+                //_velocity.X = 0;
             }
 
             // Then try Y movement
@@ -205,20 +211,32 @@ namespace Superorganism.Entities
                 {
                     if (_velocity.Y > 0) // Moving downward
                     {
+                        if (CollisionBounding is BoundingCircle bc)
+                        {
+                            bc.Center = new Vector2(_position.X + bc.Radius, _position.Y + bc.Radius);
+                        }
+                        else if (CollisionBounding is BoundingRectangle br)
+                        {
+                            br.X = _position.X;
+                            br.Y = _position.Y;
+                            br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
+                        }
                         
                         // Check ground at both bottom corners
                         float leftGroundY = MapHelper.GetGroundYPosition(
                             GameState.CurrentMap,
                             _position.X,
                             _position.Y,
-                            TextureInfo.UnitTextureHeight * TextureInfo.SizeScale
+                            TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
+                            CollisionBounding
                         );
 
                         float rightGroundY = MapHelper.GetGroundYPosition(
                             GameState.CurrentMap,
                             _position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale),
                             _position.Y,
-                            TextureInfo.UnitTextureHeight * TextureInfo.SizeScale
+                            TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
+                            CollisionBounding
                         );
 
                         // Use the highest ground position (lowest Y value)
@@ -340,7 +358,6 @@ namespace Superorganism.Entities
                         );
 
                         // Check for diagonal tile
-                        // Inside the diagonal tile check:
                         if (property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true")
                         {
                             // Get slope values
@@ -349,8 +366,6 @@ namespace Superorganism.Entities
                                 int.TryParse(slopeLeftStr, out int slopeLeft) &&
                                 int.TryParse(slopeRightStr, out int slopeRight))
                             {
-
-
                                 if (CollisionBounding is BoundingRectangle br)
                                 {
                                     //float tileLeft = tileRect.Left;

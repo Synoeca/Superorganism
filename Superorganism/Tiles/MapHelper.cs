@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using Superorganism.Collisions;
 using Superorganism.Core.Managers;
 
 namespace Superorganism.Tiles
@@ -188,7 +189,7 @@ namespace Superorganism.Tiles
             return false;
         }
 
-        public static float GetGroundYPosition(TiledMap map, float worldX, float positionY, float entityHeight)
+        public static float GetGroundYPosition(TiledMap map, float worldX, float positionY, float entityHeight, ICollisionBounding collisionBounding)
         {
             // Convert world X to tile X
             int tileX = (int)(worldX / TileSize);
@@ -266,19 +267,25 @@ namespace Superorganism.Tiles
                                     int.TryParse(slopeLeftStr, out int slopeLeft) &&
                                     int.TryParse(slopeRightStr, out int slopeRight))
                                 {
-                                    //float tileLeft = tileX * TileSize;
-                                    //float tileRight = tileLeft + TileSize;
-                                    //float tileBottom = tileY * TileSize;
-                                    //float slope = (slopeRight - slopeLeft) / (float)TileSize;
+                                    float tileLeft = tileX * TileSize;
+                                    float tileRight = tileLeft + TileSize;
+                                    float tileBottom = (tileY + 1) * TileSize;
+                                    float slope = (slopeRight - slopeLeft) / (float)TileSize;
 
-                                    //// Check if worldX is within tile bounds
-                                    //if (worldX >= tileLeft && worldX <= tileRight)
-                                    //{
-                                    //    // Calculate Y position on slope at worldX
-                                    //    float distanceFromLeft = worldX - tileLeft;
-                                    //    float slopeY = tileBottom + slopeLeft + (slope * distanceFromLeft);
-                                    //    return slopeY;
-                                    //}
+                                    // Check if worldX is within tile bounds
+                                    if (worldX >= tileLeft && worldX <= tileRight)
+                                    {
+                                        
+                                        // Calculate Y position on slope at worldX
+                                        float distanceFromLeft = collisionBounding.Center.X - tileLeft;
+                                        float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
+                                        if (slopeY > 1200 && slopeY < 1260)
+                                        {
+
+                                        }
+
+                                        return slopeY;
+                                    }
                                 }
                                 //continue;
                             }

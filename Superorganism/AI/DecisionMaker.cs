@@ -202,7 +202,8 @@ namespace Superorganism.AI
                             GameState.CurrentMap,
                             newPosition.X,
                             position.Y,
-                            textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                            textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                            collisionBounding
                         );
 
                         if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
@@ -319,14 +320,16 @@ namespace Superorganism.AI
                                         GameState.CurrentMap,
                                         position.X,
                                         position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                        collisionBounding
                                     );
 
                                     float rightGroundY = MapHelper.GetGroundYPosition(
                                         GameState.CurrentMap,
                                         position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
                                         position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                        collisionBounding
                                     );
 
                                     // Use the highest ground position (lowest Y value)
@@ -478,14 +481,16 @@ namespace Superorganism.AI
                                         GameState.CurrentMap,
                                         position.X,
                                         position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                        collisionBounding
                                     );
 
                                     float rightGroundY = MapHelper.GetGroundYPosition(
                                         GameState.CurrentMap,
                                         position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
                                         position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                        collisionBounding
                                     );
 
                                     float groundY = Math.Min(leftGroundY, rightGroundY);
@@ -579,14 +584,16 @@ namespace Superorganism.AI
                                         GameState.CurrentMap,
                                         position.X,
                                         position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                        collisionBounding
                                     );
 
                                     float rightGroundY = MapHelper.GetGroundYPosition(
                                         GameState.CurrentMap,
                                         position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
                                         position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale
+                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                        collisionBounding
                                     );
 
                                     float groundY = Math.Min(leftGroundY, rightGroundY);
