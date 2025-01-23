@@ -30,6 +30,8 @@ namespace Superorganism.Entities
 
         public float DiagonalPosY { get; set; }
 
+        public float JumpDiagonalPosY { get; set; }
+
 		//public float Friction { get; set; }
 
 		public float Gravity { get; set; } = 0.5f;
@@ -157,7 +159,8 @@ namespace Superorganism.Entities
             {
                 // Check if there's ground below us
                 Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
-                bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, CollisionBounding);
+                bool diagonal = false;
+                bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, CollisionBounding, ref diagonal);
 
                 if (!hasGroundBelow)
                 {
@@ -176,7 +179,8 @@ namespace Superorganism.Entities
 
             // Try X movement first
             Vector2 proposedXPosition = _position + new Vector2(proposedXVelocity, 0);
-            bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, CollisionBounding);
+            bool diagonalX = false;
+            bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, CollisionBounding, ref diagonalX);
 
             // Apply X movement if no collision
             if (!hasXCollision)
@@ -221,8 +225,9 @@ namespace Superorganism.Entities
             // Then try Y movement
             if (_velocity.Y != 0)
             {
+                bool isDiagonal = false;
                 Vector2 proposedYPosition = _position + new Vector2(0, _velocity.Y);
-                bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, CollisionBounding);
+                bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, CollisionBounding, ref isDiagonal);
                 if (!hasYCollision)
                 {
                     _position.Y = proposedYPosition.Y;
@@ -260,19 +265,42 @@ namespace Superorganism.Entities
                             CollisionBounding
                         );
 
+                        float leftPos = leftGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                        float rightPos = rightGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+
+                        //float newPosY = 0;
+                        //// Check if the collision is with a diagonal tile
+                        //if (isDiagonal)
+                        //{
+                        //    if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition,
+                        //            CollisionBounding, ref _velocity, ref newPosY))
+                        //    {
+
+                        //    }
+                        //}
+
+
                         // Use the highest ground position (lowest Y value)
 
+                        if (!isDiagonal)
+                        { }
 
                         float groundY = Math.Min(leftGroundY, rightGroundY);
+                        float newGroundY;
                         if (groundY < _position.Y)
                         {
-                            _position.Y = Math.Max(leftGroundY, rightGroundY) - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            //_position.Y = Math.Max(leftGroundY, rightGroundY) - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            newGroundY = Math.Max(leftGroundY, rightGroundY) -
+                                         (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            _position.Y = newGroundY;
                             IsOnGround = true;
                             if (IsJumping) IsJumping = false;
                         }
                         else
                         {
-                            _position.Y = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            //_position.Y = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            newGroundY = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            _position.Y = newGroundY;
                             IsOnGround = true;
                             if (IsJumping) IsJumping = false;
                         }
@@ -299,7 +327,7 @@ namespace Superorganism.Entities
             _velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
         }
 
-        private bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding)
+        private bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding, ref bool isDiagonal)
         {
             int leftTile = 0;
             int rightTile = 0;
@@ -333,7 +361,7 @@ namespace Superorganism.Entities
             // Check collision with map layers
             foreach (Layer layer in map.Layers.Values)
             {
-                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding))
+                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal))
                     return true;
             }
 
@@ -342,7 +370,7 @@ namespace Superorganism.Entities
             {
                 foreach (Layer layer in group.Layers.Values)
                 {
-                    if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding))
+                    if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal))
                         return true;
                 }
             }
@@ -350,7 +378,8 @@ namespace Superorganism.Entities
             return false;
         }
 
-        private bool CheckLayerCollision(Layer layer, int leftTile, int rightTile, int topTile, int bottomTile, Vector2 position, ICollisionBounding collisionBounding)
+        private bool CheckLayerCollision(Layer layer, int leftTile, int rightTile, int topTile, int bottomTile, 
+            Vector2 position, ICollisionBounding collisionBounding, ref bool isThisDiagonalTile)
         {
             int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
             int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
@@ -452,9 +481,10 @@ namespace Superorganism.Entities
                                 //continue;  // Skip regular collision check for diagonal tiles
                             }
                         }
-
+                        isThisDiagonalTile = isDiagonalTile;
                         if (x == tilex && y == tiley && !isDiagonalTile)
                         {
+                            
                             continue;
                         }
 
