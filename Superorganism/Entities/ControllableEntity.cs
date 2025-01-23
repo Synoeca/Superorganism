@@ -374,6 +374,8 @@ namespace Superorganism.Entities
                             MapHelper.TileSize - 5
                         );
 
+                        bool isDiagonalTile = false;
+
                         // Check for diagonal tile
                         if (property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true")
                         {
@@ -385,6 +387,7 @@ namespace Superorganism.Entities
                             {
                                 if (CollisionBounding is BoundingRectangle br)
                                 {
+                                    isDiagonalTile = true;
                                     //continue;
                                     //float tileLeft = tileRect.Left;
                                     //float tileRight = tileRect.Right;
@@ -440,7 +443,7 @@ namespace Superorganism.Entities
                             }
                         }
 
-                        if (x == tilex && y == tiley)
+                        if (x == tilex && y == tiley && !isDiagonalTile)
                         {
                             continue;
                         }
