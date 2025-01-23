@@ -28,6 +28,8 @@ namespace Superorganism.Entities
 
 		public float JumpStrength { get; set; } = -14f;
 
+        public float DiagonalPosY { get; set; }
+
 		//public float Friction { get; set; }
 
 		public float Gravity { get; set; } = 0.5f;
@@ -188,13 +190,29 @@ namespace Superorganism.Entities
             }
             else
             {
-                _position.X = proposedXPosition.X;
-                _velocity.X = proposedXVelocity;
-                if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
+                float newPosY = 0;
+                // Check if the collision is with a diagonal tile
+                if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition, CollisionBounding, ref _velocity, ref newPosY))
                 {
-                    PlayMoveSound(gameTime);
+                    _position.X = proposedXPosition.X;
+                    _velocity.X = proposedXVelocity;
+                    if (newPosY != 0)
+                    {
+                        _position.Y = newPosY;
+                        DiagonalPosY = newPosY;
+                    }
+
+                    if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
+                    {
+                        PlayMoveSound(gameTime);
+                    }
                 }
-                //_velocity.X = 0;
+                else
+                {
+                    // If it's not a diagonal tile, handle as normal collision
+                    _velocity.X = 0;
+                    DiagonalPosY = 0;
+                }
             }
 
             // Then try Y movement
@@ -255,7 +273,6 @@ namespace Superorganism.Entities
                             IsOnGround = true;
                             if (IsJumping) IsJumping = false;
                         }
-
 
                     }
                     _velocity.Y = 0;
@@ -368,6 +385,7 @@ namespace Superorganism.Entities
                             {
                                 if (CollisionBounding is BoundingRectangle br)
                                 {
+                                    //continue;
                                     //float tileLeft = tileRect.Left;
                                     //float tileRight = tileRect.Right;
                                     //float slope = (slopeRight - slopeLeft) / (float)MapHelper.TileSize;

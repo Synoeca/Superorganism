@@ -227,12 +227,41 @@ namespace Superorganism.Tiles
                                 float slope = (slopeRight - slopeLeft) / (float)TileSize;
 
                                 // Check if worldX is within tile bounds
-                                if (worldX >= tileLeft && worldX <= tileRight)
+                                //if (worldX >= tileLeft && worldX <= tileRight)
+                                //{
+                                //    // Calculate Y position on slope at worldX
+                                //    float distanceFromLeft = worldX - tileLeft;
+                                //    float slopeY = tileBottom + slopeLeft + (slope * distanceFromLeft);
+                                //    return slopeY;
+                                //}
+
+                                if (collisionBounding is BoundingRectangle brec)
                                 {
-                                    // Calculate Y position on slope at worldX
-                                    float distanceFromLeft = worldX - tileLeft;
-                                    float slopeY = tileBottom + slopeLeft + (slope * distanceFromLeft);
-                                    return slopeY;
+                                    if (brec.Right >= tileLeft && brec.Left <= tileRight)
+                                    {
+                                        float distanceFromLeft = collisionBounding.Center.X - tileLeft;
+
+                                        float slopeY = tileBottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
+
+                                        //if (collisionBounding is BoundingRectangle br)
+                                        //{
+                                        //    //position.Y = position.Y;
+                                        //    //newPosY = position.Y;
+                                        //    //newPosY = slopeY - br.Height / 2;
+                                        //    if (distanceFromLeft > 0)
+                                        //    {
+                                        //        newPosY = slopeY - br.Height;
+                                        //    }
+
+                                        //    position.X = proposedPosition.X;
+                                        //}
+                                        //else if (collisionBounding is BoundingCircle bc)
+                                        //{
+                                        //    position.Y = slopeY - bc.Radius;
+                                        //    position.X = proposedPosition.X;
+                                        //}
+                                        return slopeY;
+                                    }
                                 }
                             }
                             continue;
@@ -322,6 +351,165 @@ namespace Superorganism.Tiles
 
             return targetTileset?.Tiles?.GetValueOrDefault(localTileId)?.Properties
                    ?? new Dictionary<string, string>();
+        }
+
+        public static bool HandleDiagonalCollision(TiledMap map, Vector2 position, Vector2 proposedPosition,
+            ICollisionBounding collisionBounding, ref Vector2 velocity, ref float newPosY)
+        {
+            // Calculate the range of tiles to check based on the collision bounds
+            int leftTile, rightTile, topTile, bottomTile;
+
+            if (collisionBounding is BoundingRectangle br)
+            {
+                BoundingRectangle testBounds = new(
+                    proposedPosition.X,
+                    proposedPosition.Y,
+                    br.Width,
+                    br.Height
+                );
+
+                leftTile = (int)(testBounds.Left / MapHelper.TileSize) - 1;
+                rightTile = (int)Math.Ceiling(testBounds.Right / MapHelper.TileSize);
+                topTile = (int)(testBounds.Top / MapHelper.TileSize) - 1;
+                bottomTile = (int)Math.Ceiling(testBounds.Bottom / MapHelper.TileSize) - 1;
+            }
+            else if (collisionBounding is BoundingCircle bc)
+            {
+                Vector2 testCenter = new(proposedPosition.X, proposedPosition.Y);
+                leftTile = (int)((testCenter.X - bc.Radius) / MapHelper.TileSize);
+                rightTile = (int)Math.Ceiling((testCenter.X + bc.Radius) / MapHelper.TileSize);
+                topTile = (int)((testCenter.Y - bc.Radius) / MapHelper.TileSize);
+                bottomTile = (int)Math.Ceiling((testCenter.Y + bc.Radius) / MapHelper.TileSize);
+            }
+            else
+            {
+                return false;
+            }
+
+            // Clamp tile ranges to map bounds
+            leftTile = Math.Max(0, leftTile);
+            rightTile = Math.Min(MapWidth - 1, rightTile);
+            topTile = Math.Max(0, topTile);
+            bottomTile = Math.Min(MapHeight - 1, bottomTile);
+
+            // Check all layers in the tile range
+            for (int y = topTile; y <= bottomTile; y++)
+            {
+                for (int x = leftTile; x <= rightTile; x++)
+                {
+                    // Check main layers
+                    foreach (Layer layer in map.Layers.Values)
+                    {
+                        if (CheckDiagonalTile(layer, x, y, ref newPosY))
+                            return true;
+                    }
+
+                    // Check group layers
+                    foreach (Group group in map.Groups.Values)
+                    {
+                        foreach (Layer layer in group.Layers.Values)
+                        {
+                            if (CheckDiagonalTile(layer, x, y, ref newPosY))
+                                return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+
+            // Function to check diagonal collision for a specific tile
+            bool CheckDiagonalTile(Layer layer, int x, int y, ref float newPosY)
+            {
+                int tileId = layer.GetTile(x, y);
+                if (x == 72 && y == 19)
+                {
+
+                }
+                if (tileId == 0) return false;
+
+                Dictionary<string, string> properties = GetTileProperties(tileId);
+
+                if (properties.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true")
+                {
+                    if (properties.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
+                        properties.TryGetValue("SlopeRight", out string slopeRightStr) &&
+                        int.TryParse(slopeLeftStr, out int slopeLeft) &&
+                        int.TryParse(slopeRightStr, out int slopeRight))
+                    {
+                        float tileLeft = x * TileSize;
+                        float tileRight = tileLeft + TileSize;
+                        float tileBottom = (y + 1) * TileSize;
+                        float slope = (slopeRight - slopeLeft) / (float)TileSize;
+
+                        //if (proposedPosition.X >= tileLeft && proposedPosition.X <= tileRight)
+                        //{
+                        //    float distanceFromLeft = collisionBounding.Center.X - tileLeft;
+                        //    float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
+
+                        //    if (collisionBounding is BoundingRectangle br)
+                        //    {
+                        //        position.Y = slopeY - br.Height / 2;
+                        //        position.X = proposedPosition.X;
+                        //    }
+                        //    else if (collisionBounding is BoundingCircle bc)
+                        //    {
+                        //        position.Y = slopeY - bc.Radius;
+                        //        position.X = proposedPosition.X;
+                        //    }
+                        //    return true;
+                        //}
+
+                        if (collisionBounding is BoundingRectangle brec)
+                        {
+                            if (brec.Right >= tileLeft && brec.Left <= tileRight)
+                            {
+                                float distanceFromLeft = collisionBounding.Center.X - tileLeft;
+
+                                float slopeY = tileBottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
+
+                                if (collisionBounding is BoundingRectangle br)
+                                {
+                                    position.Y = position.Y;
+                                    //newPosY = position.Y;
+                                    //newPosY = slopeY - br.Height / 2;
+                                    if (distanceFromLeft > 0)
+                                    {
+                                        newPosY = slopeY - br.Height;
+                                    }
+
+                                    position.X = proposedPosition.X;
+                                }
+                                else if (collisionBounding is BoundingCircle bc)
+                                {
+                                    position.Y = slopeY - bc.Radius;
+                                    position.X = proposedPosition.X;
+                                }
+                                return true;
+                            }
+                        }
+
+                        //if (proposedPosition.X >= tileLeft - 5 && proposedPosition.X <= tileRight + 5)
+                        //{
+                        //    float distanceFromLeft = collisionBounding.Center.X - tileLeft;
+                        //    float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
+
+                        //    if (collisionBounding is BoundingRectangle br)
+                        //    {
+                        //        position.Y = slopeY - br.Height / 2;
+                        //        position.X = proposedPosition.X;
+                        //    }
+                        //    else if (collisionBounding is BoundingCircle bc)
+                        //    {
+                        //        position.Y = slopeY - bc.Radius;
+                        //        position.X = proposedPosition.X;
+                        //    }
+                        //    return true;
+                        //}
+                    }
+                }
+                return false;
+            }
         }
     }
 }
