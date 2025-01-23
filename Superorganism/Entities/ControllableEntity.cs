@@ -198,7 +198,10 @@ namespace Superorganism.Entities
                     _velocity.X = proposedXVelocity;
                     if (newPosY != 0)
                     {
-                        _position.Y = newPosY;
+                        if (!IsJumping)
+                        {
+                            _position.Y = newPosY;
+                        }
                         DiagonalPosY = newPosY;
                     }
 
@@ -274,9 +277,16 @@ namespace Superorganism.Entities
                             if (IsJumping) IsJumping = false;
                         }
 
+                        if (DiagonalPosY != 0)
+                        {
+                            _position.Y = DiagonalPosY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                        }
+
                     }
                     _velocity.Y = 0;
                 }
+
+                DiagonalPosY = 0;
             }
 
             // Check map bounds
