@@ -307,6 +307,10 @@ namespace Superorganism.Tiles
                                         
                                         // Calculate Y position on slope at worldX
                                         float distanceFromLeft = collisionBounding.Center.X - tileLeft;
+                                        if (distanceFromLeft > 64)
+                                        {
+                                            return -1;
+                                        }
                                         float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
                                         if (slopeY > 1200 && slopeY < 1260)
                                         {

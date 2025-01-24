@@ -28,9 +28,7 @@ namespace Superorganism.Entities
 
 		public float JumpStrength { get; set; } = -14f;
 
-        public float DiagonalPosY { get; set; }
-
-        public float JumpDiagonalPosY { get; set; }
+        public float JumpDiagonalPosY { get; set; } = 0;
 
 		//public float Friction { get; set; }
 
@@ -162,7 +160,7 @@ namespace Superorganism.Entities
                 bool diagonal = false;
                 bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, CollisionBounding, ref diagonal);
 
-                if (!hasGroundBelow)
+                if (!hasGroundBelow || diagonal)
                 {
                     IsOnGround = false;
                     if (_velocity.Y >= 0) // Only apply gravity if we're not moving upward
@@ -170,6 +168,15 @@ namespace Superorganism.Entities
                         _velocity.Y += Gravity;
                     }
                 }
+
+                //if (diagonal && hasGroundBelow)
+                //{
+                //    if (_velocity.Y >= 0) // Only apply gravity if we're not moving upward
+                //    {
+                //        _velocity.Y += Gravity;
+                //    }
+                //    //_velocity.Y += Gravity;
+                //}
             }
             else
             {
@@ -184,7 +191,7 @@ namespace Superorganism.Entities
 
             // Apply X movement if no collision
             if (!hasXCollision)
-            {
+            { 
                 _position.X = proposedXPosition.X;
                 _velocity.X = proposedXVelocity;
                 if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
@@ -204,9 +211,15 @@ namespace Superorganism.Entities
                     {
                         if (!IsJumping)
                         {
-                            _position.Y = newPosY;
+                            if (_velocity.Y == 0)
+                            {
+                                _position.Y = newPosY;
+                                IsOnGround = true;
+                            }
+                            //_position.Y = newPosY;
+                            //IsOnGround = true;
                         }
-                        DiagonalPosY = newPosY;
+                        //DiagonalPosY = newPosY;
                     }
 
                     if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
@@ -218,7 +231,6 @@ namespace Superorganism.Entities
                 {
                     // If it's not a diagonal tile, handle as normal collision
                     _velocity.X = 0;
-                    DiagonalPosY = 0;
                 }
             }
 
@@ -235,7 +247,7 @@ namespace Superorganism.Entities
                 }
                 else
                 {
-                    if ((_velocity.Y) > 0) // Moving downward
+                    if (Math.Abs(_velocity.Y) > 0) // Moving downward
                     {
                         if (CollisionBounding is BoundingCircle bc)
                         {
@@ -247,79 +259,99 @@ namespace Superorganism.Entities
                             br.Y = _position.Y;
                             br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
                         }
-                        
-                        // Check ground at both bottom corners
-                        float leftGroundY = MapHelper.GetGroundYPosition(
-                            GameState.CurrentMap,
-                            _position.X,
-                            _position.Y,
-                            TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
-                            CollisionBounding
-                        );
 
-                        float rightGroundY = MapHelper.GetGroundYPosition(
-                            GameState.CurrentMap,
-                            _position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale),
-                            _position.Y,
-                            TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
-                            CollisionBounding
-                        );
-
-                        float leftPos = leftGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                        float rightPos = rightGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-
-                        //float newPosY = 0;
-                        //// Check if the collision is with a diagonal tile
-                        //if (isDiagonal)
-                        //{
-                        //    if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition,
-                        //            CollisionBounding, ref _velocity, ref newPosY))
-                        //    {
-
-                        //    }
-                        //}
-
-
-                        // Use the highest ground position (lowest Y value)
-
-                        if (!isDiagonal)
-                        { }
-
-                        float groundY = Math.Min(leftGroundY, rightGroundY);
-                        float newGroundY;
-                        if (groundY < _position.Y)
+                        if (_velocity.Y > 0)
                         {
-                            //_position.Y = Math.Max(leftGroundY, rightGroundY) - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                            newGroundY = Math.Max(leftGroundY, rightGroundY) -
-                                         (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                            _position.Y = newGroundY;
-                            IsOnGround = true;
-                            if (IsJumping) IsJumping = false;
+                            // Check ground at both bottom corners
+                            float leftGroundY = MapHelper.GetGroundYPosition(
+                                GameState.CurrentMap,
+                                _position.X,
+                                _position.Y,
+                                TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
+                                CollisionBounding
+                            );
+
+                            float rightGroundY = MapHelper.GetGroundYPosition(
+                                GameState.CurrentMap,
+                                _position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale),
+                                _position.Y,
+                                TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
+                                CollisionBounding
+                            );
+
+                            float leftPos = leftGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            float rightPos = rightGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+
+                            //float newPosY = 0;
+                            //// Check if the collision is with a diagonal tile
+                            //if (isDiagonal)
+                            //{
+                            //    if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition,
+                            //            CollisionBounding, ref _velocity, ref newPosY))
+                            //    {
+
+                            //    }
+                            //}
+
+
+                            // Use the highest ground position (lowest Y value)
+
+                            if (!isDiagonal)
+                            { }
+
+                            float groundY = Math.Min(leftGroundY, rightGroundY);
+                            float newGroundY;
+                            if (groundY < _position.Y)
+                            {
+                                //_position.Y = Math.Max(leftGroundY, rightGroundY) - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                newGroundY = Math.Max(leftGroundY, rightGroundY) -
+                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+
+                                _position.Y = newGroundY;
+                                IsOnGround = true;
+                                if (IsJumping) IsJumping = false;
+                            }
+                            else
+                            {
+                                //_position.Y = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                newGroundY = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                if (JumpDiagonalPosY == 0)
+                                {
+                                    JumpDiagonalPosY = newGroundY;
+                                }
+
+                                if (_position.Y < JumpDiagonalPosY)
+                                {
+                                    _position.Y = proposedYPosition.Y;
+                                    IsOnGround = false;
+                                }
+                                else
+                                {
+                                    _position.Y = newGroundY;
+                                    IsOnGround = true;
+                                    if (IsJumping) IsJumping = false;
+                                    _velocity.Y = 0;
+                                    JumpDiagonalPosY = 0;
+                                }
+
+                            }
+
+                            //if (DiagonalPosY != 0)
+                            //{
+                            //    _position.Y = DiagonalPosY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            //}
+
                         }
                         else
                         {
-                            //_position.Y = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                            newGroundY = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                            _position.Y = newGroundY;
-                            IsOnGround = true;
-                            if (IsJumping) IsJumping = false;
+                            _position.Y = proposedYPosition.Y;
+                            IsOnGround = false;
                         }
-
-                        if (DiagonalPosY != 0)
-                        {
-                            _position.Y = DiagonalPosY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                        }
-                        _velocity.Y = 0;
-                    }
-                    else
-                    {
-                        _position.Y = proposedYPosition.Y;
-                        IsOnGround = false;
                     }
 
                 }
 
-                DiagonalPosY = 0;
+                //DiagonalPosY = 0;
             }
 
             // Check map bounds
