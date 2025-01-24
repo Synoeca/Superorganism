@@ -235,7 +235,7 @@ namespace Superorganism.Entities
                 }
                 else
                 {
-                    if (_velocity.Y > 0) // Moving downward
+                    if ((_velocity.Y) > 0) // Moving downward
                     {
                         if (CollisionBounding is BoundingCircle bc)
                         {
@@ -309,9 +309,14 @@ namespace Superorganism.Entities
                         {
                             _position.Y = DiagonalPosY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                         }
-
+                        _velocity.Y = 0;
                     }
-                    _velocity.Y = 0;
+                    else
+                    {
+                        _position.Y = proposedYPosition.Y;
+                        IsOnGround = false;
+                    }
+
                 }
 
                 DiagonalPosY = 0;
