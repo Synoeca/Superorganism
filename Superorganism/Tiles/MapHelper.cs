@@ -309,7 +309,8 @@ namespace Superorganism.Tiles
                                         float distanceFromLeft = collisionBounding.Center.X - tileLeft;
                                         if (distanceFromLeft > 64)
                                         {
-                                            return -1;
+                                            //return -1;
+                                            distanceFromLeft = 64;
                                         }
                                         float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
                                         if (slopeY > 1200 && slopeY < 1260)
