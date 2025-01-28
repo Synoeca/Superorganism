@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.1" orientation="orthogonal" renderorder="right-down" width="200" height="50" tilewidth="64" tileheight="64" infinite="0" nextlayerid="14" nextobjectid="1">
+ <properties>
+  <property name="mapmeta" value="mapvalue"/>
+ </properties>
+ <tileset firstgid="1" source="tileset64.tsx"/>
+ <tileset firstgid="65" source="tileset12.tsx"/>
+ <group id="5" name="GroupA">
+  <properties>
+   <property name="Damage" value="Low"/>
+  </properties>
+  <objectgroup color="#ffaa7f" id="11" name="ObjectLayerA" class="ObjLayerA" opacity="0.9" tintcolor="#00007f" offsetx="2.5" offsety="-2.5" parallaxx="0.8" parallaxy="1.2">
+   <properties>
+    <property name="Level" type="int" value="1"/>
+   </properties>
+  </objectgroup>
+  <layer id="12" name="Grass" width="200" height="50">
+   <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAACu3WMQoCMRAF0KSQnEL2CFYGtvf+Z3KFCZsisoqriL4Hn8wUGdIMJCUAAAAAAAAAAAAAAADgEacnc9wp8A5lo7+5fOIhsLPzkvrijJLWnehr+AajP8fIHGe/E4fIaOYUde3uwq9o/+q2Dzn63NX39gMAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+F9X1JBibkCcAAA=
+  </data>
+  </layer>
+  <layer id="1" name="Terrain" width="200" height="50">
+   <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAACu3Y20rDMACA4QiOIiheeaHe+gIKCl6qe/9nsoUOQ3dwadM0Hd8PHzvJGrImLYYgSZIkSZIkSZIkSZIkSZIkSZIkSdLhvlrfg/feWx+t50o8tp4GY/xpbfvn25C/pqfzGs7Vf6/nPv7YPltXF+gh0/x0bQbW0FJruRn5mHsMp763tv2+JsNrTzyX8Zzu5rBbazfR+3fh+Pq77oXosWRj9oxmwvO599bUPe5S93ryuD9D93dTr6278/Cc43HaWwVjYF/qOon35qXHXpuS5/jrxM9J053vh/7fEd9fpqyJUr9PjuOU3rtzHG9TeMz8Sb1Xm1Mt+2At40jlvm09Sv1WzgmoQ+61eOz71nr9Yr3mvs4sdU5bSwCQ3y0AAAAAAAAAEF4AAAAAAAAAgPALmMYe+UCcAAA=
+  </data>
+  </layer>
+ </group>
+</map>

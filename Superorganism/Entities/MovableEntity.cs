@@ -70,6 +70,30 @@ namespace Superorganism.Entities
 			set => _directionInterval = value;
 		}
 
+        protected bool _isOnGround = false;
+
+        public bool IsOnGround
+        {
+            get => _isOnGround;
+            set => _isOnGround = value;
+        }
+
+        protected bool _isJumping = false;
+
+        public bool IsJumping
+        {
+            get => _isJumping;
+            set => _isJumping = value;
+        }
+
+        protected float _friction;
+
+        public float Friction
+        {
+            get => _friction;
+            set => _friction = value;
+        }
+
         protected ICollisionBounding _collisionBounding;
         public override ICollisionBounding CollisionBounding
         {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Content.Pipeline;
+using SharpDX;
 using System.Globalization;
 using System.IO.Compression;
 using System.Xml;
@@ -17,6 +18,7 @@ namespace ContentPipeline
                 Filename = Path.GetFullPath(filename),
                 Properties = new Dictionary<string, string>(),
                 Tilesets = new Dictionary<string, TilesetContent>(),
+                TilesetFirstGid = new Dictionary<string, int>(),
                 Layers = new Dictionary<string, LayerContent>(),
                 Groups = new Dictionary<string, GroupContent>()
             };
@@ -61,9 +63,9 @@ namespace ContentPipeline
                                     st.Read();
                                     context.Logger.LogMessage("Loading tileset...");
                                     TilesetContent tileset = LoadBasicTileset(st, context);
-                                    result.Tilesets[tileset.Name] = tileset;
-                                    context.Logger.LogMessage($"tileset.Name: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
-                                    context.Logger.LogMessage($"Loaded tileset: {tileset.Name} (FirstTileId: {tileset.FirstTileId})");
+                                    result.TilesetFirstGid.Add(tileset.Source, tileset.FirstGid);
+                                    context.Logger.LogMessage($"Loaded source: {tileset.Name} (Source: {tileset.Source})");
+                                    context.Logger.LogMessage($"Loaded firstgid: {tileset.Name} (FirstGid: {tileset.FirstGid})");
                                 }
                                 break;
 
@@ -91,7 +93,7 @@ namespace ContentPipeline
                                 {
                                     st.Read();
                                     context.Logger.LogMessage("Loading group...");
-                                    GroupContent group = LoadGroup(st, context);
+                                    GroupContent group = LoadGroup(st, context, filename);
                                     result.Groups.Add(group.Name, group);
                                     context.Logger.LogMessage($"Loaded group: {group.Name}");
                                 }
@@ -133,97 +135,18 @@ namespace ContentPipeline
 
             // Log raw attribute values before parsing
             context.Logger.LogMessage("Raw XML Attributes:");
-            context.Logger.LogMessage($"  name: {reader.GetAttribute("name")}");
             context.Logger.LogMessage($"  firstgid: {reader.GetAttribute("firstgid")}");
-            context.Logger.LogMessage($"  tilewidth: {reader.GetAttribute("tilewidth")}");
-            context.Logger.LogMessage($"  tileheight: {reader.GetAttribute("tileheight")}");
-            context.Logger.LogMessage($"  margin: {reader.GetAttribute("margin")}");
-            context.Logger.LogMessage($"  spacing: {reader.GetAttribute("spacing")}");
-            context.Logger.LogMessage($"  tilecount: {reader.GetAttribute("tilecount")}");
-            context.Logger.LogMessage($"  columns: {reader.GetAttribute("columns")}");
+            context.Logger.LogMessage($"  source: {reader.GetAttribute("source")}");
 
-            TilesetContent result = new();
-            result.Name = reader.GetAttribute("name")!;
-            result.FirstTileId = ParseIntAttribute(reader, "firstgid");
-            result.TileWidth = ParseIntAttribute(reader, "tilewidth");
-            result.TileHeight = ParseIntAttribute(reader, "tileheight");
-            result.Margin = ParseIntAttribute(reader, "margin");
-            result.Spacing = ParseIntAttribute(reader, "spacing");
-            result.Filename = reader.GetAttribute("name")!;
+            TilesetContent result = new()
+            {
+                FirstGid = ParseIntAttribute(reader, "firstgid"),
+                Source = Path.GetFileNameWithoutExtension(reader.GetAttribute("source")),
+            };
 
             context.Logger.LogMessage("\nParsed initial values:");
-            context.Logger.LogMessage($"  Name: {result.Name}");
-            context.Logger.LogMessage($"  FirstTileId: {result.FirstTileId}");
-            context.Logger.LogMessage($"  TileWidth: {result.TileWidth}");
-            context.Logger.LogMessage($"  TileHeight: {result.TileHeight}");
-            context.Logger.LogMessage($"  Margin: {result.Margin}");
-            context.Logger.LogMessage($"  Spacing: {result.Spacing}");
-
-            int currentTileId = -1;
-            context.Logger.LogMessage("\nProcessing tileset child elements...");
-
-            while (reader.Read())
-            {
-                context.Logger.LogMessage($"\nNode: {reader.Name} (Type: {reader.NodeType})");
-                string name = reader.Name;
-
-                switch (reader.NodeType)
-                {
-                    case XmlNodeType.Element:
-                        switch (name)
-                        {
-                            case "image":
-                                string source = reader.GetAttribute("source");
-                                string width = reader.GetAttribute("width");
-                                string height = reader.GetAttribute("height");
-                                result.Image = source;
-
-                                context.Logger.LogMessage("Found image element:");
-                                context.Logger.LogMessage($"  Source: {source}");
-                                context.Logger.LogMessage($"  Width: {width}");
-                                context.Logger.LogMessage($"  Height: {height}");
-                                break;
-
-                            case "tile":
-                                string idAttr = reader.GetAttribute("id");
-                                currentTileId = int.Parse(idAttr ?? throw new InvalidOperationException($"Tile missing id attribute"));
-                                if (currentTileId != -1)
-                                {
-                                    string propName = reader.GetAttribute("name");
-                                    string propValue = reader.GetAttribute("value");
-
-                                    if (!result.TileProperties.TryGetValue(currentTileId, out TilesetContent.TilePropertyList props))
-                                    {
-                                        props = new TilesetContent.TilePropertyList();
-                                        result.TileProperties[currentTileId] = props;
-                                    }
-
-                                    props[propName ?? throw new InvalidOperationException("Property missing name attribute")] = propValue;
-
-                                    context.Logger.LogMessage($"Added property to tile {currentTileId}:");
-                                    context.Logger.LogMessage($"  Name: {propName}");
-                                    context.Logger.LogMessage($"  Value: {propValue}");
-                                }
-                                break;
-                        }
-                        break;
-
-                    case XmlNodeType.EndElement:
-                        if (name == "tile")
-                        {
-                            context.Logger.LogMessage($"Finished processing tile {currentTileId}");
-                            currentTileId = -1;
-                        }
-                        else if (name == "tileset")
-                        {
-                            context.Logger.LogMessage("\nFinished processing tileset");
-                            context.Logger.LogMessage($"Final image path: {result.Image}");
-                            //context.Logger.LogMessage($"Total properties: {result.TileProperties.Count}");
-                            return result;
-                        }
-                        break;
-                }
-            }
+            context.Logger.LogMessage($"  FirstGid: {result.FirstGid}");
+            context.Logger.LogMessage($"  Source: {result.Source}");
 
             context.Logger.LogMessage("=== Completed Tileset Loading ===");
             return result;
@@ -429,13 +352,14 @@ namespace ContentPipeline
             return result;
         }
 
-        public GroupContent LoadGroup(XmlReader reader, ContentImporterContext context)
+        public GroupContent LoadGroup(XmlReader reader, ContentImporterContext context, string filename)
         {
             context.Logger.LogMessage("Loading group...");
 
             GroupContent group = new()
             {
                 ObjectGroups = new Dictionary<string, ObjectGroupContent>(),
+                Layers = new Dictionary<string, LayerContent>(),
                 Properties = new Dictionary<string, string>()
             };
 
@@ -455,6 +379,24 @@ namespace ContentPipeline
                                 {
                                     st.Read();
                                     LoadProperties(st, group.Properties, context);
+                                }
+                                break;
+
+                            case "layer":
+                                using (XmlReader layerReader = reader.ReadSubtree())
+                                {
+                                    layerReader.Read();
+                                    context.Logger.LogMessage("Loading layer...");
+                                    LayerContent layer = LoadBasicLayer(layerReader, filename, context);
+                                    if (layer != null)
+                                    {
+                                        group.Layers[layer.Name] = layer;
+                                        context.Logger.LogMessage($"Loaded layer: {layer.Name} ({layer.Width}x{layer.Height})");
+                                    }
+                                    else
+                                    {
+                                        context.Logger.LogMessage("Couldn't load layer!");
+                                    }
                                 }
                                 break;
 

@@ -64,7 +64,8 @@ namespace Superorganism.Entities
                 GameState.CurrentMap,
                 newPosition.X,
                 Position.Y,
-                TextureInfo.UnitTextureHeight * TextureInfo.SizeScale
+                TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
+                CollisionBounding
             );
 
             // Handle ground collision

@@ -26,17 +26,31 @@ namespace ContentPipeline
         public Dictionary<string, LayerContent> Layers;
 
         public Dictionary<string, TilesetContent> Tilesets;
+
+        public Dictionary<string, int> TilesetFirstGid;
+    }
+
+    [ContentSerializerRuntimeType("Superorganism.Tiles.Tile, Superorganism")]
+    public class TileContent
+    {
+        public int Id;
+        
+        public string Type;
+
+        public float Probability;
+
+        public Dictionary<string, string> Properties;
     }
 
     [ContentSerializerRuntimeType("Superorganism.Tiles.Tileset, Superorganism")]
     public class TilesetContent
     {
-        [ContentSerializerRuntimeType("Superorganism.Tiles.Tileset+TilePropertyList, Superorganism")]
-        public class TilePropertyList : Dictionary<string, string>;
-
         public string Name;
 
-        public int FirstTileId;
+        public int FirstGid;
+
+        [ContentSerializerIgnore]
+        public string Source;
 
         public int TileWidth;
 
@@ -46,7 +60,7 @@ namespace ContentPipeline
 
         public int Margin;
 
-        public Dictionary<int, TilePropertyList> TileProperties;
+        public Dictionary<int, TileContent> Tiles;
 
         public string Image;
 
@@ -143,6 +157,7 @@ namespace ContentPipeline
     public class GroupContent
     {
         public Dictionary<string, ObjectGroupContent> ObjectGroups;
+        public Dictionary<string, LayerContent> Layers;
         public Dictionary<string, string> Properties;
         public string Name;
         public int Id;

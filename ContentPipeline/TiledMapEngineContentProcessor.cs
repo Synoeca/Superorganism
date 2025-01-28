@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
+using Microsoft.Xna.Framework;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace ContentPipeline
 {
@@ -22,46 +24,10 @@ namespace ContentPipeline
             context.Logger.LogMessage($"  Tile Dimensions: {mapEngine.TileWidth}x{mapEngine.TileHeight}");
             context.Logger.LogMessage($"  Number of Tilesets: {mapEngine.Tilesets.Count}");
 
-            foreach (KeyValuePair<string, TilesetContent> tilesetEntry in mapEngine.Tilesets)
+            foreach (KeyValuePair<string, int> tilesetEntry in mapEngine.TilesetFirstGid)
             {
                 context.Logger.LogMessage($"\nKey: {tilesetEntry.Key}");
                 context.Logger.LogMessage($"Value: {tilesetEntry.Value}");
-                LogTilesetState(tilesetEntry.Value, context, "Pre-processing");
-
-                if (!string.IsNullOrEmpty(tilesetEntry.Value.Image))
-                {
-                    string texturePath = GetTexturePath(tilesetEntry.Value.Image, tilesetEntry.Value.Filename, context);
-                    context.Logger.LogMessage($"Processing texture: {texturePath}");
-
-                    try
-                    {
-                        tilesetEntry.Value.Texture = context.BuildAndLoadAsset<TextureContent, Texture2DContent>(
-                            new ExternalReference<TextureContent>(texturePath),
-                            "TextureProcessor"
-                        );
-
-                        if (tilesetEntry.Value.Texture?.Mipmaps.Count > 0)
-                        {
-                            //tilesetEntry.Value.TexWidth = tilesetEntry.Value.Texture.Mipmaps[0].Width;
-                            //tilesetEntry.Value.TexHeight = tilesetEntry.Value.Texture.Mipmaps[0].Height;
-                            context.Logger.LogMessage($"Texture processed successfully:");
-                            context.Logger.LogMessage($" Width: {tilesetEntry.Value.TexWidth}");
-                            context.Logger.LogMessage($" Height: {tilesetEntry.Value.TexHeight}");
-                        }
-                        else
-                        {
-                            context.Logger.LogWarning("", new ContentIdentity(),
-                                "No mipmaps found in processed texture!");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        context.Logger.LogImportantMessage($"Error processing texture: {ex.Message}");
-                        throw;
-                    }
-
-                    LogTilesetState(tilesetEntry.Value, context, "Post-processing");
-                }
             }
 
             foreach (KeyValuePair<string, LayerContent> layerEntry in mapEngine.Layers)
@@ -158,21 +124,6 @@ namespace ContentPipeline
             return processedPath;
         }
 
-
-        private static void LogTilesetState(TilesetContent tileset, ContentProcessorContext context, string stage)
-        {
-            context.Logger.LogMessage($"\n{stage} Tileset State:");
-            context.Logger.LogMessage($" Name: {tileset.Name}");
-            context.Logger.LogMessage($" FirstTileId: {tileset.FirstTileId}");
-            context.Logger.LogMessage($" TileWidth: {tileset.TileWidth}");
-            context.Logger.LogMessage($" TileHeight: {tileset.TileHeight}");
-            context.Logger.LogMessage($" Spacing: {tileset.Spacing}");
-            context.Logger.LogMessage($" Margin: {tileset.Margin}");
-            context.Logger.LogMessage($" TexWidth: {tileset.TexWidth}");
-            context.Logger.LogMessage($" TexHeight: {tileset.TexHeight}");
-            context.Logger.LogMessage($" Has Texture: {tileset.Texture != null}\n");
-        }
-
         private void ProcessObjectTexture(ObjectContent obj, string baseFilename, ContentProcessorContext context)
         {
             string texturePath = GetTexturePath(obj.Image, baseFilename, context);
@@ -229,30 +180,42 @@ namespace ContentPipeline
             context.Logger.LogMessage($" Opacity: {objGroup.Opacity}");
             context.Logger.LogMessage($" ParallaxX: {objGroup.ParallaxX}");
             context.Logger.LogMessage($" ParallaxY: {objGroup.ParallaxY}");
-            //context.Logger.LogMessage($" Color: {objGroup.Color}");
-            //context.Logger.LogMessage($" TintColor: {objGroup.TintColor}");
-            //if (objGroup.Color != null)
-            //{
-            //    context.Logger.LogMessage($"  color A: {objGroup.Color} -> {objGroup.Color.Value.A}");
-            //    context.Logger.LogMessage($"  color B: {objGroup.Color} -> {objGroup.Color.Value.B}");
-            //    context.Logger.LogMessage($"  color G: {objGroup.Color} -> {objGroup.Color.Value.G}");
-            //    context.Logger.LogMessage($"  color R: {objGroup.Color} -> {objGroup.Color.Value.R}");
-            //}
-            //else
-            //{
-            //    context.Logger.LogMessage($"  color is null!!");
-            //}
-            //if (objGroup.TintColor != null)
-            //{
-            //    context.Logger.LogMessage($"  Tint color A: {objGroup.TintColor} -> {objGroup.TintColor.Value.A}");
-            //    context.Logger.LogMessage($"  Tint color B: {objGroup.TintColor} -> {objGroup.TintColor.Value.B}");
-            //    context.Logger.LogMessage($"  Tint color G: {objGroup.TintColor} -> {objGroup.TintColor.Value.G}");
-            //    context.Logger.LogMessage($"  Tint color R: {objGroup.TintColor} -> {objGroup.TintColor.Value.R}");
-            //}
-            //else
-            //{
-            //    context.Logger.LogMessage($"  tint color is null!!");
-            //}
+
+            try
+            {
+                if (objGroup.Color.HasValue)
+                {
+                    Color color = objGroup.Color.Value;
+                    string colorHex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+                    context.Logger.LogMessage($"  color A: {colorHex} -> {color.A}");
+                    context.Logger.LogMessage($"  color B: {colorHex} -> {color.B}");
+                    context.Logger.LogMessage($"  color G: {colorHex} -> {color.G}");
+                    context.Logger.LogMessage($"  color R: {colorHex} -> {color.R}");
+                }
+                else
+                {
+                    context.Logger.LogMessage($"  color is null!!");
+                }
+
+                if (objGroup.TintColor.HasValue)
+                {
+                    Color tintColor = objGroup.TintColor.Value;
+                    string tintColorHex = $"#{tintColor.R:X2}{tintColor.G:X2}{tintColor.B:X2}";
+                    context.Logger.LogMessage($"  Tint color A: {tintColorHex} -> {tintColor.A}");
+                    context.Logger.LogMessage($"  Tint color B: {tintColorHex} -> {tintColor.B}");
+                    context.Logger.LogMessage($"  Tint color G: {tintColorHex} -> {tintColor.G}");
+                    context.Logger.LogMessage($"  Tint color R: {tintColorHex} -> {tintColor.R}");
+                }
+                else
+                {
+                    context.Logger.LogMessage($"  tint color is null!!");
+                }
+            }
+            catch (Exception ex)
+            {
+                context.Logger.LogMessage($"  Error logging colors: {ex.Message}");
+            }
+
             context.Logger.LogMessage($" Visible: {objGroup.Visible}");
             context.Logger.LogMessage($" Locked: {objGroup.Locked}");
             context.Logger.LogMessage($" Properties Count: {objGroup.ObjectProperties?.Count ?? 0}");

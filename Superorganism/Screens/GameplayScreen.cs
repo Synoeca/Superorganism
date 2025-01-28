@@ -11,6 +11,7 @@ using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
 using Superorganism.Core.SaveLoadSystem;
+using System.Collections.Generic;
 
 #pragma warning disable CA1416
 
@@ -23,7 +24,6 @@ namespace Superorganism.Screens
         private GameUiManager _uiManager;
         private Camera2D _camera;
         private ParallaxBackground _parallaxBackground;
-        //private Map _map;
         private TiledMap _map;
         private ContentManager _content;
 
@@ -41,16 +41,25 @@ namespace Superorganism.Screens
 
         public override void Activate()
         {
-            //DecisionMaker.GameStartTime = DateTime.Now;
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
-            //ContentReaders.Register(_content); // Register content readers
             InitializeComponents();
         }
 
         private void InitializeComponents()
         {
-            _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev4");
+            _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev5");
+
+            foreach (KeyValuePair<string, int> tilesetInfo in _map.TilesetFirstGid)
+            {
+                Tileset tileset = _content.Load<Tileset>($"Tileset/Maps/{tilesetInfo.Key}");
+                tileset.FirstGid = tilesetInfo.Value;
+                _map.Tilesets.Add(tileset.Name, tileset);
+            }
+
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
+            MapHelper.TileSize = _map.TileWidth;
+            MapHelper.MapWidth = _map.Width;
+            MapHelper.MapHeight = _map.Height;
 
             GameStateInfo loadedState = new();
 
@@ -66,7 +75,6 @@ namespace Superorganism.Screens
 
                     if (File.Exists(savePath))
                     {
-                        // Load state using GameStateLoader
                         loadedState = GameStateLoader.LoadGameState(SaveFileToLoad);
                     }
                 }
