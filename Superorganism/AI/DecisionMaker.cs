@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Superorganism.Collisions;
 using Superorganism.Common;
 using Superorganism.Core.Managers;
@@ -257,18 +258,24 @@ namespace Superorganism.AI
                             }
                         }
 
-                        if (!isOnGround)
+                        // Handle jumping
+                        bool startingJump = isOnGround && false;
+                        if (startingJump)
                         {
-                            // in the middle of a jump, apply gravity
-                            velocity.Y += gravity;
+                            velocity.Y = -3f;
+                            isOnGround = false;
+                            isJumping = true;
                         }
-
-                        if (!isJumping)
+                        else if (!isJumping) // Only check for falling if we're not in a jump
                         {
-                            Vector2 groundCheckPos = position + new Vector2(0, 1.0f);
-                            bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding);
+                            // Check if there's ground below us
+                            //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
+                            Vector2 groundCheckPos = position;
+                            bool diagonal = false;
+                            bool isCenterOnDiagonal = false;
+                            bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding, ref diagonal, ref isCenterOnDiagonal);
 
-                            if (!hasGroundBelow)
+                            if (!hasGroundBelow || diagonal)
                             {
                                 isOnGround = false;
                                 if (velocity.Y >= 0) // Only apply gravity if we're not moving upward
@@ -277,12 +284,18 @@ namespace Superorganism.AI
                                 }
                             }
                         }
+                        else
+                        {
+                            // in the middle of a jump, apply gravity
+                            velocity.Y += gravity;
+                        }
 
 
                         // Try X movement first
                         Vector2 proposedXPosition = position + new Vector2(proposedXVelocity, 0);
-                        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, collisionBounding);
-
+                        bool diagonalX = false;
+                        bool isCenterOnDiagonalTile = false;
+                        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, collisionBounding, ref diagonalX, ref isCenterOnDiagonalTile);
 
                         // Apply X movement if no collision
                         if (!hasXCollision)
@@ -296,65 +309,141 @@ namespace Superorganism.AI
                         }
                         else
                         {
-                            velocity.X = 0;
-                        }
+                            float newPosY = 0;
+                            BoundingRectangle xTileRec = new();
+                            // Check if the collision is with a diagonal tile
+                            if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, position, proposedXPosition, collisionBounding, ref velocity, ref newPosY, ref xTileRec))
+                            {
+                                position.X = proposedXPosition.X;
+                                velocity.X = proposedXVelocity;
+                                if (newPosY != 0)
+                                {
+                                    if (!isJumping)
+                                    {
+                                        if (velocity.Y == 0)
+                                        {
+                                            position.Y = newPosY;
+                                            isOnGround = true;
+                                        }
+                                        //_position.Y = newPosY;
+                                        //IsOnGround = true;
+                                    }
+                                    //DiagonalPosY = newPosY;
+                                }
 
+                                if (Math.Abs(velocity.X) > 0.1f && !isJumping)
+                                {
+                                    //PlayMoveSound(gameTime);
+                                }
+                            }
+                            else
+                            {
+                                // If it's not a diagonal tile, handle as normal collision
+                                velocity.X = 0;
+                            }
+                        }
 
                         // Then try Y movement
                         if (velocity.Y != 0)
                         {
+                            bool isDiagonal = false;
+                            bool isCenterOnDiagonal = false;
                             Vector2 proposedYPosition = position + new Vector2(0, velocity.Y);
-                            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, collisionBounding);
-                            if (!hasYCollision)
+                            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal);
+                            if (!hasYCollision && !isDiagonal)
                             {
                                 position.Y = proposedYPosition.Y;
                                 isOnGround = false;
                             }
                             else
                             {
-                                if (velocity.Y > 0) // Moving downward
+                                if (Math.Abs(velocity.Y) > 0) // Moving downward
                                 {
-
-                                    // Check ground at both bottom corners
-                                    float leftGroundY = MapHelper.GetGroundYPosition(
-                                        GameState.CurrentMap,
-                                        position.X,
-                                        position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                        collisionBounding
-                                    );
-
-                                    float rightGroundY = MapHelper.GetGroundYPosition(
-                                        GameState.CurrentMap,
-                                        position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
-                                        position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                        collisionBounding
-                                    );
-
-                                    // Use the highest ground position (lowest Y value)
-
-
-                                    float groundY = Math.Min(leftGroundY, rightGroundY);
-                                    if (groundY < position.Y)
+                                    if (collisionBounding is BoundingCircle bc)
                                     {
-                                        position.Y = Math.Max(leftGroundY, rightGroundY) - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                                        isOnGround = true;
-                                        if (isJumping) isJumping = false;
+                                        bc.Center = new Vector2(position.X + bc.Radius, position.Y + bc.Radius);
+                                    }
+                                    else if (collisionBounding is BoundingRectangle br)
+                                    {
+                                        br.X = position.X;
+                                        br.Y = position.Y;
+                                        br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
+                                    }
+
+                                    if (velocity.Y > 0)
+                                    {
+                                        // Check ground at both bottom corners
+                                        float leftGroundY = MapHelper.GetGroundYPosition(
+                                            GameState.CurrentMap,
+                                            position.X,
+                                            position.Y,
+                                            textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                            collisionBounding
+                                        );
+
+                                        float rightGroundY = MapHelper.GetGroundYPosition(
+                                            GameState.CurrentMap,
+                                            position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
+                                            position.Y,
+                                            textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                            collisionBounding
+                                        );
+
+                                        float leftPos = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                        float rightPos = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+
+                                        if (!isDiagonal)
+                                        { }
+
+                                        float groundY = Math.Min(leftGroundY, rightGroundY);
+                                        float newGroundY;
+                                        if (groundY < position.Y)
+                                        {
+                                            newGroundY = Math.Max(leftGroundY, rightGroundY) -
+                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+
+                                            position.Y = newGroundY;
+                                            isOnGround = true;
+                                            if (isJumping) isJumping = false;
+                                        }
+                                        else
+                                        {
+                                            newGroundY = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                            //if (JumpDiagonalPosY == 0)
+                                            //{
+                                            //    JumpDiagonalPosY = newGroundY;
+                                            //}
+
+                                            if (position.Y < newGroundY)
+                                            {
+                                                position.Y = proposedYPosition.Y;
+                                                isOnGround = false;
+                                            }
+                                            else
+                                            {
+                                                position.Y = newGroundY;
+                                                isOnGround = true;
+                                                if (isJumping) isJumping = false;
+                                                velocity.Y = 0;
+                                                //JumpDiagonalPosY = 0;
+                                            }
+
+                                        }
+
                                     }
                                     else
                                     {
-                                        position.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                                        isOnGround = true;
-                                        if (isJumping) isJumping = false;
+                                        position.Y = proposedYPosition.Y;
+                                        isOnGround = false;
                                     }
-
-
                                 }
-                                velocity.Y = 0;
+
                             }
+
+                            //DiagonalPosY = 0;
                         }
 
+                        // Check map bounds
                         mapBounds = MapHelper.GetMapWorldBounds();
                         position.X = MathHelper.Clamp(position.X,
                             (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
@@ -426,18 +515,48 @@ namespace Superorganism.AI
                         Vector2 chaseDirection = Vector2.Normalize(targetPos - position);
                         float proposedXVelocity = chaseDirection.X * chaseSpeed;
 
-                        if (!isOnGround)
+                        // Initialize movement if needed
+                        if (velocity.X == 0)
                         {
-                            // in the middle of a jump, apply gravity
-                            velocity.Y += gravity;
+                            proposedXVelocity = chaseSpeed;
                         }
 
-                        if (!isJumping)
+                        // Change direction every 3 seconds based on strategy duration
+                        if (currentStrategyDuration >= Rand.Next(Rand.Next(3, 21), 21))
                         {
-                            Vector2 groundCheckPos = position + new Vector2(0, 1.0f);
-                            bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding);
+                            proposedXVelocity = -proposedXVelocity; // Reverse direction
+                            (Strategy Strategy, double StartTime, double LastActionTime) current = strategyHistory[^1];
+                            //strategyHistory[^1] = (current.Strategy, current.StartTime, (DateTime.Now - GameStartTime).TotalSeconds);
+                            strategyHistory[^1] = (current.Strategy, current.StartTime, gameTime.TotalGameTime.TotalSeconds);
+                        }
 
-                            if (!hasGroundBelow)
+                        if (isOnGround)
+                        {
+                            //proposedXVelocity = velocity.X * friction;
+                            if (Math.Abs(proposedXVelocity) < 0.1f)
+                            {
+                                proposedXVelocity = 0;
+                            }
+                        }
+
+                        // Handle jumping
+                        bool startingJump = isOnGround && false;
+                        if (startingJump)
+                        {
+                            velocity.Y = -3f;
+                            isOnGround = false;
+                            isJumping = true;
+                        }
+                        else if (!isJumping) // Only check for falling if we're not in a jump
+                        {
+                            // Check if there's ground below us
+                            //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
+                            Vector2 groundCheckPos = position;
+                            bool diagonal = false;
+                            bool isCenterOnDiagonal = false;
+                            bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding, ref diagonal, ref isCenterOnDiagonal);
+
+                            if (!hasGroundBelow || diagonal)
                             {
                                 isOnGround = false;
                                 if (velocity.Y >= 0) // Only apply gravity if we're not moving upward
@@ -446,71 +565,166 @@ namespace Superorganism.AI
                                 }
                             }
                         }
+                        else
+                        {
+                            // in the middle of a jump, apply gravity
+                            velocity.Y += gravity;
+                        }
+
 
                         // Try X movement first
                         Vector2 proposedXPosition = position + new Vector2(proposedXVelocity, 0);
-                        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, collisionBounding);
+                        bool diagonalX = false;
+                        bool isCenterOnDiagonalTile = false;
+                        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, collisionBounding, ref diagonalX, ref isCenterOnDiagonalTile);
 
                         // Apply X movement if no collision
                         if (!hasXCollision)
                         {
                             position.X = proposedXPosition.X;
                             velocity.X = proposedXVelocity;
+                            if (Math.Abs(velocity.X) > 0.1f && !isJumping)
+                            {
+                                //PlayMoveSound(gameTime);
+                            }
                         }
                         else
                         {
-                            velocity.X = 0;
+                            float newPosY = 0;
+                            BoundingRectangle xTileRec = new();
+                            // Check if the collision is with a diagonal tile
+                            if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, position, proposedXPosition, collisionBounding, ref velocity, ref newPosY, ref xTileRec))
+                            {
+                                position.X = proposedXPosition.X;
+                                velocity.X = proposedXVelocity;
+                                if (newPosY != 0)
+                                {
+                                    if (!isJumping)
+                                    {
+                                        if (velocity.Y == 0)
+                                        {
+                                            position.Y = newPosY;
+                                            isOnGround = true;
+                                        }
+                                        //_position.Y = newPosY;
+                                        //IsOnGround = true;
+                                    }
+                                    //DiagonalPosY = newPosY;
+                                }
+
+                                if (Math.Abs(velocity.X) > 0.1f && !isJumping)
+                                {
+                                    //PlayMoveSound(gameTime);
+                                }
+                            }
+                            else
+                            {
+                                // If it's not a diagonal tile, handle as normal collision
+                                velocity.X = 0;
+                            }
                         }
 
                         // Then try Y movement
                         if (velocity.Y != 0)
                         {
+                            bool isDiagonal = false;
+                            bool isCenterOnDiagonal = false;
                             Vector2 proposedYPosition = position + new Vector2(0, velocity.Y);
-                            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, collisionBounding);
-                            if (!hasYCollision)
+                            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal);
+                            if (!hasYCollision && !isDiagonal)
                             {
                                 position.Y = proposedYPosition.Y;
                                 isOnGround = false;
                             }
                             else
                             {
-                                if (velocity.Y > 0) // Moving downward
+                                if (Math.Abs(velocity.Y) > 0) // Moving downward
                                 {
-                                    // Check ground at both bottom corners
-                                    float leftGroundY = MapHelper.GetGroundYPosition(
-                                        GameState.CurrentMap,
-                                        position.X,
-                                        position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                        collisionBounding
-                                    );
-
-                                    float rightGroundY = MapHelper.GetGroundYPosition(
-                                        GameState.CurrentMap,
-                                        position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
-                                        position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                        collisionBounding
-                                    );
-
-                                    float groundY = Math.Min(leftGroundY, rightGroundY);
-                                    if (groundY < position.Y)
+                                    if (collisionBounding is BoundingCircle bc)
                                     {
-                                        position.Y = Math.Max(leftGroundY, rightGroundY) - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                                        isOnGround = true;
-                                        if (isJumping) isJumping = false;
+                                        bc.Center = new Vector2(position.X + bc.Radius, position.Y + bc.Radius);
+                                    }
+                                    else if (collisionBounding is BoundingRectangle br)
+                                    {
+                                        br.X = position.X;
+                                        br.Y = position.Y;
+                                        br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
+                                    }
+
+                                    if (velocity.Y > 0)
+                                    {
+                                        // Check ground at both bottom corners
+                                        float leftGroundY = MapHelper.GetGroundYPosition(
+                                            GameState.CurrentMap,
+                                            position.X,
+                                            position.Y,
+                                            textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                            collisionBounding
+                                        );
+
+                                        float rightGroundY = MapHelper.GetGroundYPosition(
+                                            GameState.CurrentMap,
+                                            position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
+                                            position.Y,
+                                            textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                            collisionBounding
+                                        );
+
+                                        float leftPos = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                        float rightPos = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+
+                                        if (!isDiagonal)
+                                        { }
+
+                                        float groundY = Math.Min(leftGroundY, rightGroundY);
+                                        float newGroundY;
+                                        if (groundY < position.Y)
+                                        {
+                                            newGroundY = Math.Max(leftGroundY, rightGroundY) -
+                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+
+                                            position.Y = newGroundY;
+                                            isOnGround = true;
+                                            if (isJumping) isJumping = false;
+                                        }
+                                        else
+                                        {
+                                            newGroundY = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                            //if (JumpDiagonalPosY == 0)
+                                            //{
+                                            //    JumpDiagonalPosY = newGroundY;
+                                            //}
+
+                                            if (position.Y < newGroundY)
+                                            {
+                                                position.Y = proposedYPosition.Y;
+                                                isOnGround = false;
+                                            }
+                                            else
+                                            {
+                                                position.Y = newGroundY;
+                                                isOnGround = true;
+                                                if (isJumping) isJumping = false;
+                                                velocity.Y = 0;
+                                                //JumpDiagonalPosY = 0;
+                                            }
+
+                                        }
+
                                     }
                                     else
                                     {
-                                        position.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                                        isOnGround = true;
-                                        if (isJumping) isJumping = false;
+                                        position.Y = proposedYPosition.Y;
+                                        isOnGround = false;
                                     }
                                 }
-                                velocity.Y = 0;
+
                             }
+
+                            //DiagonalPosY = 0;
                         }
 
+                        // Check map bounds
                         mapBounds = MapHelper.GetMapWorldBounds();
                         position.X = MathHelper.Clamp(position.X,
                             (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
@@ -529,18 +743,33 @@ namespace Superorganism.AI
                         const float gravity = 0.5f;
                         float proposedXVelocity = 0; // Stay still during transition
 
-                        if (!isOnGround)
+                        if (isOnGround)
                         {
-                            // in the middle of a jump, apply gravity
-                            velocity.Y += gravity;
+                            //proposedXVelocity = velocity.X * friction;
+                            if (Math.Abs(proposedXVelocity) < 0.1f)
+                            {
+                                proposedXVelocity = 0;
+                            }
                         }
 
-                        if (!isJumping)
+                        // Handle jumping
+                        bool startingJump = isOnGround && false;
+                        if (startingJump)
                         {
-                            Vector2 groundCheckPos = position + new Vector2(0, 1.0f);
-                            bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding);
+                            velocity.Y = -3f;
+                            isOnGround = false;
+                            isJumping = true;
+                        }
+                        else if (!isJumping) // Only check for falling if we're not in a jump
+                        {
+                            // Check if there's ground below us
+                            //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
+                            Vector2 groundCheckPos = position;
+                            bool diagonal = false;
+                            bool isCenterOnDiagonal = false;
+                            bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding, ref diagonal, ref isCenterOnDiagonal);
 
-                            if (!hasGroundBelow)
+                            if (!hasGroundBelow || diagonal)
                             {
                                 isOnGround = false;
                                 if (velocity.Y >= 0) // Only apply gravity if we're not moving upward
@@ -549,75 +778,171 @@ namespace Superorganism.AI
                                 }
                             }
                         }
+                        else
+                        {
+                            // in the middle of a jump, apply gravity
+                            velocity.Y += gravity;
+                        }
+
 
                         // Try X movement first
                         Vector2 proposedXPosition = position + new Vector2(proposedXVelocity, 0);
-                        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, collisionBounding);
+                        bool diagonalX = false;
+                        bool isCenterOnDiagonalTile = false;
+                        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, collisionBounding, ref diagonalX, ref isCenterOnDiagonalTile);
 
                         // Apply X movement if no collision
                         if (!hasXCollision)
                         {
                             position.X = proposedXPosition.X;
                             velocity.X = proposedXVelocity;
+                            if (Math.Abs(velocity.X) > 0.1f && !isJumping)
+                            {
+                                //PlayMoveSound(gameTime);
+                            }
                         }
                         else
                         {
-                            velocity.X = 0;
+                            float newPosY = 0;
+                            BoundingRectangle xTileRec = new();
+                            // Check if the collision is with a diagonal tile
+                            if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, position, proposedXPosition, collisionBounding, ref velocity, ref newPosY, ref xTileRec))
+                            {
+                                position.X = proposedXPosition.X;
+                                velocity.X = proposedXVelocity;
+                                if (newPosY != 0)
+                                {
+                                    if (!isJumping)
+                                    {
+                                        if (velocity.Y == 0)
+                                        {
+                                            position.Y = newPosY;
+                                            isOnGround = true;
+                                        }
+                                        //_position.Y = newPosY;
+                                        //IsOnGround = true;
+                                    }
+                                    //DiagonalPosY = newPosY;
+                                }
+
+                                if (Math.Abs(velocity.X) > 0.1f && !isJumping)
+                                {
+                                    //PlayMoveSound(gameTime);
+                                }
+                            }
+                            else
+                            {
+                                // If it's not a diagonal tile, handle as normal collision
+                                velocity.X = 0;
+                            }
                         }
 
                         // Then try Y movement
                         if (velocity.Y != 0)
                         {
+                            bool isDiagonal = false;
+                            bool isCenterOnDiagonal = false;
                             Vector2 proposedYPosition = position + new Vector2(0, velocity.Y);
-                            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, collisionBounding);
-                            if (!hasYCollision)
+                            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal);
+                            if (!hasYCollision && !isDiagonal)
                             {
                                 position.Y = proposedYPosition.Y;
                                 isOnGround = false;
                             }
                             else
                             {
-                                if (velocity.Y > 0) // Moving downward
+                                if (Math.Abs(velocity.Y) > 0) // Moving downward
                                 {
-                                    // Check ground at both bottom corners
-                                    float leftGroundY = MapHelper.GetGroundYPosition(
-                                        GameState.CurrentMap,
-                                        position.X,
-                                        position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                        collisionBounding
-                                    );
-
-                                    float rightGroundY = MapHelper.GetGroundYPosition(
-                                        GameState.CurrentMap,
-                                        position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
-                                        position.Y,
-                                        textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                        collisionBounding
-                                    );
-
-                                    float groundY = Math.Min(leftGroundY, rightGroundY);
-                                    if (groundY < position.Y)
+                                    if (collisionBounding is BoundingCircle bc)
                                     {
-                                        position.Y = Math.Max(leftGroundY, rightGroundY) - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                                        isOnGround = true;
-                                        if (isJumping) isJumping = false;
+                                        bc.Center = new Vector2(position.X + bc.Radius, position.Y + bc.Radius);
+                                    }
+                                    else if (collisionBounding is BoundingRectangle br)
+                                    {
+                                        br.X = position.X;
+                                        br.Y = position.Y;
+                                        br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
+                                    }
+
+                                    if (velocity.Y > 0)
+                                    {
+                                        // Check ground at both bottom corners
+                                        float leftGroundY = MapHelper.GetGroundYPosition(
+                                            GameState.CurrentMap,
+                                            position.X,
+                                            position.Y,
+                                            textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                            collisionBounding
+                                        );
+
+                                        float rightGroundY = MapHelper.GetGroundYPosition(
+                                            GameState.CurrentMap,
+                                            position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
+                                            position.Y,
+                                            textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                            collisionBounding
+                                        );
+
+                                        float leftPos = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                        float rightPos = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+
+                                        if (!isDiagonal)
+                                        { }
+
+                                        float groundY = Math.Min(leftGroundY, rightGroundY);
+                                        float newGroundY;
+                                        if (groundY < position.Y)
+                                        {
+                                            newGroundY = Math.Max(leftGroundY, rightGroundY) -
+                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+
+                                            position.Y = newGroundY;
+                                            isOnGround = true;
+                                            if (isJumping) isJumping = false;
+                                        }
+                                        else
+                                        {
+                                            newGroundY = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                            //if (JumpDiagonalPosY == 0)
+                                            //{
+                                            //    JumpDiagonalPosY = newGroundY;
+                                            //}
+
+                                            if (position.Y < newGroundY)
+                                            {
+                                                position.Y = proposedYPosition.Y;
+                                                isOnGround = false;
+                                            }
+                                            else
+                                            {
+                                                position.Y = newGroundY;
+                                                isOnGround = true;
+                                                if (isJumping) isJumping = false;
+                                                velocity.Y = 0;
+                                                //JumpDiagonalPosY = 0;
+                                            }
+
+                                        }
+
                                     }
                                     else
                                     {
-                                        position.Y = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                                        isOnGround = true;
-                                        if (isJumping) isJumping = false;
+                                        position.Y = proposedYPosition.Y;
+                                        isOnGround = false;
                                     }
                                 }
-                                velocity.Y = 0;
+
                             }
+
+                            //DiagonalPosY = 0;
                         }
 
+                        // Check map bounds
                         mapBounds = MapHelper.GetMapWorldBounds();
                         position.X = MathHelper.Clamp(position.X,
                             (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
                             mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
+
 
                         Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
                         position = newPosition;
@@ -643,10 +968,10 @@ namespace Superorganism.AI
                     throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null);
             }
 
-            if (collisionBounding is BoundingCircle bc)
+            if (collisionBounding is BoundingCircle bca)
             {
-                bc.Center = new Vector2(position.X + (bc.Radius / 2), position.Y + (bc.Radius / 2));
-                collisionBounding = bc;
+                bca.Center = new Vector2(position.X + (bca.Radius / 2), position.Y + (bca.Radius / 2));
+                collisionBounding = bca;
             }
             else if (collisionBounding is BoundingRectangle br)
             {
@@ -655,7 +980,8 @@ namespace Superorganism.AI
             }
         }
 
-        private static bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding)
+        private static bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding,
+            ref bool isDiagonal, ref bool isCenterOnDiagonal)
         {
             int leftTile = 0;
             int rightTile = 0;
@@ -689,7 +1015,7 @@ namespace Superorganism.AI
             // Check collision with map layers
             foreach (Layer layer in map.Layers.Values)
             {
-                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding))
+                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal))
                     return true;
             }
 
@@ -698,7 +1024,7 @@ namespace Superorganism.AI
             {
                 foreach (Layer layer in group.Layers.Values)
                 {
-                    if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding))
+                    if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal))
                         return true;
                 }
             }
@@ -706,45 +1032,54 @@ namespace Superorganism.AI
             return false;
         }
 
-        private static bool CheckLayerCollision(Layer layer, int leftTile, int rightTile, int topTile, int bottomTile, Vector2 position, ICollisionBounding collisionBounding)
+        private static bool CheckLayerCollision(Layer layer, int leftTile, int rightTile, int topTile, int bottomTile,
+            Vector2 position, ICollisionBounding collisionBounding, ref bool isThisDiagonalTile,
+            ref bool isCenterOnDiagonal)
         {
             int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
             int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
+            if (tilex == 63 && tiley == 19)
+            {
 
-            if (leftTile < 0) leftTile = 0;
-            if (leftTile >= MapHelper.MapWidth) leftTile = MapHelper.MapWidth - 1;
-            if (rightTile < 0) rightTile = 0;
-            if (rightTile >= MapHelper.MapWidth) rightTile = MapHelper.MapWidth - 1;
-            if (topTile < 0) topTile = 0;
-            if (topTile >= MapHelper.MapHeight) topTile = MapHelper.MapHeight - 1;
-            if (bottomTile < 0) bottomTile = 0;
-            if (bottomTile >= MapHelper.MapHeight) bottomTile = MapHelper.MapHeight - 1;
+            }
+
+            if (tilex == 63 && tiley == 20)
+            {
+
+            }
+
+            if (leftTile < 0 || rightTile < 0) { leftTile = rightTile = 0; }
+            if (leftTile >= MapHelper.MapWidth || rightTile >= MapHelper.MapWidth) { leftTile = rightTile = MapHelper.MapWidth - 1; }
+            if (topTile < 0 || bottomTile < 0) { topTile = bottomTile = 0; }
+            if (topTile >= MapHelper.MapHeight || bottomTile >= MapHelper.MapHeight) { topTile = bottomTile = MapHelper.MapHeight - 1; }
 
             for (int y = topTile; y <= bottomTile; y++)
             {
                 for (int x = leftTile; x <= rightTile; x++)
                 {
 
+                    if (x == 63)
+                    {
+
+                    }
+                    if (x == 63 && y == 19)
+                    {
+
+                    }
+
+                    if (x == 63 && y == 20)
+                    {
+
+                    }
+
                     int tileId = layer.GetTile(x, y);
-                    //int tiledId
-                    if (x == tilex && y == tiley)
-                    {
-                        continue;
-                    }
 
-                    if (x == 71 && y == 19)
-                    {
-
-                    }
-
-                    if (tileId != 0 /*&&
-                        tileId != 21 && tileId != 25 && tileId != 26 && tileId != 31 &&
-                        tileId != 53 && tileId != 54 && tileId != 57*/)
+                    if (tileId != 0)
                     {
                         Dictionary<string, string> property = MapHelper.GetTileProperties(tileId);
 
-                        if ((property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true") ||
-                            (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false"))
+                        // Skip non-collidable tiles
+                        if (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false")
                         {
                             continue;
                         }
@@ -756,11 +1091,41 @@ namespace Superorganism.AI
                             MapHelper.TileSize - 5
                         );
 
-                        // Create a test collision bounds at the proposed position
-                        ICollisionBounding testBounds;
-                        if (collisionBounding is BoundingRectangle br)
+                        bool isDiagonalTile = false;
+
+                        // Check for diagonal tile
+                        if (property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true")
                         {
-                            testBounds = new BoundingRectangle(position.X, position.Y, br.Width, br.Height);
+                            // Get slope values
+                            if (property.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
+                                property.TryGetValue("SlopeRight", out string slopeRightStr) &&
+                                int.TryParse(slopeLeftStr, out int slopeLeft) &&
+                                int.TryParse(slopeRightStr, out int slopeRight))
+                            {
+                                if (collisionBounding is BoundingRectangle br)
+                                {
+                                    isDiagonalTile = true;
+                                    
+                                }
+                                else if (collisionBounding is BoundingCircle bc)
+                                {
+                                    
+                                }
+                               
+                            }
+                        }
+                        isThisDiagonalTile = isDiagonalTile;
+                        if (x == tilex && y == tiley && !isDiagonalTile)
+                        {
+
+                            continue;
+                        }
+
+                        // Regular collision check for non-diagonal tiles
+                        ICollisionBounding testBounds;
+                        if (collisionBounding is BoundingRectangle bra)
+                        {
+                            testBounds = new BoundingRectangle(position.X, position.Y, bra.Width, bra.Height);
                             collisionBounding = testBounds;
                         }
                         else if (collisionBounding is BoundingCircle bc)
@@ -774,11 +1139,17 @@ namespace Superorganism.AI
                         }
 
                         if (collisionBounding.CollidesWith(tileRect))
+                        {
+                            if (collisionBounding.Center.X <= tileRect.Right && collisionBounding.Center.X >= tileRect.Left)
+                            {
+                                isCenterOnDiagonal = true;
+                            }
+                            else
+                            {
+                                isCenterOnDiagonal = false;
+                            }
                             return true;
-                    }
-                    else
-                    {
-
+                        }
                     }
                 }
             }
