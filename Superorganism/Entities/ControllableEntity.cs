@@ -156,9 +156,11 @@ namespace Superorganism.Entities
             else if (!IsJumping) // Only check for falling if we're not in a jump
             {
                 // Check if there's ground below us
-                Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
+                //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
+                Vector2 groundCheckPos = _position;
                 bool diagonal = false;
-                bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, CollisionBounding, ref diagonal);
+                bool isCenterOnDiagonal = false;
+                bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, CollisionBounding, ref diagonal, ref isCenterOnDiagonal);
 
                 if (!hasGroundBelow || diagonal)
                 {
@@ -187,7 +189,8 @@ namespace Superorganism.Entities
             // Try X movement first
             Vector2 proposedXPosition = _position + new Vector2(proposedXVelocity, 0);
             bool diagonalX = false;
-            bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, CollisionBounding, ref diagonalX);
+            bool isCenterOnDiagonalTile = false;
+            bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, CollisionBounding, ref diagonalX, ref isCenterOnDiagonalTile);
 
             // Apply X movement if no collision
             if (!hasXCollision)
@@ -202,8 +205,9 @@ namespace Superorganism.Entities
             else
             {
                 float newPosY = 0;
+                BoundingRectangle xTileRec = new();
                 // Check if the collision is with a diagonal tile
-                if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition, CollisionBounding, ref _velocity, ref newPosY))
+                if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition, CollisionBounding, ref _velocity, ref newPosY, ref xTileRec))
                 {
                     _position.X = proposedXPosition.X;
                     _velocity.X = proposedXVelocity;
@@ -238,9 +242,10 @@ namespace Superorganism.Entities
             if (_velocity.Y != 0)
             {
                 bool isDiagonal = false;
+                bool isCenterOnDiagonal = false;
                 Vector2 proposedYPosition = _position + new Vector2(0, _velocity.Y);
-                bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, CollisionBounding, ref isDiagonal);
-                if (!hasYCollision)
+                bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, CollisionBounding, ref isDiagonal, ref isCenterOnDiagonal);
+                if (!hasYCollision && !isDiagonal)
                 {
                     _position.Y = proposedYPosition.Y;
                     IsOnGround = false;
@@ -364,7 +369,8 @@ namespace Superorganism.Entities
             _velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
         }
 
-        private bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding, ref bool isDiagonal)
+        private bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding,
+            ref bool isDiagonal, ref bool isCenterOnDiagonal)
         {
             int leftTile = 0;
             int rightTile = 0;
@@ -398,7 +404,7 @@ namespace Superorganism.Entities
             // Check collision with map layers
             foreach (Layer layer in map.Layers.Values)
             {
-                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal))
+                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal))
                     return true;
             }
 
@@ -407,7 +413,7 @@ namespace Superorganism.Entities
             {
                 foreach (Layer layer in group.Layers.Values)
                 {
-                    if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal))
+                    if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal))
                         return true;
                 }
             }
@@ -415,11 +421,21 @@ namespace Superorganism.Entities
             return false;
         }
 
-        private bool CheckLayerCollision(Layer layer, int leftTile, int rightTile, int topTile, int bottomTile, 
-            Vector2 position, ICollisionBounding collisionBounding, ref bool isThisDiagonalTile)
+        private bool CheckLayerCollision(Layer layer, int leftTile, int rightTile, int topTile, int bottomTile,
+            Vector2 position, ICollisionBounding collisionBounding, ref bool isThisDiagonalTile,
+            ref bool isCenterOnDiagonal)
         {
             int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
             int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
+            if (tilex == 63 && tiley == 19 )
+            {
+
+            }
+
+            if (tilex == 63 && tiley == 20)
+            {
+
+            }
 
             if (leftTile < 0 || rightTile < 0) { leftTile = rightTile = 0; }
             if (leftTile >= MapHelper.MapWidth || rightTile >= MapHelper.MapWidth) { leftTile = rightTile = MapHelper.MapWidth - 1; }
@@ -430,8 +446,22 @@ namespace Superorganism.Entities
             {
                 for (int x = leftTile; x <= rightTile; x++)
                 {
-                    int tileId = layer.GetTile(x, y);
 
+                    if (x == 63)
+                    {
+
+                    }
+                    if (x == 63 && y == 19)
+                    {
+
+                    }
+
+                    if (x == 63 && y == 20)
+                    {
+
+                    }
+
+                    int tileId = layer.GetTile(x, y);
 
                     if (tileId != 0)
                     {
@@ -543,7 +573,17 @@ namespace Superorganism.Entities
                         }
 
                         if (CollisionBounding.CollidesWith(tileRect))
+                        {
+                            if (CollisionBounding.Center.X <= tileRect.Right && CollisionBounding.Center.X >= tileRect.Left)
+                            {
+                                isCenterOnDiagonal = true;
+                            }
+                            else
+                            {
+                                isCenterOnDiagonal = false;
+                            }
                             return true;
+                        }
                     }
                 }
             }
