@@ -16,6 +16,8 @@ namespace Superorganism.Entities
 		public virtual float AnimationSpeed { get; set; }
 		public virtual short AnimationFrame { get; set; }
 
+
+
         protected bool UseRotation { get; set; }
         protected float Rotation { get; set; }
         protected const float RotationSmoothing = 0.05f;
@@ -87,11 +89,11 @@ namespace Superorganism.Entities
 				}
 				else
 				{
-					// For walking animation: use frames 1 and 2 when movings
+					// For walking animation: use frames 1 and 2 when moving
 					if (Math.Abs(_velocity.X) > 0.1f)
 					{
 						AnimationFrame++;
-						if (AnimationFrame < 1 || AnimationFrame > 2)  // Ensure we only use frames 1 and 2
+						if (AnimationFrame < 1 || AnimationFrame > 2)  // Ensure only use frames 1 and 2
 						{
 							AnimationFrame = 1;
 						}
@@ -178,7 +180,7 @@ namespace Superorganism.Entities
             if (UseRotation) { UpdateRotation(); }
 
             DecisionMaker.Action(ref _strategy, ref _strategyHistory, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
-				ref _velocity, 800, 420, TextureInfo, EntityStatus);
+				ref _velocity, 800, 420, TextureInfo, EntityStatus, ref _isOnGround, ref _isJumping, ref _friction);
 		}
 	}
 }

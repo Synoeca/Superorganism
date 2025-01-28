@@ -148,11 +148,11 @@ public class EntityManager
     private void InitializeEntities(GraphicsDevice graphicsDevice)
     {
         _ant = new Ant();
-        _ant.InitializeAtTile(72, 19);
+        _ant.InitializeAtTile(72, 10);
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        int count = 10;
+        int count = 15;
         Random rand = new();
         //for (int i = 0; i < count; i++)
         //{
@@ -189,7 +189,7 @@ public class EntityManager
     private void InitializeCrops(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 100;
+        int count = 2;
         for (int i = 0; i < count; i++)
         {
             //_crops[i] = new Crop();
@@ -211,7 +211,7 @@ public class EntityManager
     private void InitializeFlies(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 100;
+        int count = 2;
         for (int i = 0; i < count; i++)
         {
             //_flies[i] = new Fly();
@@ -235,14 +235,14 @@ public class EntityManager
     private void LoadContent(ContentManager content)
     {
         _ant.LoadContent(content, "ant-side_Rev2", 3, 1,
-            new BoundingRectangle(), 0.25f);
+            new BoundingRectangle(), 0.23f);
         _ant.LoadSound(content);
 
         // Load content for all ant enemies
         foreach (AntEnemy enemy in _antEnemies)
         {
             enemy.LoadContent(content, "antEnemy-side_Rev3", 3, 1,
-                new BoundingRectangle(), 0.3f);
+                new BoundingRectangle(), 0.23f);
         }
 
         foreach (Crop crop in _crops)
@@ -362,7 +362,7 @@ public class EntityManager
             if (fly.CollisionBounding.CollidesWith(_ant.CollisionBounding))
             {
                 fly.Destroyed = true;
-                _explosions.PlaceExplosion(fly.Position);
+                //_explosions.PlaceExplosion(fly.Position);
                 _ant.HitPoints = Math.Max(0, _ant.HitPoints - FlyDamage);
 
                 // Add flash effect
