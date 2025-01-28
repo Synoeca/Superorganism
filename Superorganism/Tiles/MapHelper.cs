@@ -9,10 +9,6 @@ namespace Superorganism.Tiles
 {
     public static class MapHelper
     {
-        //public const int TileSize = 64;  // Each tile is 64x64 pixels
-        //public const int MapWidth = 200; // Width in tiles
-        //public const int MapHeight = 50; // Height in tiles
-
         public static int TileSize { get; set; }
         public static int MapWidth { get; set; }
         public static int MapHeight { get; set; }
@@ -593,23 +589,6 @@ namespace Superorganism.Tiles
                                         return true;
                                     }
                                 }
-                                //if (br.Right >= tileRec.Left)
-                                //{
-                                //    if (br.Right - tileRec.Left <= 64)
-                                //    {
-                                //        //return !(br.Bottom >= tileRec.Bottom - slopeLeft);
-                                //        //return !(br.Bottom - (tileRec.Bottom - slopeLeft) < 20);
-                                //    }
-
-                                //}
-                                //if (br.Left <= tileRec.Right)
-                                //{
-                                //    if (tileRec.Right - br.Left <= 64)
-                                //    {
-                                //        //return !(br.Bottom >= tileRec.Bottom - slopeRight);
-                                //        //return !(br.Bottom - (tileRec.Bottom - slopeRight) < 20);
-                                //    }
-                                //}
                             }
                         }
 
@@ -669,25 +648,6 @@ namespace Superorganism.Tiles
                     float tileBottom = (y + 1) * TileSize;
                     float slope = (slopeRight - slopeLeft) / (float)TileSize;
 
-
-                    //if (proposedPosition.X >= tileLeft && proposedPosition.X <= tileRight)
-                    //{
-                    //    float distanceFromLeft = collisionBounding.Center.X - tileLeft;
-                    //    float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
-
-                    //    if (collisionBounding is BoundingRectangle br)
-                    //    {
-                    //        position.Y = slopeY - br.Height / 2;
-                    //        position.X = proposedPosition.X;
-                    //    }
-                    //    else if (collisionBounding is BoundingCircle bc)
-                    //    {
-                    //        position.Y = slopeY - bc.Radius;
-                    //        position.X = proposedPosition.X;
-                    //    }
-                    //    return true;
-                    //}
-
                     if (collisionBounding is BoundingRectangle brec)
                     {
                         BoundingRectangle tileRec = new((float)x * TileSize, (float)y * TileSize, TileSize, TileSize);
@@ -717,32 +677,6 @@ namespace Superorganism.Tiles
                                 return true;
                             }
                         }
-
-                        //if (brec.Right >= tileLeft && brec.Left <= tileRight)
-                        //{
-                        //    float distanceFromLeft = collisionBounding.Center.X - tileLeft;
-
-                        //    float slopeY = tileBottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
-
-                        //    if (collisionBounding is BoundingRectangle br)
-                        //    {
-                        //        position.Y = position.Y;
-                        //        //newPosY = position.Y;
-                        //        //newPosY = slopeY - br.Height / 2;
-                        //        if (distanceFromLeft > 0)
-                        //        {
-                        //            newPosY = slopeY - br.Height;
-                        //        }
-
-                        //        position.X = proposedPosition.X;
-                        //    }
-                        //    else if (collisionBounding is BoundingCircle bc)
-                        //    {
-                        //        position.Y = slopeY - bc.Radius;
-                        //        position.X = proposedPosition.X;
-                        //    }
-                        //    return true;
-                        //}
                     }
                     else if (collisionBounding is BoundingCircle bc)
                     {
@@ -750,24 +684,6 @@ namespace Superorganism.Tiles
                         position.Y = slopeY - bc.Radius;
                         position.X = proposedPosition.X;
                     }
-
-                    //if (proposedPosition.X >= tileLeft - 5 && proposedPosition.X <= tileRight + 5)
-                    //{
-                    //    float distanceFromLeft = collisionBounding.Center.X - tileLeft;
-                    //    float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
-
-                    //    if (collisionBounding is BoundingRectangle br)
-                    //    {
-                    //        position.Y = slopeY - br.Height / 2;
-                    //        position.X = proposedPosition.X;
-                    //    }
-                    //    else if (collisionBounding is BoundingCircle bc)
-                    //    {
-                    //        position.Y = slopeY - bc.Radius;
-                    //        position.X = proposedPosition.X;
-                    //    }
-                    //    return true;
-                    //}
                 }
             }
             return false;

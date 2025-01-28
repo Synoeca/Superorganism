@@ -170,15 +170,6 @@ namespace Superorganism.Entities
                         _velocity.Y += Gravity;
                     }
                 }
-
-                //if (diagonal && hasGroundBelow)
-                //{
-                //    if (_velocity.Y >= 0) // Only apply gravity if we're not moving upward
-                //    {
-                //        _velocity.Y += Gravity;
-                //    }
-                //    //_velocity.Y += Gravity;
-                //}
             }
             else
             {
@@ -287,20 +278,6 @@ namespace Superorganism.Entities
                             float leftPos = leftGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                             float rightPos = rightGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
 
-                            //float newPosY = 0;
-                            //// Check if the collision is with a diagonal tile
-                            //if (isDiagonal)
-                            //{
-                            //    if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition,
-                            //            CollisionBounding, ref _velocity, ref newPosY))
-                            //    {
-
-                            //    }
-                            //}
-
-
-                            // Use the highest ground position (lowest Y value)
-
                             if (!isDiagonal)
                             { }
 
@@ -308,7 +285,6 @@ namespace Superorganism.Entities
                             float newGroundY;
                             if (groundY < _position.Y)
                             {
-                                //_position.Y = Math.Max(leftGroundY, rightGroundY) - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                 newGroundY = Math.Max(leftGroundY, rightGroundY) -
                                              (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
 
@@ -318,7 +294,6 @@ namespace Superorganism.Entities
                             }
                             else
                             {
-                                //_position.Y = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                 newGroundY = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                 if (JumpDiagonalPosY == 0)
                                 {
@@ -340,11 +315,6 @@ namespace Superorganism.Entities
                                 }
 
                             }
-
-                            //if (DiagonalPosY != 0)
-                            //{
-                            //    _position.Y = DiagonalPosY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                            //}
 
                         }
                         else
