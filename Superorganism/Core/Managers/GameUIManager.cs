@@ -25,7 +25,7 @@ namespace Superorganism.Core.Managers
 
         // Debug flags
         private bool _showCollisionBounds;
-        private bool _showEntityInfo;
+        private bool _showEntityInfo = true;
         private bool _showMousePosition;
 
         public void ToggleCollisionBounds() => _showCollisionBounds = !_showCollisionBounds;

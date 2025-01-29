@@ -152,13 +152,15 @@ public class EntityManager
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        int count = 15;
+        int count = 40;
         Random rand = new();
 
         for (int i = 0; i < count; i++)
         {
-            int enemyX = 6 + rand.Next(150); // Spread between tile 60-100
-            int enemyY = 5 + rand.Next(8);   // Spread between tile 5-12
+            int enemyX = 10 + rand.Next(150); // Spread between tile 60-100
+            int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
+            //int enemyX = 72 ; // Spread between tile 60-100
+            //int enemyY = 10 ;   // Spread between tile 5-12
             AntEnemy antEnemy = new();
             antEnemy.InitializeAtTile(enemyX, enemyY);
             _antEnemies.Add(antEnemy);
@@ -181,7 +183,7 @@ public class EntityManager
     private void InitializeCrops(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 50;
+        int count = 15;
         for (int i = 0; i < count; i++)
         {
             //_crops[i] = new Crop();
@@ -203,7 +205,7 @@ public class EntityManager
     private void InitializeFlies(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 100;
+        int count = 50;
         for (int i = 0; i < count; i++)
         {
             //_flies[i] = new Fly();

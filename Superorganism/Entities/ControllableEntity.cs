@@ -156,8 +156,8 @@ namespace Superorganism.Entities
             else if (!IsJumping) // Only check for falling if we're not in a jump
             {
                 // Check if there's ground below us
-                //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
-                Vector2 groundCheckPos = _position;
+                Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
+                //Vector2 groundCheckPos = _position;
                 bool diagonal = false;
                 bool isCenterOnDiagonal = false;
                 bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, CollisionBounding, ref diagonal, ref isCenterOnDiagonal);
@@ -252,7 +252,11 @@ namespace Superorganism.Entities
                         else if (CollisionBounding is BoundingRectangle br)
                         {
                             br.X = _position.X;
-                            br.Y = _position.Y;
+                            if (Math.Abs(br.Y - _position.Y) < 2)
+                            {
+                                 br.Y = _position.Y;
+                            }
+
                             br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
                         }
 
@@ -288,14 +292,23 @@ namespace Superorganism.Entities
                                 newGroundY = Math.Max(leftGroundY, rightGroundY) -
                                              (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
 
-                                _position.Y = newGroundY;
-                                IsOnGround = true;
-                                if (IsJumping) IsJumping = false;
+                                if (Math.Abs(_position.Y - newGroundY) < 5)
+                                {
+                                    _position.Y = newGroundY;
+                                    IsOnGround = true;
+                                    if (IsJumping) IsJumping = false;
+                                }
+                                else
+                                {
+                                    _position.Y = proposedYPosition.Y;
+                                }
+
+
                             }
                             else
                             {
                                 newGroundY = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                                if (JumpDiagonalPosY == 0)
+                                if (JumpDiagonalPosY == 0 || newGroundY < JumpDiagonalPosY)
                                 {
                                     JumpDiagonalPosY = newGroundY;
                                 }
@@ -408,16 +421,7 @@ namespace Superorganism.Entities
                 for (int x = leftTile; x <= rightTile; x++)
                 {
 
-                    if (x == 63)
-                    {
-
-                    }
-                    if (x == 63 && y == 19)
-                    {
-
-                    }
-
-                    if (x == 63 && y == 20)
+                    if (x == 57 && y == 19)
                     {
 
                     }
@@ -465,7 +469,7 @@ namespace Superorganism.Entities
                             }
                         }
                         isThisDiagonalTile = isDiagonalTile;
-                        if (x == tilex && y == tiley && !isDiagonalTile)
+                        if (x == tilex && y == 0 && !isDiagonalTile)
                         {
                             
                             continue;

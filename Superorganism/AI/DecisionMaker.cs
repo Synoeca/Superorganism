@@ -270,7 +270,7 @@ namespace Superorganism.AI
                         {
                             // Check if there's ground below us
                             //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
-                            Vector2 groundCheckPos = position;
+                            Vector2 groundCheckPos = position + new Vector2(0, 1.0f);
                             bool diagonal = false;
                             bool isCenterOnDiagonal = false;
                             bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding, ref diagonal, ref isCenterOnDiagonal);
@@ -366,7 +366,11 @@ namespace Superorganism.AI
                                     else if (collisionBounding is BoundingRectangle br)
                                     {
                                         br.X = position.X;
-                                        br.Y = position.Y;
+                                        if (Math.Abs(br.Y - position.Y) < 2)
+                                        {
+                                            br.Y = position.Y;
+                                        }
+
                                         br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
                                     }
 
@@ -402,9 +406,18 @@ namespace Superorganism.AI
                                             newGroundY = Math.Max(leftGroundY, rightGroundY) -
                                                          (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
 
-                                            position.Y = newGroundY;
-                                            isOnGround = true;
-                                            if (isJumping) isJumping = false;
+                                            if (Math.Abs(position.Y - newGroundY) < 15)
+                                            {
+                                                position.Y = newGroundY;
+                                                isOnGround = true;
+                                                if (isJumping) isJumping = false;
+                                            }
+                                            else
+                                            {
+                                                position.Y = proposedYPosition.Y;
+                                            }
+
+
                                         }
                                         else
                                         {
@@ -551,7 +564,7 @@ namespace Superorganism.AI
                         {
                             // Check if there's ground below us
                             //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
-                            Vector2 groundCheckPos = position;
+                            Vector2 groundCheckPos = position + new Vector2(0, 1.0f);
                             bool diagonal = false;
                             bool isCenterOnDiagonal = false;
                             bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding, ref diagonal, ref isCenterOnDiagonal);
@@ -647,7 +660,11 @@ namespace Superorganism.AI
                                     else if (collisionBounding is BoundingRectangle br)
                                     {
                                         br.X = position.X;
-                                        br.Y = position.Y;
+                                        if (Math.Abs(br.Y - position.Y) < 2)
+                                        {
+                                            br.Y = position.Y;
+                                        }
+
                                         br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
                                     }
 
@@ -683,9 +700,18 @@ namespace Superorganism.AI
                                             newGroundY = Math.Max(leftGroundY, rightGroundY) -
                                                          (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
 
-                                            position.Y = newGroundY;
-                                            isOnGround = true;
-                                            if (isJumping) isJumping = false;
+                                            if (Math.Abs(position.Y - newGroundY) < 15)
+                                            {
+                                                position.Y = newGroundY;
+                                                isOnGround = true;
+                                                if (isJumping) isJumping = false;
+                                            }
+                                            else
+                                            {
+                                                position.Y = proposedYPosition.Y;
+                                            }
+
+
                                         }
                                         else
                                         {
@@ -764,7 +790,7 @@ namespace Superorganism.AI
                         {
                             // Check if there's ground below us
                             //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
-                            Vector2 groundCheckPos = position;
+                            Vector2 groundCheckPos = position + new Vector2(0, 1.0f);
                             bool diagonal = false;
                             bool isCenterOnDiagonal = false;
                             bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding, ref diagonal, ref isCenterOnDiagonal);
@@ -860,7 +886,11 @@ namespace Superorganism.AI
                                     else if (collisionBounding is BoundingRectangle br)
                                     {
                                         br.X = position.X;
-                                        br.Y = position.Y;
+                                        if (Math.Abs(br.Y - position.Y) < 2)
+                                        {
+                                            br.Y = position.Y;
+                                        }
+
                                         br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
                                     }
 
@@ -896,9 +926,18 @@ namespace Superorganism.AI
                                             newGroundY = Math.Max(leftGroundY, rightGroundY) -
                                                          (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
 
-                                            position.Y = newGroundY;
-                                            isOnGround = true;
-                                            if (isJumping) isJumping = false;
+                                            if (Math.Abs(position.Y - newGroundY) < 15)
+                                            {
+                                                position.Y = newGroundY;
+                                                isOnGround = true;
+                                                if (isJumping) isJumping = false;
+                                            }
+                                            else
+                                            {
+                                                position.Y = proposedYPosition.Y;
+                                            }
+
+
                                         }
                                         else
                                         {
