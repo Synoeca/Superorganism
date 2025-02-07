@@ -221,7 +221,7 @@ namespace Superorganism.Screens
                 // If the current input is empty, fall back to the default name
                 string fileName = string.IsNullOrWhiteSpace(_currentInput)
                     ? _defaultSaveName
-                    : _currentInput;  // We no longer append ".sav" here, as the user provides the full name
+                    : _currentInput; 
                 SaveToFile(fileName);
                 _isNaming = false;
                 _currentInput = "";
@@ -322,9 +322,6 @@ namespace Superorganism.Screens
             // Return null for unmapped keys
             return null;
         }
-
-
-
 
         private void HandleDeleteOption()
         {
@@ -483,6 +480,7 @@ namespace Superorganism.Screens
                     Entities = DecisionMaker.Entities,
                     GameProgressTime = gameplayScreen.GameStateManager.GameTime.TotalGameTime
                 },
+                GameState.CurrentMapName,
                 fileName
             );
 

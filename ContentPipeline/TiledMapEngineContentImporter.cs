@@ -125,6 +125,9 @@ namespace ContentPipeline
                         break;
                 }
             }
+
+            
+            result.MapFileName = Path.GetFileNameWithoutExtension(filename);
             return result;
         }
 

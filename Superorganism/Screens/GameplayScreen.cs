@@ -47,20 +47,7 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev5");
-
-            foreach (KeyValuePair<string, int> tilesetInfo in _map.TilesetFirstGid)
-            {
-                Tileset tileset = _content.Load<Tileset>($"Tileset/Maps/{tilesetInfo.Key}");
-                tileset.FirstGid = tilesetInfo.Value;
-                _map.Tilesets.Add(tileset.Name, tileset);
-            }
-
-            _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
-            MapHelper.TileSize = _map.TileWidth;
-            MapHelper.MapWidth = _map.Width;
-            MapHelper.MapHeight = _map.Height;
-
+            string mapFileName = "Tileset/Maps/TestMapRev5"; // Default map
             GameStateInfo loadedState = new();
 
             if (SaveFileToLoad != null)
@@ -75,7 +62,7 @@ namespace Superorganism.Screens
 
                     if (File.Exists(savePath))
                     {
-                        loadedState = GameStateLoader.LoadGameState(SaveFileToLoad);
+                        (loadedState, mapFileName) = GameStateLoader.LoadGameState(SaveFileToLoad);
                     }
                 }
                 catch (Exception ex)
@@ -83,6 +70,20 @@ namespace Superorganism.Screens
                     System.Diagnostics.Debug.WriteLine($"Failed to load save file: {ex.Message}");
                 }
             }
+
+            _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev5");
+
+            foreach (KeyValuePair<string, int> tilesetInfo in _map.TilesetFirstGid)
+            {
+                Tileset tileset = _content.Load<Tileset>($"Tileset/Maps/{tilesetInfo.Key}");
+                tileset.FirstGid = tilesetInfo.Value;
+                _map.Tilesets.Add(tileset.Name, tileset);
+            }
+
+            _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
+            MapHelper.TileSize = _map.TileWidth;
+            MapHelper.MapWidth = _map.Width;
+            MapHelper.MapHeight = _map.Height;
 
             GameStateManager = new GameStateManager(
                 ScreenManager.Game,
@@ -95,6 +96,8 @@ namespace Superorganism.Screens
             );
 
             GameState.Initialize(GameStateManager);
+            GameState.CurrentMapName = GameState.CurrentMap.MapFileName;
+
 
 
             // Initialize UI and other components

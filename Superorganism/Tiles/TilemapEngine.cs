@@ -30,6 +30,11 @@ namespace Superorganism.Tiles
         public int TileHeight { get; set; }
 
         /// <summary>
+        /// The Map's filename
+        /// </summary>
+        public string MapFileName { get; set; }
+
+        /// <summary>
         /// The Map's properties
         /// </summary>
         public Dictionary<string, string> Properties { get; set; }

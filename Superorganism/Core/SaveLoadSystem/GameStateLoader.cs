@@ -16,22 +16,20 @@ namespace Superorganism.Core.SaveLoadSystem
             Converters = { new Vector2Converter() }
         };
 
-        public static GameStateInfo LoadGameState(string saveFile)
+        public static (GameStateInfo state, string mapFileName) LoadGameState(string saveFile)
         {
             string savePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "Superorganism", "Saves", saveFile);
-
             try
             {
                 string jsonContent = File.ReadAllText(savePath);
                 GameStateContent savedState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, SerializerOptions);
-
-                return RestoreGameState(savedState);
+                return (RestoreGameState(savedState), savedState.MapFileName);
             }
             catch (Exception)
             {
-                return CreateNewGameState();
+                return (CreateNewGameState(), "Tileset/Maps/TestMapRev5");
             }
         }
 
