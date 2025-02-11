@@ -404,7 +404,7 @@ namespace Superorganism.AI
                                             newGroundY = Math.Max(leftGroundY, rightGroundY) -
                                                          (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
 
-                                            if (Math.Abs(position.Y - newGroundY) < 15)
+                                            if (Math.Abs(position.Y - newGroundY) < 5)
                                             {
                                                 position.Y = newGroundY;
                                                 isOnGround = true;
@@ -463,8 +463,8 @@ namespace Superorganism.AI
                         // Clamp velocity
                         velocity.X = MathHelper.Clamp(velocity.X, -movementSpeed * 2, movementSpeed * 2);
 
-                        Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
-                        position = newPosition;
+                        //Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
+                        //position = newPosition;
 
                         foreach (Entity entity in Entities)
                         {
@@ -1099,7 +1099,7 @@ namespace Superorganism.AI
                     {
 
                     }
-                    if (x == 63 && y == 19)
+                    if (x == 74 && y == 19)
                     {
 
                     }

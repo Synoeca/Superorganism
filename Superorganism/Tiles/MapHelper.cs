@@ -464,9 +464,9 @@ namespace Superorganism.Tiles
             {
                 for (int x = proposedLeftTile; x <= proposedRightTile && !hasCollisionAtProposedPos; x++)
                 {
-                    if (x == 86)
+                    if (x == 74)
                     {
-                        if (y == 18)
+                        if (y == 19)
                         {
 
                         }
@@ -509,6 +509,10 @@ namespace Superorganism.Tiles
         private static bool CheckBlockingCollision(Layer layer, int x, int y, ICollisionBounding collisionBounding,
             bool isOnDiagonalTile)
         {
+            if (x == 74 && y == 19)
+            {
+
+            }
             int tileId = layer.GetTile(x, y);
             if (tileId == 0) return false;
 
@@ -519,7 +523,12 @@ namespace Superorganism.Tiles
             {
                 if (properties.TryGetValue("isDiagonal", out string isDiagonal) && isSolid == "true")
                 {
-                    BoundingRectangle tileRec = new((float)x * TileSize, (float)y * TileSize, TileSize, TileSize);
+                    BoundingRectangle tileRec = new(
+                        (float)x * TileSize - 1, 
+                        (float)y * TileSize, 
+                        TileSize, 
+                        TileSize
+                    );
                     if (collisionBounding is BoundingRectangle br)
                     {
                         if (br.CollidesWith(tileRec))
@@ -628,7 +637,7 @@ namespace Superorganism.Tiles
             {
                 
             }
-            if (x == 63 && y == 20)
+            if (x == 74 && y == 19)
             {
 
             }
@@ -643,21 +652,23 @@ namespace Superorganism.Tiles
                     int.TryParse(slopeLeftStr, out int slopeLeft) &&
                     int.TryParse(slopeRightStr, out int slopeRight))
                 {
-                    float tileLeft = x * TileSize;
-                    float tileRight = tileLeft + TileSize;
-                    float tileBottom = (y + 1) * TileSize;
                     float slope = (slopeRight - slopeLeft) / (float)TileSize;
 
                     if (collisionBounding is BoundingRectangle brec)
                     {
-                        BoundingRectangle tileRec = new((float)x * TileSize, (float)y * TileSize, TileSize, TileSize);
+                        BoundingRectangle tileRec = new(
+                            (float)x * TileSize - 2, 
+                            (float)y * TileSize, 
+                            TileSize, 
+                            TileSize
+                        );
                         if (brec.CollidesWith(tileRec))
                         {
-                            if (brec.Right >= tileLeft && brec.Left <= tileRight)
+                            if (brec.Right >= tileRec.Left && brec.Left <= tileRec.Right)
                             {
-                                float distanceFromLeft = collisionBounding.Center.X - tileLeft;
+                                float distanceFromLeft = collisionBounding.Center.X - tileRec.Left;
 
-                                float slopeY = tileBottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
+                                float slopeY = tileRec.Bottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
 
                                 //if (collisionBounding is BoundingRectangle br)
                                 //{
