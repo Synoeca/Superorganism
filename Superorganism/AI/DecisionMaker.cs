@@ -757,8 +757,8 @@ namespace Superorganism.AI
                         // Clamp velocity
                         velocity.X = MathHelper.Clamp(velocity.X, -chaseSpeed * 2, chaseSpeed * 2);
 
-                        Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
-                        position = newPosition;
+                        //Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
+                        //position = newPosition;
 
                         break;
                     }

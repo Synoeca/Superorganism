@@ -152,17 +152,19 @@ public class EntityManager
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        int count = 40;
+        int count = 1;
         Random rand = new();
 
         for (int i = 0; i < count; i++)
         {
-            int enemyX = 10 + rand.Next(150); // Spread between tile 60-100
-            int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
+            //int enemyX = 10 + rand.Next(150); // Spread between tile 60-100
+            //int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
+
             //int enemyX = 72 ; // Spread between tile 60-100
             //int enemyY = 10 ;   // Spread between tile 5-12
             AntEnemy antEnemy = new();
-            antEnemy.InitializeAtTile(enemyX, enemyY);
+            //antEnemy.InitializeAtTile(enemyX, enemyY);
+            antEnemy.InitializeAtTile(73, 18);
             _antEnemies.Add(antEnemy);
             //_antEnemies[i].InitializeAtTile(enemyX, enemyY);
         }
