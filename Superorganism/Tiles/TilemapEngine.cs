@@ -79,6 +79,15 @@ using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Superorganism.Tiles
 {
+    /// <summary>
+    /// A class representing a tile in a Tiled tileset
+    /// </summary>
+    /// <remarks>
+    /// A tile is the basic building block of a tilemap. Each tile has a unique ID within its tileset,
+    /// and can have additional properties such as type, probability for random placement, and custom
+    /// properties. Tiles can be used to create the visual and functional elements of a map, from
+    /// terrain and decorations to special gameplay elements.
+    /// </remarks>
     public class Tile
     {
         /// <summary>
@@ -193,7 +202,7 @@ namespace Superorganism.Tiles
         /// <returns>The string value of the property</returns>
         public string GetStringProperty(string propertyName, string defaultValue = "")
         {
-            return Properties.TryGetValue(propertyName, out string value) ? value : defaultValue;
+            return Properties.GetValueOrDefault(propertyName, defaultValue);
         }
 
         /// <summary>
@@ -212,24 +221,64 @@ namespace Superorganism.Tiles
     /// </summary>
     public class Tileset
     {
+        /// <summary>
+        /// The name of the tileset
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// The first tile ID in the tileset
+        /// </summary>
         public int FirstGid { get; set; }
+
+        /// <summary>
+        /// The width of each tile
+        /// </summary>
         public int TileWidth { get; set; }
+
+        /// <summary>
+        /// The height of each tile
+        /// </summary>
         public int TileHeight { get; set; }
+
+        /// <summary>
+        /// The spacing between tiles
+        /// </summary>
         public int Spacing { get; set; }
+
+        /// <summary>
+        /// The margin around tiles
+        /// </summary>
         public int Margin { get; set; }
 
+        /// <summary>
+        /// Dictionary of all tiles in this tileset, indexed by their local ID (index - FirstGid)
+        /// </summary>
         public Dictionary<string, string> Properties { get; set; } = new();
-
 
         /// <summary>
         /// Dictionary of all tiles in this tileset, indexed by their local ID (index - FirstGid)
         /// </summary>
         public Dictionary<int, Tile> Tiles { get; set; } = new();
 
+        /// <summary>
+        /// The image source path for the tileset
+        /// </summary>
         public string Image;
+
+        /// <summary>
+        /// The texture containing all tiles
+        /// </summary>
         protected Texture2D Texture;
+
+        /// <summary>
+        /// The width of the tileset texture
+        /// </summary>
         protected int TexWidth;
+
+        /// <summary>
+        /// The height of the tileset texture
+        /// </summary>
         protected int TexHeight;
 
         /// <summary>
@@ -321,7 +370,7 @@ namespace Superorganism.Tiles
         }
 
         /// <summary>
-        /// Gets the texture of this Tileset
+        /// The texture containing the tileset image
         /// </summary>
         public Texture2D TileTexture
         {
@@ -369,30 +418,65 @@ namespace Superorganism.Tiles
     /// </summary>
     public class Layer
     {
-        /*
-         * High-order bits in the tile data indicate tile flipping
-         */
-        private const uint FlippedHorizontallyFlag = 0x80000000;
-        private const uint FlippedVerticallyFlag = 0x40000000;
-        private const uint FlippedDiagonallyFlag = 0x20000000;
+        // Bit flags for tile flipping in TMX format
+        // These are stored in the high bits of the tile data
+        private const uint FlippedHorizontallyFlag = 0x80000000;  // Leftmost bit
+        private const uint FlippedVerticallyFlag = 0x40000000;    // Second from left
+        private const uint FlippedDiagonallyFlag = 0x20000000;    // Third from left
 
-        internal const byte HorizontalFlipDrawFlag = 1;
-        internal const byte VerticalFlipDrawFlag = 2;
-        internal const byte DiagonallyFlipDrawFlag = 4;
+        // Internal flags used for rendering flipped tiles
+        internal const byte HorizontalFlipDrawFlag = 1;   // Flip along vertical axis
+        internal const byte VerticalFlipDrawFlag = 2;     // Flip along horizontal axis
+        internal const byte DiagonallyFlipDrawFlag = 4;   // Rotate 90 degrees
 
+        // Layer properties stored as key-value pairs
         public SortedList<string, string> Properties = new();
+
+        // Structure to cache texture and position information for each tile
         internal struct TileInfo
         {
             public Texture2D Texture;
             public Rectangle Rectangle;
         }
 
-        public string Name;
-        public int Width, Height;
-        public float Opacity = 1;
-        public int[] Tiles;
-        public byte[] FlipAndRotate;
-        internal TileInfo[] TileInfoCache;
+        /// <summary>
+        /// The name of the layer as defined in Tiled
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The width of the layer in tiles
+        /// </summary>
+        public int Width { get; set; }
+
+        /// <summary>
+        /// The height of the layer in tiles
+        /// </summary>
+        public int Height { get; set; }
+
+        /// <summary>
+        /// The opacity of the layer (0.0 to 1.0, where 0 is fully transparent and 1 is fully opaque)
+        /// </summary>
+        public float Opacity { get; set; } = 1;
+
+        /// <summary>
+        /// Array containing the global tile IDs for each position in the layer.
+        /// The array length is Width * Height, with tiles stored in row-major order
+        /// </summary>
+        public int[] Tiles { get; set; }
+
+        /// <summary>
+        /// Array containing flip and rotation flags for each tile.
+        /// Corresponds one-to-one with the Tiles array
+        /// Each byte stores flags for horizontal, vertical, and diagonal flipping
+        /// </summary>
+        public byte[] FlipAndRotate { get; set; }
+
+        /// <summary>
+        /// Cache of texture and rectangle information for each tile type.
+        /// Used to optimize rendering by storing pre-calculated tile source rectangles
+        /// </summary>
+        internal TileInfo[] TileInfoCache { get; set; }
 
         /// <summary>
         /// Loads the layer from a TMX file
@@ -701,15 +785,46 @@ namespace Superorganism.Tiles
     /// </summary>
     public class ObjectGroup
     {
-        public SortedList<string, Object> Objects = new();
-        public SortedList<string, string> Properties = new();
+        /// <summary>
+        /// A dictionary of objects in this group, keyed by their names.
+        /// If duplicate names exist, they are suffixed with a number
+        /// </summary>
+        public SortedList<string, Object> Objects { get; set; } = new();
 
-        public string Name;
-        public int Width;
-        public int Height;
-        public int X;
-        public int Y;
-        private float _opacity = 1;
+        /// <summary>
+        /// Custom properties defined for this object group in Tiled
+        /// </summary>
+        public SortedList<string, string> Properties { get; set; } = new();
+
+        /// <summary>
+        /// The name of the object group as defined in Tiled
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The width of the object group in pixels
+        /// </summary>
+        public int Width { get; set; }
+
+        /// <summary>
+        /// The height of the object group in pixels
+        /// </summary>
+        public int Height { get; set; }
+
+        /// <summary>
+        /// The X coordinate of the object group's position in pixels
+        /// </summary>
+        public int X { get; set; }
+
+        /// <summary>
+        /// The Y coordinate of the object group's position in pixels
+        /// </summary>
+        public int Y { get; set; }
+
+        /// <summary>
+        /// The opacity of the object group (0.0 to 1.0, where 0 is fully transparent and 1 is fully opaque)
+        /// </summary>
+        public float Opacity { get; set; } = 1;
 
         /// <summary>
         /// Loads the object group from a TMX file
@@ -733,7 +848,7 @@ namespace Superorganism.Tiles
             if (reader.GetAttribute("y") != null)
                 result.Y = int.Parse(reader.GetAttribute("y") ?? throw new InvalidOperationException());
             if (reader.GetAttribute("opacity") != null)
-                result._opacity = float.Parse(reader.GetAttribute("opacity") ?? throw new InvalidOperationException(), NumberStyles.Any, ci);
+                result.Opacity = float.Parse(reader.GetAttribute("opacity") ?? throw new InvalidOperationException(), NumberStyles.Any, ci);
 
             while (!reader.EOF)
             {
@@ -800,7 +915,7 @@ namespace Superorganism.Tiles
             {
                 if (objects.TileTexture != null)
                 {
-                    objects.Draw(batch, rectangle, new Vector2(X * result.TileWidth, Y * result.TileHeight), viewportPosition, _opacity);
+                    objects.Draw(batch, rectangle, new Vector2(X * result.TileWidth, Y * result.TileHeight), viewportPosition, Opacity);
                 }
             }
         }
@@ -817,14 +932,55 @@ namespace Superorganism.Tiles
     /// </remarks>
     public class Object
     {
-        public SortedList<string, string> Properties = new();
+        /// <summary>
+        /// Custom properties defined for this object in Tiled
+        /// </summary>
+        public SortedList<string, string> Properties { get; set; } = new();
 
-        public string Name, Image;
-        public int Width, Height, X, Y;
+        /// <summary>
+        /// The name of the object as defined in Tiled
+        /// </summary>
+        public string Name { get; set; }
 
-        protected Texture2D Texture;
-        protected int TexWidth;
-        protected int TexHeight;
+        /// <summary>
+        /// The path to the image file associated with this object, if any
+        /// </summary>
+        public string Image { get; set; }
+
+        /// <summary>
+        /// The width of the object in pixels
+        /// </summary>
+        public int Width { get; set; }
+
+        /// <summary>
+        /// The height of the object in pixels
+        /// </summary>
+        public int Height { get; set; }
+
+        /// <summary>
+        /// The X coordinate of the object's position in pixels
+        /// </summary>
+        public int X { get; set; }
+
+        /// <summary>
+        /// The Y coordinate of the object's position in pixels
+        /// </summary>
+        public int Y { get; set; }
+
+        /// <summary>
+        /// The loaded texture for this object
+        /// </summary>
+        protected Texture2D Texture { get; set; }
+
+        /// <summary>
+        /// The width of the loaded texture in pixels
+        /// </summary>
+        protected int TexWidth { get; set; }
+
+        /// <summary>
+        /// The height of the loaded texture in pixels
+        /// </summary>
+        protected int TexHeight { get; set; }
 
         /// <summary>
         /// The texture of the Object
@@ -940,15 +1096,53 @@ namespace Superorganism.Tiles
         }
     }
 
+    /// <summary>
+    /// A class representing a group in a Tiled map
+    /// </summary>
+    /// <remarks>
+    /// Groups can contain layers and object groups, allowing for organizational hierarchy 
+    /// within the map structure. Groups can be used to collectively manage multiple layers 
+    /// and object groups, such as applying shared properties or handling them as a single 
+    /// unit for rendering and manipulation.
+    /// </remarks>
     public class Group
     {
+        /// <summary>
+        /// Collection of object groups within this group, keyed by their names
+        /// </summary>
         public SortedList<string, ObjectGroup> ObjectGroups { get; set; }
+
+        /// <summary>
+        /// Collection of layers within this group, keyed by their names
+        /// </summary>
         public SortedList<string, Layer> Layers { get; set; }
+
+        /// <summary>
+        /// Custom properties defined for this group in Tiled
+        /// </summary>
         public Dictionary<string, string> Properties { get; set; }
+
+        /// <summary>
+        /// The name of the group as defined in Tiled
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// The unique identifier of the group
+        /// </summary>
         public int Id { get; set; }
+
+        /// <summary>
+        /// Whether the group is locked for editing in Tiled
+        /// </summary>
         public bool Locked { get; set; }
 
+        /// <summary>
+        /// Loads a group and its contents from a TMX file
+        /// </summary>
+        /// <param name="reader">The XML reader currently processing the TMX file</param>
+        /// <param name="filename">The name of the TMX file being loaded</param>
+        /// <returns>An initialized Group containing loaded layers and object groups</returns>
         public Group Load(XmlReader reader, string filename)
         {
             Group group = new()
@@ -972,7 +1166,7 @@ namespace Superorganism.Tiles
                                 using (XmlReader st = reader.ReadSubtree())
                                 {
                                     st.Read();
-                                    LoadProperties(st, group.Properties);
+                                    XmlParsingUtilities.LoadProperties(st, group.Properties);
                                 }
                                 break;
 
@@ -1015,6 +1209,18 @@ namespace Superorganism.Tiles
             return group;
         }
 
+        /// <summary>
+        /// Draws all contents of the group
+        /// </summary>
+        /// <param name="result">The TiledMap this group belongs to</param>
+        /// <param name="batch">The SpriteBatch to draw with</param>
+        /// <param name="visibleArea">The portion of the map currently visible</param>
+        /// <param name="viewportPosition">The position of the viewport in the world</param>
+        /// <param name="tilesets">Collection of tilesets used by the map</param>
+        /// <param name="rectangle">The viewport bounds</param>
+        /// <param name="cameraPosition">The current camera position</param>
+        /// <param name="tileWidth">The width of a single tile</param>
+        /// <param name="tileHeight">The height of a single tile</param>
         public void Draw(TiledMap result, SpriteBatch batch, Rectangle visibleArea, Vector2 viewportPosition, SortedList<string, Tileset> tilesets, Rectangle rectangle, Vector2 cameraPosition, int tileWidth, int tileHeight)
         {
             foreach (ObjectGroup objectGroup in ObjectGroups.Values)
@@ -1025,23 +1231,6 @@ namespace Superorganism.Tiles
             foreach (Layer layer in Layers.Values)
             {
                 layer.Draw(batch, tilesets.Values, visibleArea, cameraPosition, tileWidth, tileHeight);
-                //layer.Draw(batch, tilesets.Values, visibleArea, cameraPosition, TileWidth, TileHeight);
-            }
-        }
-
-        private void LoadProperties(XmlReader reader, Dictionary<string, string> properties)
-        {
-            while (reader.Read())
-            {
-                if (reader.NodeType == XmlNodeType.Element && reader.Name == "property")
-                {
-                    string name = reader.GetAttribute("name");
-                    string value = reader.GetAttribute("value");
-                    if (!string.IsNullOrEmpty(name))
-                    {
-                        properties[name] = value ?? string.Empty;
-                    }
-                }
             }
         }
     }
@@ -1059,12 +1248,12 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The Map's Layers
         /// </summary>
-        public SortedList<string, Layer> Layers = new();
+        public SortedList<string, Layer> Layers { get; set; } = new();
 
         /// <summary>
         /// The Map's Object Groups
         /// </summary>
-        public SortedList<string, ObjectGroup> ObjectGroups = new();
+        public SortedList<string, ObjectGroup> ObjectGroups { get; set; } = new();
 
         /// <summary>
         /// The Map's Groups
@@ -1074,32 +1263,32 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The Map's properties
         /// </summary>
-        public SortedList<string, string> Properties = new();
+        public SortedList<string, string> Properties { get; set; } = new();
 
         /// <summary>
         /// The Map's width and height
         /// </summary>
-        public int Width;
+        public int Width { get; set; }
 
         /// <summary>
         /// The Map's width and height
         /// </summary>
-        public int Height;
+        public int Height { get; set; }
 
         /// <summary>
         /// The Map's tile width and height
         /// </summary>
-        public int TileWidth;
+        public int TileWidth { get; set; }
 
         /// <summary>
         /// The Map's tile width and height
         /// </summary>
-        public int TileHeight;
+        public int TileHeight { get; set; }
 
         /// <summary>
         /// The tileset's first global id
         /// </summary>
-        public Dictionary<string, int> TilesetFirstGid { get; set; }
+        public Dictionary<string, int> TilesetFirstGid { get; set; } = new();
 
         /// <summary>
         /// Loads a TMX file into a Map object
