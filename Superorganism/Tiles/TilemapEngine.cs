@@ -69,11 +69,17 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using ContentPipeline;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Graphics;
+using SharpDX;
+using Color = Microsoft.Xna.Framework.Color;
 using CompressionMode = System.IO.Compression.CompressionMode;
 using GZipStream = System.IO.Compression.GZipStream;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Superorganism.Tiles
 {
@@ -937,10 +943,94 @@ namespace Superorganism.Tiles
     {
         public SortedList<string, ObjectGroup> ObjectGroups { get; set; }
         public SortedList<string, Layer> Layers { get; set; }
-        public SortedList<string, string> Properties { get; set; }
+        public Dictionary<string, string> Properties { get; set; }
         public string Name { get; set; }
         public int Id { get; set; }
         public bool Locked { get; set; }
+
+        public Group Load(XmlReader reader, string filename)
+        {
+            Group group = new()
+            {
+                ObjectGroups = new SortedList<string, ObjectGroup>(),
+                Layers = new SortedList<string, Layer>(),
+                Properties = new Dictionary<string, string>()
+            };
+
+            group.Id = ParseIntAttribute(reader, "id");
+            group.Name = reader.GetAttribute("name") ?? string.Empty;
+            group.Locked = ParseBoolAttribute(reader, "locked");
+
+            while (!reader.EOF)
+            {
+                switch (reader.NodeType)
+                {
+                    case XmlNodeType.Element:
+                        switch (reader.Name)
+                        {
+                            case "properties":
+                                using (XmlReader st = reader.ReadSubtree())
+                                {
+                                    st.Read();
+                                    LoadProperties(st, group.Properties);
+                                }
+                                break;
+
+                            case "layer":
+                                using (XmlReader layerReader = reader.ReadSubtree())
+                                {
+                                    //layerReader.Read();
+                                    //context.Logger.LogMessage("Loading layer...");
+                                    //Layer layer = LoadBasicLayer(layerReader, filename, context);
+                                    //if (layer != null)
+                                    //{
+                                    //    group.Layers[layer.Name] = layer;
+                                    //    context.Logger.LogMessage($"Loaded layer: {layer.Name} ({layer.Width}x{layer.Height})");
+                                    //}
+                                    //else
+                                    //{
+                                    //    context.Logger.LogMessage("Couldn't load layer!");
+                                    //}
+                                    using XmlReader st = reader.ReadSubtree();
+                                    st.Read();
+                                    Layer layer = Layer.Load(st);
+                                    if (null != layer)
+                                    {
+                                        //result.Layers.Add(layer.Name, layer);
+                                        group.Layers[layer.Name] = layer;
+                                    }
+                                }
+                                break;
+
+                            case "objectgroup":
+                                using (XmlReader st = reader.ReadSubtree())
+                                {
+                                    st.Read();
+                                    //ObjectGroup objectGroup = Load(st, filename);
+                                    ObjectGroup objectGroup = new();
+                                    objectGroup = ObjectGroup.Load(st);
+                                    if (objectGroup != null)
+                                    {
+                                        group.ObjectGroups[objectGroup.Name] = objectGroup;
+                                        //context.Logger.LogMessage($"Added object group: {objectGroup.Name}");
+                                    }
+                                }
+                                break;
+                        }
+                        break;
+                    case XmlNodeType.EndElement:
+                        if (reader.Name == "group")
+                        {
+                            return group;
+                        }
+                        break;
+                }
+
+                reader.Read();
+            }
+
+            return group;
+        }
 
         public void Draw(TiledMap result, SpriteBatch batch, Rectangle visibleArea, Vector2 viewportPosition, SortedList<string, Tileset> tilesets, Rectangle rectangle, Vector2 cameraPosition, int tileWidth, int tileHeight)
         {
@@ -954,6 +1044,90 @@ namespace Superorganism.Tiles
                 layer.Draw(batch, tilesets.Values, visibleArea, cameraPosition, tileWidth, tileHeight);
                 //layer.Draw(batch, tilesets.Values, visibleArea, cameraPosition, TileWidth, TileHeight);
             }
+        }
+
+        private void LoadProperties(XmlReader reader, Dictionary<string, string> properties)
+        {
+            while (reader.Read())
+            {
+                if (reader.NodeType == XmlNodeType.Element && reader.Name == "property")
+                {
+                    string name = reader.GetAttribute("name");
+                    string value = reader.GetAttribute("value");
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        properties[name] = value ?? string.Empty;
+                        //context.Logger.LogMessage($"Added property: {name} = {value}");
+                    }
+                }
+            }
+        }
+
+        private static int ParseIntAttribute(XmlReader reader, string attributeName, int defaultValue = 0)
+        {
+            string value = reader.GetAttribute(attributeName);
+            if (string.IsNullOrEmpty(value))
+            {
+                return defaultValue;
+            }
+
+            if (int.TryParse(value, out int result))
+            {
+                return result;
+            }
+            else
+            {
+                throw new InvalidOperationException($"Failed to parse {attributeName} attribute. Raw value: '{value}'");
+            }
+        }
+
+        private static float ParseFloatAttribute(XmlReader reader, string attributeName, float defaultValue)
+        {
+            string value = reader.GetAttribute(attributeName);
+            return string.IsNullOrEmpty(value) ? defaultValue :
+                float.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
+        }
+
+        private static bool ParseBoolAttribute(XmlReader reader, string attributeName, bool defaultValue = false)
+        {
+            string value = reader.GetAttribute(attributeName);
+            if (string.IsNullOrEmpty(value)) return defaultValue;
+
+            // Handle numeric boolean values (1 = true, 0 = false)
+            if (value == "1") return true;
+            if (value == "0") return false;
+
+            // Fall back to standard boolean parsing for "true"/"false" strings
+            return bool.Parse(value);
+        }
+
+        private static Color? ParseColor(string colorStr)
+        {
+            if (string.IsNullOrEmpty(colorStr))
+                return null;
+
+            if (colorStr.StartsWith("#"))
+                colorStr = colorStr.Substring(1);
+
+            if (colorStr.Length == 6)
+            {
+                // RGB format
+                int r = Convert.ToInt32(colorStr.Substring(0, 2), 16);
+                int g = Convert.ToInt32(colorStr.Substring(2, 2), 16);
+                int b = Convert.ToInt32(colorStr.Substring(4, 2), 16);
+                return new Color(r, g, b);
+            }
+            else if (colorStr.Length == 8)
+            {
+                // ARGB format
+                int a = Convert.ToInt32(colorStr.Substring(0, 2), 16);
+                int r = Convert.ToInt32(colorStr.Substring(2, 2), 16);
+                int g = Convert.ToInt32(colorStr.Substring(4, 2), 16);
+                int b = Convert.ToInt32(colorStr.Substring(6, 2), 16);
+                return new Color(r, g, b, a);
+            }
+
+            return null;
         }
     }
 
@@ -980,7 +1154,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The Map's Groups
         /// </summary>
-        public Dictionary<string, Group> Groups { get; set; }
+        public Dictionary<string, Group> Groups { get; set; } = new();
 
         /// <summary>
         /// The Map's properties
@@ -1000,7 +1174,12 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The Map's tile width and height
         /// </summary>
-        public int TileWidth, TileHeight;
+        public int TileWidth;
+
+        /// <summary>
+        /// The Map's tile width and height
+        /// </summary>
+        public int TileHeight;
 
         /// <summary>
         /// The tileset's first global id
@@ -1069,6 +1248,16 @@ namespace Superorganism.Tiles
                                         st.Read();
                                         ObjectGroup objectgroup = ObjectGroup.Load(st);
                                         result.ObjectGroups.Add(objectgroup.Name, objectgroup);
+                                    }
+                                    break;
+                                case "group":
+                                    using (XmlReader st = reader.ReadSubtree())
+                                    {
+                                        st.Read();
+                                        //Group group = LoadGroup(st, filename);
+                                        Group group = new();
+                                        group = group.Load(st, filename);
+                                        result.Groups.Add(group.Name, group);
                                     }
                                     break;
                                 case "properties":
@@ -1155,6 +1344,11 @@ namespace Superorganism.Tiles
             foreach (ObjectGroup objectGroup in ObjectGroups.Values)
             {
                 objectGroup.Draw(this, batch, visibleArea, cameraPosition);
+            }
+
+            foreach (Group group in Groups.Values)
+            {
+                group.Draw(this, batch, visibleArea, cameraPosition, Tilesets, visibleArea, cameraPosition, TileWidth, TileHeight);
             }
         }
     }
