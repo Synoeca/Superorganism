@@ -196,13 +196,16 @@ namespace Superorganism.AI
                         // Update position
                         Vector2 newPosition = position + velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
+                        bool hitsDiagonal = false;
+
                         // Check ground collision before applying position update
                         float groundY = MapHelper.GetGroundYPosition(
                             GameState.CurrentMap,
                             newPosition.X,
                             position.Y,
                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                            collisionBounding
+                            collisionBounding,
+                            ref hitsDiagonal
                         );
 
                         if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
@@ -308,9 +311,12 @@ namespace Superorganism.AI
                         else
                         {
                             float newPosY = 0;
+                            bool hasLeftDiagonal = false;
+                            bool hasRightDiagonal = false;
                             BoundingRectangle xTileRec = new();
                             // Check if the collision is with a diagonal tile
-                            if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, position, proposedXPosition, collisionBounding, ref velocity, ref newPosY, ref xTileRec))
+                            if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, position, proposedXPosition, collisionBounding, 
+                                    ref velocity, ref newPosY, ref xTileRec, ref hasLeftDiagonal, ref hasRightDiagonal))
                             {
                                 position.X = proposedXPosition.X;
                                 velocity.X = proposedXVelocity;
@@ -374,13 +380,17 @@ namespace Superorganism.AI
 
                                     if (velocity.Y > 0)
                                     {
+                                        bool leftHitsDiagonal = false;
+                                        bool rightHitsDiagonal = false;
+
                                         // Check ground at both bottom corners
                                         float leftGroundY = MapHelper.GetGroundYPosition(
                                             GameState.CurrentMap,
                                             position.X,
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                            collisionBounding
+                                            collisionBounding,
+                                            ref leftHitsDiagonal
                                         );
 
                                         float rightGroundY = MapHelper.GetGroundYPosition(
@@ -388,7 +398,8 @@ namespace Superorganism.AI
                                             position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                            collisionBounding
+                                            collisionBounding,
+                                            ref rightHitsDiagonal
                                         );
 
                                         float leftPos = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
@@ -602,9 +613,12 @@ namespace Superorganism.AI
                         else
                         {
                             float newPosY = 0;
+                            bool hasLeftDiagonal = false;
+                            bool hasRightDiagonal = false;
                             BoundingRectangle xTileRec = new();
                             // Check if the collision is with a diagonal tile
-                            if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, position, proposedXPosition, collisionBounding, ref velocity, ref newPosY, ref xTileRec))
+                            if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, position, proposedXPosition, collisionBounding, 
+                                    ref velocity, ref newPosY, ref xTileRec, ref hasLeftDiagonal, ref hasRightDiagonal))
                             {
                                 position.X = proposedXPosition.X;
                                 velocity.X = proposedXVelocity;
@@ -668,13 +682,17 @@ namespace Superorganism.AI
 
                                     if (velocity.Y > 0)
                                     {
+                                        bool leftHitsDiagonal = false;
+                                        bool rightHitsDiagonal = false;
+
                                         // Check ground at both bottom corners
                                         float leftGroundY = MapHelper.GetGroundYPosition(
                                             GameState.CurrentMap,
                                             position.X,
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                            collisionBounding
+                                            collisionBounding,
+                                            ref leftHitsDiagonal
                                         );
 
                                         float rightGroundY = MapHelper.GetGroundYPosition(
@@ -682,7 +700,8 @@ namespace Superorganism.AI
                                             position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                            collisionBounding
+                                            collisionBounding,
+                                            ref rightHitsDiagonal
                                         );
 
                                         float leftPos = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
@@ -828,9 +847,12 @@ namespace Superorganism.AI
                         else
                         {
                             float newPosY = 0;
+                            bool hasLeftDiagonal = false;
+                            bool hasRightDiagonal = false;
                             BoundingRectangle xTileRec = new();
                             // Check if the collision is with a diagonal tile
-                            if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, position, proposedXPosition, collisionBounding, ref velocity, ref newPosY, ref xTileRec))
+                            if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, position, proposedXPosition, collisionBounding, 
+                                    ref velocity, ref newPosY, ref xTileRec, ref hasLeftDiagonal, ref hasRightDiagonal))
                             {
                                 position.X = proposedXPosition.X;
                                 velocity.X = proposedXVelocity;
@@ -894,13 +916,17 @@ namespace Superorganism.AI
 
                                     if (velocity.Y > 0)
                                     {
+                                        bool leftHitsDiagonal = false;
+                                        bool rightHitsDiagonal = false;
+
                                         // Check ground at both bottom corners
                                         float leftGroundY = MapHelper.GetGroundYPosition(
                                             GameState.CurrentMap,
                                             position.X,
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                            collisionBounding
+                                            collisionBounding,
+                                            ref leftHitsDiagonal
                                         );
 
                                         float rightGroundY = MapHelper.GetGroundYPosition(
@@ -908,7 +934,8 @@ namespace Superorganism.AI
                                             position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                            collisionBounding
+                                            collisionBounding,
+                                            ref rightHitsDiagonal
                                         );
 
                                         float leftPos = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);

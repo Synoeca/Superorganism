@@ -59,13 +59,16 @@ namespace Superorganism.Entities
                 (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f,
                 MapHelper.GetMapWorldBounds().Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
 
+            bool hitsDiagonal = false;
+
             // Get ground level at new position
             float groundY = MapHelper.GetGroundYPosition(
                 GameState.CurrentMap,
                 newPosition.X,
                 Position.Y,
                 TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
-                CollisionBounding
+                CollisionBounding,
+                ref hitsDiagonal
             );
 
             // Handle ground collision

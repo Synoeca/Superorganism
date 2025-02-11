@@ -207,7 +207,7 @@ public class EntityManager
     private void InitializeFlies(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 50;
+        int count = 1;
         for (int i = 0; i < count; i++)
         {
             //_flies[i] = new Fly();

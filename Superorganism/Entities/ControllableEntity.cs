@@ -25,6 +25,8 @@ namespace Superorganism.Entities
 
 		public bool IsJumping { get; set; }
 
+        public bool IsCenterOnDiagonal { get; set; }
+
 		public float JumpStrength { get; set; } = -14f;
 
         public float JumpDiagonalPosY { get; set; } = 0;
@@ -160,7 +162,7 @@ namespace Superorganism.Entities
                 bool diagonal = false;
                 bool isCenterOnDiagonal = false;
                 bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, CollisionBounding, ref diagonal, ref isCenterOnDiagonal);
-
+                IsCenterOnDiagonal = isCenterOnDiagonal;
                 if (!hasGroundBelow || diagonal)
                 {
                     IsOnGround = false;
@@ -195,9 +197,12 @@ namespace Superorganism.Entities
             else
             {
                 float newPosY = 0;
+                bool hasLeftDiagonal = false;
+                bool hasRightDiagonal = false;
                 BoundingRectangle xTileRec = new();
                 // Check if the collision is with a diagonal tile
-                if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition, CollisionBounding, ref _velocity, ref newPosY, ref xTileRec))
+                if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition, 
+                        CollisionBounding, ref _velocity, ref newPosY, ref xTileRec, ref hasLeftDiagonal, ref hasRightDiagonal))
                 {
                     _position.X = proposedXPosition.X;
                     _velocity.X = proposedXVelocity;
@@ -244,30 +249,33 @@ namespace Superorganism.Entities
                 {
                     if (Math.Abs(_velocity.Y) > 0) // Moving downward
                     {
-                        if (CollisionBounding is BoundingCircle bc)
-                        {
-                            bc.Center = new Vector2(_position.X + bc.Radius, _position.Y + bc.Radius);
-                        }
-                        else if (CollisionBounding is BoundingRectangle br)
-                        {
-                            br.X = _position.X;
-                            if (Math.Abs(br.Y - _position.Y) < 2)
-                            {
-                                 br.Y = _position.Y;
-                            }
+                        //if (CollisionBounding is BoundingCircle bc)
+                        //{
+                        //    bc.Center = new Vector2(_position.X + bc.Radius, _position.Y + bc.Radius);
+                        //}
+                        //else if (CollisionBounding is BoundingRectangle br)
+                        //{
+                        //    br.X = _position.X;
+                        //    if (Math.Abs(br.Y - _position.Y) < 2)
+                        //    {
+                        //         br.Y = _position.Y;
+                        //    }
 
-                            br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
-                        }
+                        //    br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
+                        //}
 
                         if (_velocity.Y > 0)
                         {
+                            bool leftHitsDiagonal = false;
+                            bool rightHitsDiagonal = false;
                             // Check ground at both bottom corners
                             float leftGroundY = MapHelper.GetGroundYPosition(
                                 GameState.CurrentMap,
                                 _position.X,
                                 _position.Y,
                                 TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
-                                CollisionBounding
+                                CollisionBounding,
+                                ref leftHitsDiagonal
                             );
 
                             float rightGroundY = MapHelper.GetGroundYPosition(
@@ -275,7 +283,8 @@ namespace Superorganism.Entities
                                 _position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale),
                                 _position.Y,
                                 TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
-                                CollisionBounding
+                                CollisionBounding,
+                                ref rightHitsDiagonal
                             );
 
                             float leftPos = leftGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
@@ -284,14 +293,72 @@ namespace Superorganism.Entities
                             if (!isDiagonal)
                             { }
 
-                            float groundY = Math.Min(leftGroundY, rightGroundY);
+                            float groundY;
+
+                            if (!leftHitsDiagonal && rightHitsDiagonal)
+                            {
+
+                            }
+
+                            if (IsCenterOnDiagonal)
+                            {
+                                if (_velocity.X > 0)
+                                {
+
+                                }
+
+                                if (_velocity.X < 0)
+                                {
+
+                                }
+
+                                if (leftHitsDiagonal && rightHitsDiagonal)
+                                {
+                                    groundY = Math.Min(leftGroundY, rightGroundY);
+                                }
+                                else
+                                {
+                                    groundY = Math.Min(leftGroundY, rightGroundY);
+                                }
+                               
+                            }
+                            else
+                            {
+                                groundY = Math.Min(leftGroundY, rightGroundY);
+                            }
+
                             float newGroundY;
+                            float bottom = 0;
+                            if (CollisionBounding is BoundingRectangle br)
+                            {
+                                bottom = br.Bottom;
+                            }
+                            else if (CollisionBounding is BoundingCircle bcc)
+                            {
+                                bottom = bcc.Center.Y - bcc.Radius;
+                            }
                             if (groundY < _position.Y)
                             {
-                                newGroundY = Math.Max(leftGroundY, rightGroundY) -
-                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                if (IsCenterOnDiagonal)
+                                {
+                                    newGroundY = Math.Min(leftGroundY, rightGroundY) -
+                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                }
+                                else
+                                {
+                                    newGroundY = Math.Max(leftGroundY, rightGroundY) -
+                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                }
 
-                                if (Math.Abs(_position.Y - newGroundY) < 5)
+                                float distanceToNewGround = Math.Abs(_position.Y - newGroundY);
+
+                                //if (Math.Abs(_position.Y - newGroundY) < 5)
+                                //{
+                                //    _position.Y = newGroundY;
+                                //    IsOnGround = true;
+                                //    if (IsJumping) IsJumping = false;
+                                //}
+                                if (newGroundY - _position.Y < 5)
                                 {
                                     _position.Y = newGroundY;
                                     IsOnGround = true;
@@ -299,13 +366,19 @@ namespace Superorganism.Entities
                                 }
                                 else
                                 {
-                                    _position.Y = proposedYPosition.Y;
+                                     _position.Y = proposedYPosition.Y;
                                 }
 
-
+                                 
                             }
                             else
                             {
+                                if (leftHitsDiagonal && rightHitsDiagonal)
+                                {
+                                }
+                                if (!leftHitsDiagonal && rightHitsDiagonal)
+                                {
+                                }
                                 newGroundY = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                 if (JumpDiagonalPosY == 0 || newGroundY < JumpDiagonalPosY)
                                 {
@@ -319,7 +392,7 @@ namespace Superorganism.Entities
                                 }
                                 else
                                 {
-                                    _position.Y = newGroundY;
+                                     _position.Y = newGroundY;
                                     IsOnGround = true;
                                     if (IsJumping) IsJumping = false;
                                     _velocity.Y = 0;
@@ -349,6 +422,7 @@ namespace Superorganism.Entities
 
             // Clamp velocity
             _velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
+            IsCenterOnDiagonal = false;
         }
 
         private bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding,
@@ -495,7 +569,11 @@ namespace Superorganism.Entities
                         {
                             if (CollisionBounding.Center.X <= tileRect.Right && CollisionBounding.Center.X >= tileRect.Left)
                             {
-                                isCenterOnDiagonal = true;
+                                if (isDiagonalTile)
+                                {
+                                    isCenterOnDiagonal = true;
+                                }
+
                             }
                             else
                             {

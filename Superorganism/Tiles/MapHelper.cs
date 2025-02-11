@@ -185,12 +185,17 @@ namespace Superorganism.Tiles
             return false;
         }
 
-        public static float GetGroundYPosition(TiledMap map, float worldX, float positionY, float entityHeight, ICollisionBounding collisionBounding)
+        public static float GetGroundYPosition(TiledMap map, float worldX, float positionY, float entityHeight, ICollisionBounding collisionBounding, ref bool hitsDiagonalTile)
         {
             // Convert world X to tile X
             int tileX = (int)(worldX / TileSize);
             int tileY = (int)(positionY / TileSize);
             if (tileX < 0 || tileX >= MapWidth) return MapHeight * TileSize;
+
+            if (tileX == 85 && tileY == 18)
+            {
+
+            }
 
             // Search downward until we find ground
             for (; tileY < MapHeight; tileY++)
@@ -211,6 +216,7 @@ namespace Superorganism.Tiles
                         // Handle diagonal tiles
                         if (property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true")
                         {
+
                             // Check for slope properties
                             if (property.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
                                 property.TryGetValue("SlopeRight", out string slopeRightStr) &&
@@ -235,6 +241,7 @@ namespace Superorganism.Tiles
                                 {
                                     if (brec.Right >= tileLeft && brec.Left <= tileRight)
                                     {
+                                        hitsDiagonalTile = true;
                                         float distanceFromLeft = collisionBounding.Center.X - tileLeft;
 
                                         float slopeY = tileBottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
@@ -286,6 +293,7 @@ namespace Superorganism.Tiles
                             // Handle diagonal tiles
                             if (property.TryGetValue("isDiagonal", out string isDiagonal) && isDiagonal == "true")
                             {
+
                                 // Check for slope properties
                                 if (property.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
                                     property.TryGetValue("SlopeRight", out string slopeRightStr) &&
@@ -297,10 +305,14 @@ namespace Superorganism.Tiles
                                     float tileBottom = (tileY + 1) * TileSize;
                                     float slope = (slopeRight - slopeLeft) / (float)TileSize;
 
+                                    if (tileX == 99 && tileY == 13)
+                                    {
+
+                                    }
+
                                     // Check if worldX is within tile bounds
                                     if (worldX >= tileLeft && worldX <= tileRight)
                                     {
-                                        
                                         // Calculate Y position on slope at worldX
                                         float distanceFromLeft = collisionBounding.Center.X - tileLeft;
                                         if (distanceFromLeft > 64)
@@ -309,12 +321,28 @@ namespace Superorganism.Tiles
                                             distanceFromLeft = 64;
                                         }
                                         float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
-                                        if (slopeY > 1200 && slopeY < 1260)
+
+                                        //if (Math.Abs((positionY + entityHeight) - slopeY) < 2)
+                                        //{
+                                        //    hitsDiagonalTile = true;
+                                        //    //if (positionY + entityHeight < slopeY && collisionBounding.Center.X - tileLeft <= 64)
+                                        //    //{
+                                        //    //    //hitsDiagonalTile = true;
+                                        //    //}
+                                           
+                                        //}
+
+                                        if ((positionY) < slopeY)
                                         {
-
+                                            hitsDiagonalTile = true;
+                                            //if (positionY + entityHeight < slopeY && collisionBounding.Center.X - tileLeft <= 64)
+                                            //{
+                                            //    //hitsDiagonalTile = true;
+                                            //}
+                                            
                                         }
-
                                         return slopeY;
+                                        //return slopeY;
                                     }
                                 }
                                 //continue;
@@ -354,7 +382,8 @@ namespace Superorganism.Tiles
                    ?? new Dictionary<string, string>();
         }
         public static bool HandleDiagonalCollision(TiledMap map, Vector2 position, Vector2 proposedPosition,
-            ICollisionBounding collisionBounding, ref Vector2 velocity, ref float newPosY, ref BoundingRectangle xTileRec)
+            ICollisionBounding collisionBounding, ref Vector2 velocity, ref float newPosY, ref BoundingRectangle xTileRec,
+            ref bool hasLeftDiagonal, ref bool hasRightDiagonal)
         {
             // Calculate the range of tiles to check based on the collision bounds
             int leftTile, rightTile, topTile, bottomTile;
@@ -403,6 +432,14 @@ namespace Superorganism.Tiles
                     {
                         if (CheckDiagonalTile(layer, x, y, ref newPosY, collisionBounding, position, proposedPosition, ref xTileRec))
                         {
+                            if (x * TileSize < collisionBounding.Center.X)
+                            {
+                                hasLeftDiagonal = true;
+                            }
+                            else if (x * TileSize > collisionBounding.Center.X)
+                            {
+                                hasRightDiagonal = true;
+                            }
                             isOnDiagonalTile = true;
                             break;
                         }
@@ -414,6 +451,14 @@ namespace Superorganism.Tiles
                         {
                             if (CheckDiagonalTile(layer, x, y, ref newPosY, collisionBounding, position, proposedPosition, ref xTileRec))
                             {
+                                if (x * TileSize < collisionBounding.Center.X)
+                                {
+                                    hasLeftDiagonal = true;
+                                }
+                                else if (x * TileSize > collisionBounding.Center.X)
+                                {
+                                    hasRightDiagonal = true;
+                                }
                                 isOnDiagonalTile = true;
                                 break;
                             }
