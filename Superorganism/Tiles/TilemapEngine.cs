@@ -216,14 +216,6 @@ namespace Superorganism.Tiles
     /// </summary>
     public class Tileset
     {
-        /// <summary>
-        /// A class for holding a list of tile properties 
-        /// </summary>
-        /// <remarks>
-        /// Essentially, a &lt;string, string&gt; dictionary
-        /// </remarks>
-        public class TilePropertyList : Dictionary<string, string>;
-
         public string Name { get; set; }
         public int FirstGid { get; set; }
         public int TileWidth { get; set; }
@@ -231,12 +223,14 @@ namespace Superorganism.Tiles
         public int Spacing { get; set; }
         public int Margin { get; set; }
 
+        public Dictionary<string, string> Properties { get; set; } = new();
+
+
         /// <summary>
         /// Dictionary of all tiles in this tileset, indexed by their local ID (index - FirstGid)
         /// </summary>
         public Dictionary<int, Tile> Tiles { get; set; } = new();
 
-        public Dictionary<int, TilePropertyList> TileProperties = new();
         public string Image;
         protected Texture2D Texture;
         protected int TexWidth;
@@ -281,18 +275,52 @@ namespace Superorganism.Tiles
                                 result.Image = reader.GetAttribute("source");
                                 break;
                             case "tile":
-                                currentTileId = int.Parse(reader.GetAttribute("id") ?? throw new InvalidOperationException());
+                                int tileId = ParseIntAttribute(reader, "id");
+                                Tile tile = new()
+                                {
+                                    Id = tileId,
+                                    Type = reader.GetAttribute("type"),
+                                    Probability = ParseFloatAttribute(reader, "probability", 1.0f),
+                                    Properties = new Dictionary<string, string>()
+                                };
+
+                                // Read tile properties
+                                using (XmlReader tileReader = reader.ReadSubtree())
+                                {
+                                    while (tileReader.Read())
+                                    {
+                                        if (tileReader.NodeType == XmlNodeType.Element &&
+                                            tileReader.Name == "properties")
+                                        {
+                                            using XmlReader propsReader = tileReader.ReadSubtree();
+                                            while (propsReader.Read())
+                                            {
+                                                if (propsReader.NodeType == XmlNodeType.Element &&
+                                                    propsReader.Name == "property")
+                                                {
+                                                    string propName = propsReader.GetAttribute("name");
+                                                    string propValue = propsReader.GetAttribute("value");
+                                                    if (!string.IsNullOrEmpty(propName))
+                                                    {
+                                                        tile.Properties[propName] = propValue;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                result.Tiles[tileId] = tile;
                                 break;
                             case "property":
+                            {
+                                string propName = reader.GetAttribute("name");
+                                string propValue = reader.GetAttribute("value");
+                                if (!string.IsNullOrEmpty(propName))
                                 {
-                                    if (!result.TileProperties.TryGetValue(currentTileId, out TilePropertyList props))
-                                    {
-                                        props = new TilePropertyList();
-                                        result.TileProperties[currentTileId] = props;
-                                    }
-
-                                    props[reader.GetAttribute("name") ?? throw new InvalidOperationException()] = reader.GetAttribute("value");
+                                    result.Properties[propName] = propValue;
                                 }
+                            }
                                 break;
                         }
 
@@ -301,23 +329,6 @@ namespace Superorganism.Tiles
                         break;
                 }
             }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Gets the properties of the specified tile
-        /// </summary>
-        /// <param name="index">The index of the tile</param>
-        /// <returns>A TilePropertyList for the tile</returns>
-        public TilePropertyList GetTileProperties(int index)
-        {
-            index -= FirstGid;
-
-            if (index < 0)
-                return null;
-
-            TileProperties.TryGetValue(index, out TilePropertyList result);
 
             return result;
         }
@@ -363,6 +374,12 @@ namespace Superorganism.Tiles
             rect.Width = TileWidth;
             rect.Height = TileHeight;
             return true;
+        }
+
+        private static float ParseFloatAttribute(XmlReader reader, string attributeName, float defaultValue = 0.0f)
+        {
+            string value = reader.GetAttribute(attributeName);
+            return !string.IsNullOrEmpty(value) && float.TryParse(value, out float result) ? result : defaultValue;
         }
     }
 
