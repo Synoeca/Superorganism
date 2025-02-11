@@ -69,12 +69,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using ContentPipeline;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Graphics;
-using SharpDX;
 using Color = Microsoft.Xna.Framework.Color;
 using CompressionMode = System.IO.Compression.CompressionMode;
 using GZipStream = System.IO.Compression.GZipStream;
@@ -236,13 +232,6 @@ namespace Superorganism.Tiles
         protected int TexWidth;
         protected int TexHeight;
 
-        // Helper method to parse integer attributes
-        private static int ParseIntAttribute(XmlReader reader, string attributeName, int defaultValue = 0)
-        {
-            string value = reader.GetAttribute(attributeName);
-            return int.TryParse(value, out int result) ? result : defaultValue;
-        }
-
         /// <summary>
         /// Loads a Tileset from a TMX file
         /// </summary>
@@ -253,14 +242,12 @@ namespace Superorganism.Tiles
             Tileset result = new()
             {
                 Name = reader.GetAttribute("name"),
-                FirstGid = ParseIntAttribute(reader, "firstgid"),
-                TileWidth = ParseIntAttribute(reader, "tilewidth"),
-                TileHeight = ParseIntAttribute(reader, "tileheight"),
-                Margin = ParseIntAttribute(reader, "margin"),
-                Spacing = ParseIntAttribute(reader, "spacing")
+                FirstGid = XmlParsingUtilities.ParseIntAttribute(reader, "firstgid"),
+                TileWidth = XmlParsingUtilities.ParseIntAttribute(reader, "tilewidth"),
+                TileHeight = XmlParsingUtilities.ParseIntAttribute(reader, "tileheight"),
+                Margin = XmlParsingUtilities.ParseIntAttribute(reader, "margin"),
+                Spacing = XmlParsingUtilities.ParseIntAttribute(reader, "spacing")
             };
-
-            int currentTileId = -1;
 
             while (reader.Read())
             {
@@ -275,12 +262,12 @@ namespace Superorganism.Tiles
                                 result.Image = reader.GetAttribute("source");
                                 break;
                             case "tile":
-                                int tileId = ParseIntAttribute(reader, "id");
+                                int tileId = XmlParsingUtilities.ParseIntAttribute(reader, "id");
                                 Tile tile = new()
                                 {
                                     Id = tileId,
                                     Type = reader.GetAttribute("type"),
-                                    Probability = ParseFloatAttribute(reader, "probability", 1.0f),
+                                    Probability = XmlParsingUtilities.ParseFloatAttribute(reader, "probability", 1.0f),
                                     Properties = new Dictionary<string, string>()
                                 };
 
@@ -374,12 +361,6 @@ namespace Superorganism.Tiles
             rect.Width = TileWidth;
             rect.Height = TileHeight;
             return true;
-        }
-
-        private static float ParseFloatAttribute(XmlReader reader, string attributeName, float defaultValue = 0.0f)
-        {
-            string value = reader.GetAttribute(attributeName);
-            return !string.IsNullOrEmpty(value) && float.TryParse(value, out float result) ? result : defaultValue;
         }
     }
 
@@ -724,7 +705,10 @@ namespace Superorganism.Tiles
         public SortedList<string, string> Properties = new();
 
         public string Name;
-        public int Width, Height, X, Y;
+        public int Width;
+        public int Height;
+        public int X;
+        public int Y;
         private float _opacity = 1;
 
         /// <summary>
@@ -971,12 +955,11 @@ namespace Superorganism.Tiles
             {
                 ObjectGroups = new SortedList<string, ObjectGroup>(),
                 Layers = new SortedList<string, Layer>(),
-                Properties = new Dictionary<string, string>()
+                Properties = new Dictionary<string, string>(),
+                Id = XmlParsingUtilities.ParseIntAttribute(reader, "id"),
+                Name = reader.GetAttribute("name") ?? string.Empty,
+                Locked = XmlParsingUtilities.ParseBoolAttribute(reader, "locked")
             };
-
-            group.Id = ParseIntAttribute(reader, "id");
-            group.Name = reader.GetAttribute("name") ?? string.Empty;
-            group.Locked = ParseBoolAttribute(reader, "locked");
 
             while (!reader.EOF)
             {
@@ -994,26 +977,12 @@ namespace Superorganism.Tiles
                                 break;
 
                             case "layer":
-                                using (XmlReader layerReader = reader.ReadSubtree())
+                                using (XmlReader st = reader.ReadSubtree())
                                 {
-                                    //layerReader.Read();
-                                    //context.Logger.LogMessage("Loading layer...");
-                                    //Layer layer = LoadBasicLayer(layerReader, filename, context);
-                                    //if (layer != null)
-                                    //{
-                                    //    group.Layers[layer.Name] = layer;
-                                    //    context.Logger.LogMessage($"Loaded layer: {layer.Name} ({layer.Width}x{layer.Height})");
-                                    //}
-                                    //else
-                                    //{
-                                    //    context.Logger.LogMessage("Couldn't load layer!");
-                                    //}
-                                    using XmlReader st = reader.ReadSubtree();
                                     st.Read();
                                     Layer layer = Layer.Load(st);
                                     if (null != layer)
                                     {
-                                        //result.Layers.Add(layer.Name, layer);
                                         group.Layers[layer.Name] = layer;
                                     }
                                 }
@@ -1023,13 +992,10 @@ namespace Superorganism.Tiles
                                 using (XmlReader st = reader.ReadSubtree())
                                 {
                                     st.Read();
-                                    //ObjectGroup objectGroup = Load(st, filename);
-                                    ObjectGroup objectGroup = new();
-                                    objectGroup = ObjectGroup.Load(st);
+                                    ObjectGroup objectGroup = ObjectGroup.Load(st);
                                     if (objectGroup != null)
                                     {
                                         group.ObjectGroups[objectGroup.Name] = objectGroup;
-                                        //context.Logger.LogMessage($"Added object group: {objectGroup.Name}");
                                     }
                                 }
                                 break;
@@ -1074,77 +1040,9 @@ namespace Superorganism.Tiles
                     if (!string.IsNullOrEmpty(name))
                     {
                         properties[name] = value ?? string.Empty;
-                        //context.Logger.LogMessage($"Added property: {name} = {value}");
                     }
                 }
             }
-        }
-
-        private static int ParseIntAttribute(XmlReader reader, string attributeName, int defaultValue = 0)
-        {
-            string value = reader.GetAttribute(attributeName);
-            if (string.IsNullOrEmpty(value))
-            {
-                return defaultValue;
-            }
-
-            if (int.TryParse(value, out int result))
-            {
-                return result;
-            }
-            else
-            {
-                throw new InvalidOperationException($"Failed to parse {attributeName} attribute. Raw value: '{value}'");
-            }
-        }
-
-        private static float ParseFloatAttribute(XmlReader reader, string attributeName, float defaultValue)
-        {
-            string value = reader.GetAttribute(attributeName);
-            return string.IsNullOrEmpty(value) ? defaultValue :
-                float.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
-        }
-
-        private static bool ParseBoolAttribute(XmlReader reader, string attributeName, bool defaultValue = false)
-        {
-            string value = reader.GetAttribute(attributeName);
-            if (string.IsNullOrEmpty(value)) return defaultValue;
-
-            // Handle numeric boolean values (1 = true, 0 = false)
-            if (value == "1") return true;
-            if (value == "0") return false;
-
-            // Fall back to standard boolean parsing for "true"/"false" strings
-            return bool.Parse(value);
-        }
-
-        private static Color? ParseColor(string colorStr)
-        {
-            if (string.IsNullOrEmpty(colorStr))
-                return null;
-
-            if (colorStr.StartsWith("#"))
-                colorStr = colorStr.Substring(1);
-
-            if (colorStr.Length == 6)
-            {
-                // RGB format
-                int r = Convert.ToInt32(colorStr.Substring(0, 2), 16);
-                int g = Convert.ToInt32(colorStr.Substring(2, 2), 16);
-                int b = Convert.ToInt32(colorStr.Substring(4, 2), 16);
-                return new Color(r, g, b);
-            }
-            else if (colorStr.Length == 8)
-            {
-                // ARGB format
-                int a = Convert.ToInt32(colorStr.Substring(0, 2), 16);
-                int r = Convert.ToInt32(colorStr.Substring(2, 2), 16);
-                int g = Convert.ToInt32(colorStr.Substring(4, 2), 16);
-                int b = Convert.ToInt32(colorStr.Substring(6, 2), 16);
-                return new Color(r, g, b, a);
-            }
-
-            return null;
         }
     }
 
@@ -1171,7 +1069,7 @@ namespace Superorganism.Tiles
         /// <summary>
         /// The Map's Groups
         /// </summary>
-        public Dictionary<string, Group> Groups { get; set; } = new();
+        public SortedList<string, Group> Groups { get; set; } = new();
 
         /// <summary>
         /// The Map's properties

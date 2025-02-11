@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using Superorganism.Collisions;
 using Superorganism.Common;
 using Superorganism.Core.Managers;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Tiles;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Superorganism.AI
 {

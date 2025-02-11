@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.Collisions;
-using Superorganism.Common;
 using Superorganism.Core.Managers;
 using Superorganism.Interfaces;
 using Superorganism.Tiles;

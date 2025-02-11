@@ -11,7 +11,6 @@ using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
 using Superorganism.Core.SaveLoadSystem;
-using System.Collections.Generic;
 
 #pragma warning disable CA1416
 
