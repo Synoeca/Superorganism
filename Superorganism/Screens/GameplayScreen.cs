@@ -47,7 +47,7 @@ namespace Superorganism.Screens
 
         private void InitializeComponents()
         {
-            string mapFileName = "Tileset/Maps/TestMapRev5"; // Default map
+            string mapFileName = "TestMapRev5"; // Default map
             GameStateInfo loadedState = new();
 
             if (SaveFileToLoad != null)
@@ -71,14 +71,20 @@ namespace Superorganism.Screens
                 }
             }
 
-            _map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev5");
+            //_map = _content.Load<TiledMap>("Tileset/Maps/TestMapRev5");
+            //_map = _content.Load<TiledMap>($"Tileset/Maps/{mapFileName}");
+            _map = new TiledMap();
+            //_map = _map.Load("Content/Tileset/Maps/TestMapRev5.tmx", _content);
+            _map = _map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath("TestMapRev5.tmx")), _content);
+            //_map = _map.Load($"Tileset/Maps/{mapFileName}.tmx", _content);
 
-            foreach (KeyValuePair<string, int> tilesetInfo in _map.TilesetFirstGid)
-            {
-                Tileset tileset = _content.Load<Tileset>($"Tileset/Maps/{tilesetInfo.Key}");
-                tileset.FirstGid = tilesetInfo.Value;
-                _map.Tilesets.Add(tileset.Name, tileset);
-            }
+
+            //foreach (KeyValuePair<string, int> tilesetInfo in _map.TilesetFirstGid)
+            //{
+            //    Tileset tileset = _content.Load<Tileset>($"Tileset/Maps/{tilesetInfo.Key}");
+            //    tileset.FirstGid = tilesetInfo.Value;
+            //    _map.Tilesets.Add(tileset.Name, tileset);
+            //}
 
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
             MapHelper.TileSize = _map.TileWidth;
@@ -96,7 +102,7 @@ namespace Superorganism.Screens
             );
 
             GameState.Initialize(GameStateManager);
-            GameState.CurrentMapName = GameState.CurrentMap.MapFileName;
+            //GameState.CurrentMapName = GameState.CurrentMap.MapFileName;
 
 
 
