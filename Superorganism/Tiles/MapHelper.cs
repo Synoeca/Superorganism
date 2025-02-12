@@ -228,41 +228,14 @@ namespace Superorganism.Tiles
                                 float tileBottom = tileY * TileSize;
                                 float slope = (slopeRight - slopeLeft) / (float)TileSize;
 
-                                // Check if worldX is within tile bounds
-                                //if (worldX >= tileLeft && worldX <= tileRight)
-                                //{
-                                //    // Calculate Y position on slope at worldX
-                                //    float distanceFromLeft = worldX - tileLeft;
-                                //    float slopeY = tileBottom + slopeLeft + (slope * distanceFromLeft);
-                                //    return slopeY;
-                                //}
-
                                 if (collisionBounding is BoundingRectangle brec)
                                 {
                                     if (brec.Right >= tileLeft && brec.Left <= tileRight)
                                     {
                                         hitsDiagonalTile = true;
                                         float distanceFromLeft = collisionBounding.Center.X - tileLeft;
-
                                         float slopeY = tileBottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
 
-                                        //if (collisionBounding is BoundingRectangle br)
-                                        //{
-                                        //    //position.Y = position.Y;
-                                        //    //newPosY = position.Y;
-                                        //    //newPosY = slopeY - br.Height / 2;
-                                        //    if (distanceFromLeft > 0)
-                                        //    {
-                                        //        newPosY = slopeY - br.Height;
-                                        //    }
-
-                                        //    position.X = proposedPosition.X;
-                                        //}
-                                        //else if (collisionBounding is BoundingCircle bc)
-                                        //{
-                                        //    position.Y = slopeY - bc.Radius;
-                                        //    position.X = proposedPosition.X;
-                                        //}
                                         return slopeY;
                                     }
                                 }
@@ -322,30 +295,15 @@ namespace Superorganism.Tiles
                                         }
                                         float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
 
-                                        //if (Math.Abs((positionY + entityHeight) - slopeY) < 2)
-                                        //{
-                                        //    hitsDiagonalTile = true;
-                                        //    //if (positionY + entityHeight < slopeY && collisionBounding.Center.X - tileLeft <= 64)
-                                        //    //{
-                                        //    //    //hitsDiagonalTile = true;
-                                        //    //}
-                                           
-                                        //}
 
                                         if ((positionY) < slopeY)
                                         {
                                             hitsDiagonalTile = true;
-                                            //if (positionY + entityHeight < slopeY && collisionBounding.Center.X - tileLeft <= 64)
-                                            //{
-                                            //    //hitsDiagonalTile = true;
-                                            //}
                                             
                                         }
                                         return slopeY;
-                                        //return slopeY;
                                     }
                                 }
-                                //continue;
                             }
 
                             // Found regular ground tile
@@ -509,19 +467,6 @@ namespace Superorganism.Tiles
             {
                 for (int x = proposedLeftTile; x <= proposedRightTile && !hasCollisionAtProposedPos; x++)
                 {
-                    if (x == 74)
-                    {
-                        if (y == 19)
-                        {
-
-                        }
-                    }
-                    // Skip checking the current diagonal tile we're standing on
-                    //if (isOnDiagonalTile && IsCurrentDiagonalTile(x, y, leftTile, rightTile, topTile, bottomTile))
-                    //{
-                    //    continue;
-                    //}
-
                     foreach (Layer layer in map.Layers.Values)
                     {
                         if (CheckBlockingCollision(layer, x, y, collisionBounding, isOnDiagonalTile))
@@ -666,10 +611,6 @@ namespace Superorganism.Tiles
         {
             int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
             int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
-            //if (x == tilex && y == tiley) 
-            //{
-            //    return false;
-            //}
 
             int tileId = layer.GetTile(x, y);
             int tile1 = layer.GetTile(64, 19);
@@ -708,16 +649,9 @@ namespace Superorganism.Tiles
                             if (brec.Right >= tileRec.Left && brec.Left <= tileRec.Right)
                             {
                                 float distanceFromLeft = collisionBounding.Center.X - tileRec.Left;
-
                                 float slopeY = tileRec.Bottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
 
-                                //if (collisionBounding is BoundingRectangle br)
-                                //{
-
-                                //}
                                 position.Y = position.Y;
-                                //newPosY = position.Y;
-                                //newPosY = slopeY - br.Height / 2;
                                 if (distanceFromLeft > 0)
                                 {
                                     newPosY = slopeY - brec.Height;

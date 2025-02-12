@@ -215,10 +215,7 @@ namespace Superorganism.Entities
                                 _position.Y = newPosY;
                                 IsOnGround = true;
                             }
-                            //_position.Y = newPosY;
-                            //IsOnGround = true;
                         }
-                        //DiagonalPosY = newPosY;
                     }
 
                     if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
@@ -249,21 +246,6 @@ namespace Superorganism.Entities
                 {
                     if (Math.Abs(_velocity.Y) > 0) // Moving downward
                     {
-                        //if (CollisionBounding is BoundingCircle bc)
-                        //{
-                        //    bc.Center = new Vector2(_position.X + bc.Radius, _position.Y + bc.Radius);
-                        //}
-                        //else if (CollisionBounding is BoundingRectangle br)
-                        //{
-                        //    br.X = _position.X;
-                        //    if (Math.Abs(br.Y - _position.Y) < 2)
-                        //    {
-                        //         br.Y = _position.Y;
-                        //    }
-
-                        //    br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
-                        //}
-
                         if (_velocity.Y > 0)
                         {
                             bool leftHitsDiagonal = false;
@@ -293,7 +275,7 @@ namespace Superorganism.Entities
                             if (!isDiagonal)
                             { }
 
-                            float groundY;
+                            float groundY = 0;
 
                             if (!leftHitsDiagonal && rightHitsDiagonal)
                             {
@@ -302,25 +284,19 @@ namespace Superorganism.Entities
 
                             if (IsCenterOnDiagonal)
                             {
-                                if (_velocity.X > 0)
-                                {
-
-                                }
-
-                                if (_velocity.X < 0)
-                                {
-
-                                }
-
                                 if (leftHitsDiagonal && rightHitsDiagonal)
                                 {
                                     groundY = Math.Min(leftGroundY, rightGroundY);
                                 }
-                                else
+                                else if (leftHitsDiagonal)
                                 {
-                                    groundY = Math.Min(leftGroundY, rightGroundY);
+                                    groundY = leftGroundY;  // Use the diagonal Y
                                 }
-                               
+                                else if (rightHitsDiagonal)
+                                {
+                                    groundY = rightGroundY;  // Use the diagonal Y
+                                }
+
                             }
                             else
                             {
@@ -339,28 +315,10 @@ namespace Superorganism.Entities
                             }
                             if (groundY < _position.Y)
                             {
-                                //if (IsCenterOnDiagonal)
-                                //{
-                                //    newGroundY = Math.Min(leftGroundY, rightGroundY) -
-                                //                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                                //}
-                                //else
-                                //{
-                                //    newGroundY = Math.Max(leftGroundY, rightGroundY) -
-                                //                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                                //}
-
                                 newGroundY = Math.Max(leftGroundY, rightGroundY) -
                                              (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
 
                                 float distanceToNewGround = Math.Abs(_position.Y - newGroundY);
-
-                                //if (Math.Abs(_position.Y - newGroundY) < 5)
-                                //{
-                                //    _position.Y = newGroundY;
-                                //    IsOnGround = true; 
-                                //    if (IsJumping) IsJumping = false;
-                                //}
                                 if (newGroundY - _position.Y < 5)
                                 {
                                     _position.Y = newGroundY;
@@ -487,12 +445,6 @@ namespace Superorganism.Entities
             {
                 for (int x = leftTile; x <= rightTile; x++)
                 {
-
-                    if (x == 57 && y == 19)
-                    {
-
-                    }
-
                     int tileId = layer.GetTile(x, y);
 
                     if (tileId != 0)
