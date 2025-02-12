@@ -335,10 +335,15 @@ namespace Superorganism.Entities
                             else
                             {
                                 newGroundY = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                                if (JumpDiagonalPosY == 0 || newGroundY < JumpDiagonalPosY)
+
+                                // Update JumpDiagonalPosY during fast movement over diagonal tiles
+                                if (JumpDiagonalPosY == 0 ||
+                                    (leftHitsDiagonal || rightHitsDiagonal) ||  // Always update when over diagonal tiles
+                                    newGroundY < JumpDiagonalPosY)
                                 {
                                     JumpDiagonalPosY = newGroundY;
                                 }
+
                                 if (_position.Y < JumpDiagonalPosY)
                                 {
                                     _position.Y = proposedYPosition.Y;
