@@ -339,23 +339,26 @@ namespace Superorganism.Entities
                             }
                             if (groundY < _position.Y)
                             {
-                                if (IsCenterOnDiagonal)
-                                {
-                                    newGroundY = Math.Min(leftGroundY, rightGroundY) -
-                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                                }
-                                else
-                                {
-                                    newGroundY = Math.Max(leftGroundY, rightGroundY) -
-                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                                }
+                                //if (IsCenterOnDiagonal)
+                                //{
+                                //    newGroundY = Math.Min(leftGroundY, rightGroundY) -
+                                //                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                //}
+                                //else
+                                //{
+                                //    newGroundY = Math.Max(leftGroundY, rightGroundY) -
+                                //                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                //}
+
+                                newGroundY = Math.Max(leftGroundY, rightGroundY) -
+                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
 
                                 float distanceToNewGround = Math.Abs(_position.Y - newGroundY);
 
                                 //if (Math.Abs(_position.Y - newGroundY) < 5)
                                 //{
                                 //    _position.Y = newGroundY;
-                                //    IsOnGround = true;
+                                //    IsOnGround = true; 
                                 //    if (IsJumping) IsJumping = false;
                                 //}
                                 if (newGroundY - _position.Y < 5)
@@ -373,18 +376,11 @@ namespace Superorganism.Entities
                             }
                             else
                             {
-                                if (leftHitsDiagonal && rightHitsDiagonal)
-                                {
-                                }
-                                if (!leftHitsDiagonal && rightHitsDiagonal)
-                                {
-                                }
                                 newGroundY = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                 if (JumpDiagonalPosY == 0 || newGroundY < JumpDiagonalPosY)
                                 {
                                     JumpDiagonalPosY = newGroundY;
                                 }
-
                                 if (_position.Y < JumpDiagonalPosY)
                                 {
                                     _position.Y = proposedYPosition.Y;
@@ -392,15 +388,13 @@ namespace Superorganism.Entities
                                 }
                                 else
                                 {
-                                     _position.Y = newGroundY;
+                                    _position.Y = newGroundY;
                                     IsOnGround = true;
                                     if (IsJumping) IsJumping = false;
                                     _velocity.Y = 0;
                                     JumpDiagonalPosY = 0;
                                 }
-
                             }
-
                         }
                         else
                         {

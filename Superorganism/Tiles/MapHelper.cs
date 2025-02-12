@@ -554,10 +554,6 @@ namespace Superorganism.Tiles
         private static bool CheckBlockingCollision(Layer layer, int x, int y, ICollisionBounding collisionBounding,
             bool isOnDiagonalTile)
         {
-            if (x == 74 && y == 19)
-            {
-
-            }
             int tileId = layer.GetTile(x, y);
             if (tileId == 0) return false;
 
