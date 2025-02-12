@@ -336,9 +336,46 @@ namespace Superorganism.Entities
                             {
                                 newGroundY = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
 
-                                // Update JumpDiagonalPosY during fast movement over diagonal tiles
+                                // For landing on mixed diagonal/flat tiles
+                                if (leftHitsDiagonal || rightHitsDiagonal)
+                                {
+                                    if (leftHitsDiagonal && rightHitsDiagonal)
+                                    {
+                                        newGroundY = Math.Min(leftGroundY, rightGroundY) -
+                                                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                    }
+                                    else if (leftHitsDiagonal)
+                                    {
+                                        if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 1 )
+                                        {
+                                            newGroundY = rightGroundY -
+                                                         (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                        }
+                                        else
+                                        {
+                                            newGroundY = leftGroundY -
+                                                         (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                        }
+                                    }
+                                    else if (rightHitsDiagonal)
+                                    {
+                                        if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 1)
+                                        {
+                                            newGroundY = leftGroundY -
+                                                         (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                        }
+                                        else
+                                        {
+                                            newGroundY = rightGroundY -
+                                                         (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                        }
+
+                                    }
+                                }
+
+                                // Rest remains the same
                                 if (JumpDiagonalPosY == 0 ||
-                                    (leftHitsDiagonal || rightHitsDiagonal) ||  // Always update when over diagonal tiles
+                                    (leftHitsDiagonal || rightHitsDiagonal) ||
                                     newGroundY < JumpDiagonalPosY)
                                 {
                                     JumpDiagonalPosY = newGroundY;
@@ -367,8 +404,6 @@ namespace Superorganism.Entities
                     }
 
                 }
-
-                //DiagonalPosY = 0;
             }
 
             // Check map bounds
