@@ -450,14 +450,14 @@
     <property name="Level" type="int" value="1"/>
    </properties>
   </objectgroup>
-  <layer id="12" name="Grass" width="200" height="50">
+  <layer id="12" name="Grass" width="200" height="50" visible="0">
    <data encoding="base64" compression="gzip">
    H4sIAAAAAAAACu3WMQqDQBAF0LUInkI8QioFe+9/pihZcQpFRROCeQ8+O1PssM3ApgQAAAAAAAAAAAAAAADs8TyY6qLAJ5Qb/aj/xkPgYs2Q9uSMMs07EWv4BdM/I/ZLunzGnXjkLM2sc92Gu3A30z4U6f3PLkK9th8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAwP96ATLb1yRAnAAA
   </data>
   </layer>
   <layer id="1" name="Terrain" width="200" height="50">
    <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAACu3YwUrDMACA4QgrRVA8eVCvvoCCgkd17/9MtrhhqHY2Xdqm5fvhY3NKG7ImLYYgSZIkSZIkSZIkSZIkSZKkrfa29ACkgquCNSL11a6PXfheI9XCY5FK66KHtOXeGx+dz14ar42HQtw17jtj/GzsD+/3IX/1gYbVnav/fp76/GNrn4/67gVrdptpftqqjjW01FquR77mHsOp45a235eke++J5zKe0+MctmvtMvr8OvSvv91BiF7nbMyeUSe+j5tib42Pm7rHbXWvJ4+bAdq/O/feerwOh5yP054LGAO/pa6TeG9eeuylmfMafzrz96Rpr/e//t8RP1+mrIm5vp8c55l7785xvmrmMfMj9VltSqXsg6WMI5XntvWY67tyTUAZcq/FvuOt9f7Fek19n1nqmraWACC/KwAAAAAAAAAgPAIAAAAAAAAA4Qvxvj4JQJwAAA==
+   H4sIAAAAAAAACu3YUUuDQADA8QsmEhQ99VC99gUKCnqs9v0/U0obHZbLc6ee8vvDj7kt9HDeKYUgSZIkSZIkSZIkSZIkSZKkrfa29ACkgquCOSL11c6PXfieI9XCY5FK66KHtLXeO9sfne9fGq+Nh0LcNe47Y/xs7A/b+5C/+kDD6p6r/95Pffyxtc9HffeCNbvNdH7aqo41tNRcrke+5h7Dqf2Wtt6XpHvvic9lfE6P57Cda5fR59ehf/7tDkL0Omdj1ow6cTtuirU13m/qGrfVtZ48bgZo/+7ce+vxOhxyPE57LmAM/JY6T+K1eemxl2bOa/zpzO9J017vf/2/I36+TJkTc/0+OY4z99qd43jVzGPmR+qz2pRKWQdLGUcqz23rMddv5ZqAMuSei337W+v9i/Wa+j6z1DVtLgFAflcAAAAAAAAAQHgEAAAAAAAAAMIXh85ESECcAAA=
   </data>
   </layer>
  </group>

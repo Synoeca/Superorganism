@@ -223,7 +223,12 @@ namespace Superorganism.Entities
                 else
                 {
                     // If it's not a diagonal tile, handle as normal collision
+                    if (!isCenterOnDiagonalTile)
+                    {
+                        //_velocity.X = 0;
+                    }
                     _velocity.X = 0;
+
                 }
             }
 
@@ -386,15 +391,24 @@ namespace Superorganism.Entities
                                     {
                                         if (rightSlope < 0)  // Downward slope (\)
                                         {
-                                            if (leftGroundY < rightGroundY)
+                                            if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 64)
                                             {
                                                 newGroundY = rightGroundY -
                                                              (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                             }
                                             else
                                             {
-                                                newGroundY = rightGroundY -
-                                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                if (leftGroundY < _position.Y)
+                                                {
+                                                    newGroundY = rightGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+                                                else
+                                                {
+                                                    newGroundY = leftGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+
                                             }
                                         }
                                         else  // Upward slope (/)

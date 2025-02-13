@@ -702,10 +702,6 @@ namespace Superorganism.Tiles
                                 if (distanceFromLeft > 0)
                                 {
                                     newPosY = slopeY - brec.Height;
-                                    if (newPosY > 1300)
-                                    {
-
-                                    }
                                 }
 
                                 position.X = proposedPosition.X;
