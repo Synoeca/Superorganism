@@ -290,22 +290,16 @@ namespace Superorganism.Tiles
                                     // Check if worldX is within tile bounds
                                     if (worldX >= tileLeft && worldX <= tileRight)
                                     {
-                                        // Calculate Y position on slope at worldX
                                         float distance;
-
-
-
-                                        float slopeY = 0;
+                                        float slopeY;
 
                                         if (slope > 0)
                                         {
                                             distance = collisionBounding.Center.X - tileLeft;
                                             if (distance > 64)
                                             {
-                                                //return -1;
                                                 distance = 64;
                                             }
-                                            //slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
                                             slopeY = (tileBottom - slopeLeft) - (slope * distance);
                                         }
                                         else
@@ -320,17 +314,6 @@ namespace Superorganism.Tiles
                                             {
                                                 distance = 0;
                                             }
-                                            //if (distanceFromLeft < 0)
-                                            //{
-                                            //    distanceFromLeft *= -1;
-                                            //}
-                                            //slopeY = (tileBottom - slopeLeft) - (slope * distanceFromLeft);
-
-                                            //// slopeY = (tileBottom - slopeRight) + (Math.Abs(slope) * (TileSize - distanceFromLeft));
-                                            //slopeY = (tileBottom - slopeRight) + ((slope) * (TileSize - distanceFromLeft));
-
-                                            //slopeY = (tileBottom - slopeRight) + (slope * (TileSize - Math.Abs(distanceFromLeft)));
-                                            //slopeY = (tileBottom - slopeLeft) + (slope * (TileSize - Math.Abs(distanceFromLeft)));
                                             slopeY = (tileBottom - slopeRight) - (slope * distance);
                                         }
 

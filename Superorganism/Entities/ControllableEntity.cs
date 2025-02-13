@@ -156,9 +156,6 @@ namespace Superorganism.Entities
             }
             else if (!IsJumping) // Only check for falling if we're not in a jump
             {
-                // Check if there's ground below us
-                //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
-                //Vector2 groundCheckPos = _position;
                 bool diagonal = false;
                 bool isCenterOnDiagonal = false;
                 bool hasGroundBelow = CheckCollisionAtPosition(_position, GameState.CurrentMap, CollisionBounding, ref diagonal, ref isCenterOnDiagonal);
@@ -213,12 +210,7 @@ namespace Superorganism.Entities
                         {
                             if (_velocity.Y == 0)
                             {
-                                //_position.Y = newPosY;
                                 IsOnGround = true;
-                                if (_position.Y > 1300)
-                                {
-
-                                }
                             }
                         }
                     }
@@ -394,10 +386,8 @@ namespace Superorganism.Entities
                                     {
                                         if (rightSlope < 0)  // Downward slope (\)
                                         {
-                                            if (leftGroundY < rightGroundY/* && rightGroundY - leftGroundY < 1*/)
+                                            if (leftGroundY < rightGroundY)
                                             {
-                                                //newGroundY = leftGroundY -
-                                                //             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                                 newGroundY = rightGroundY -
                                                              (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                             }
