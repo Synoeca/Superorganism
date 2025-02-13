@@ -280,24 +280,59 @@ namespace Superorganism.Tiles
                                     float tileBottom = (tileY + 1) * TileSize;
                                     float slope = (slopeRight - slopeLeft) / (float)TileSize;
 
-                                    if (tileX == 99 && tileY == 13)
+                                    if (tileX == 85 && tileY == 18)
                                     {
 
                                     }
+
+
 
                                     // Check if worldX is within tile bounds
                                     if (worldX >= tileLeft && worldX <= tileRight)
                                     {
                                         // Calculate Y position on slope at worldX
-                                        float distanceFromLeft = collisionBounding.Center.X - tileLeft;
-                                        if (distanceFromLeft > 64)
+                                        float distance;
+
+
+
+                                        float slopeY = 0;
+
+                                        if (slope > 0)
                                         {
-                                            //return -1;
-                                            distanceFromLeft = 64;
+                                            distance = collisionBounding.Center.X - tileLeft;
+                                            if (distance > 64)
+                                            {
+                                                //return -1;
+                                                distance = 64;
+                                            }
+                                            //slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
+                                            slopeY = (tileBottom - slopeLeft) - (slope * distance);
                                         }
+                                        else
+                                        {
+                                            distance = collisionBounding.Center.X - tileRight;
+                                            if (distance < -64)
+                                            {
+                                                distance = -64;
+                                            }
 
-                                        float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
+                                            if (distance > 0)
+                                            {
+                                                distance = 0;
+                                            }
+                                            //if (distanceFromLeft < 0)
+                                            //{
+                                            //    distanceFromLeft *= -1;
+                                            //}
+                                            //slopeY = (tileBottom - slopeLeft) - (slope * distanceFromLeft);
 
+                                            //// slopeY = (tileBottom - slopeRight) + (Math.Abs(slope) * (TileSize - distanceFromLeft));
+                                            //slopeY = (tileBottom - slopeRight) + ((slope) * (TileSize - distanceFromLeft));
+
+                                            //slopeY = (tileBottom - slopeRight) + (slope * (TileSize - Math.Abs(distanceFromLeft)));
+                                            //slopeY = (tileBottom - slopeLeft) + (slope * (TileSize - Math.Abs(distanceFromLeft)));
+                                            slopeY = (tileBottom - slopeRight) - (slope * distance);
+                                        }
 
                                         if ((positionY) < slopeY)
                                         {
