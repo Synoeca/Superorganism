@@ -309,11 +309,6 @@ namespace Superorganism.Tiles
                                             {
                                                 distance = -64;
                                             }
-
-                                            if (distance > 0)
-                                            {
-                                                distance = 0;
-                                            }
                                             slopeY = (tileBottom - slopeRight) - (slope * distance);
                                         }
 

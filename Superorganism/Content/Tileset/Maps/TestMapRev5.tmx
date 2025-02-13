@@ -423,21 +423,25 @@
   <tile id="0">
    <properties>
     <property name="TildId" type="int" value="1"/>
+    <property name="isCollidable" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="1">
    <properties>
     <property name="TildId" type="int" value="2"/>
+    <property name="isCollidable" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="2">
    <properties>
     <property name="TildId" type="int" value="3"/>
+    <property name="isCollidable" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="3">
    <properties>
     <property name="TildId" type="int" value="4"/>
+    <property name="isCollidable" type="bool" value="true"/>
    </properties>
   </tile>
  </tileset>
@@ -457,7 +461,7 @@
   </layer>
   <layer id="1" name="Terrain" width="200" height="50">
    <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAACu3YUUuDQADA8QsmEhQ99VC99gUKCnqs9v0/U0obHZbLc6ee8vvDj7kt9HDeKYUgSZIkSZIkSZIkSZIkSZKkrfa29ACkgquCOSL11c6PXfieI9XCY5FK66KHtLXeO9sfne9fGq+Nh0LcNe47Y/xs7A/b+5C/+kDD6p6r/95Pffyxtc9HffeCNbvNdH7aqo41tNRcrke+5h7Dqf2Wtt6XpHvvic9lfE6P57Cda5fR59ehf/7tDkL0Omdj1ow6cTtuirU13m/qGrfVtZ48bgZo/+7ce+vxOhxyPE57LmAM/JY6T+K1eemxl2bOa/zpzO9J017vf/2/I36+TJkTc/0+OY4z99qd43jVzGPmR+qz2pRKWQdLGUcqz23rMddv5ZqAMuSei337W+v9i/Wa+j6z1DVtLgFAflcAAAAAAAAAQHgEAAAAAAAAAMIXh85ESECcAAA=
+   H4sIAAAAAAAACu3Y3UqEQACA0QlWJCi66qK67QUKCrqs7f2fKaVdGkzNMX9GOR8cdttddNZ1RikESZIkSZIkSZIkSZIkSZIk7bW3tQcgZVwRzBGpq3p+HML3HClWHouUWxcdpL11jJ6/Vz4a779UXisPmbir3Ld8h8+xB2BA5YmG1TxWf/099/7HVt8fdV0Ltuy25bseW14bUtGwhdaay+XIx6nH0Lfd3Nb7nDSvPfGxjI/p+RjWc+0yev06dM+/w0mIHpdszJpRJj6Pm2NtjbfbNt6+9rrWM42bAerPpZ53zc7n4ZD90e85gzHwW+o8idfmtceemyXP8ad/vk+a+nxv+39HfH+ZMieW+n2m2M/Sa/cU+ysWHjM/Uu/V5pTLOpjLOFK5b9uOpX4r5wTkYeq52LW9rV6/2K65rzNrndPmEgBM7woAAAAAAAAACI8AAAAAAAAAQPgCzIScHUCcAAA=
   </data>
   </layer>
  </group>

@@ -351,18 +351,15 @@ namespace Superorganism.Entities
                                 {
                                     if (leftHitsDiagonal && rightHitsDiagonal)
                                     {
-                                        if (leftGroundY > rightGroundY)
-                                        {
-
-                                        }
                                         newGroundY = Math.Min(leftGroundY, rightGroundY) -
                                                      (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+
                                     }
                                     else if (leftHitsDiagonal)
                                     {
                                         if (leftSlope < 0)  // Downward slope (\)
                                         {
-                                            if (leftGroundY > rightGroundY && leftGroundY - rightGroundY < 1)
+                                            if (leftGroundY > rightGroundY && leftGroundY - rightGroundY < 64)
                                             {
                                                 newGroundY = rightGroundY -
                                                              (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
@@ -375,7 +372,7 @@ namespace Superorganism.Entities
                                         }
                                         else  // Upward slope (/)
                                         {
-                                            if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 1)
+                                            if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 64)
                                             {
                                                 newGroundY = rightGroundY -
                                                              (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
