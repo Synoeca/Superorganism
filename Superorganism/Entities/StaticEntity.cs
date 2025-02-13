@@ -60,6 +60,7 @@ namespace Superorganism.Entities
                 MapHelper.GetMapWorldBounds().Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
 
             bool hitsDiagonal = false;
+            float slope = 0;
 
             // Get ground level at new position
             float groundY = MapHelper.GetGroundYPosition(
@@ -68,7 +69,8 @@ namespace Superorganism.Entities
                 Position.Y,
                 TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
                 CollisionBounding,
-                ref hitsDiagonal
+                ref hitsDiagonal,
+                ref slope
             );
 
             // Handle ground collision

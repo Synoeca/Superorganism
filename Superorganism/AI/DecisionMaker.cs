@@ -197,6 +197,7 @@ namespace Superorganism.AI
                         Vector2 newPosition = position + velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
                         bool hitsDiagonal = false;
+                        float slope = 0;
 
                         // Check ground collision before applying position update
                         float groundY = MapHelper.GetGroundYPosition(
@@ -205,7 +206,8 @@ namespace Superorganism.AI
                             position.Y,
                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
                             collisionBounding,
-                            ref hitsDiagonal
+                            ref hitsDiagonal,
+                            ref slope
                         );
 
                         if (newPosition.Y > groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale))
@@ -382,6 +384,8 @@ namespace Superorganism.AI
                                     {
                                         bool leftHitsDiagonal = false;
                                         bool rightHitsDiagonal = false;
+                                        float leftSlope = 0;
+                                        float rightSlope = 0;
 
                                         // Check ground at both bottom corners
                                         float leftGroundY = MapHelper.GetGroundYPosition(
@@ -390,7 +394,8 @@ namespace Superorganism.AI
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
                                             collisionBounding,
-                                            ref leftHitsDiagonal
+                                            ref leftHitsDiagonal,
+                                            ref leftSlope
                                         );
 
                                         float rightGroundY = MapHelper.GetGroundYPosition(
@@ -399,7 +404,8 @@ namespace Superorganism.AI
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
                                             collisionBounding,
-                                            ref rightHitsDiagonal
+                                            ref rightHitsDiagonal,
+                                            ref rightSlope
                                         );
 
                                         float leftPos = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
@@ -684,6 +690,8 @@ namespace Superorganism.AI
                                     {
                                         bool leftHitsDiagonal = false;
                                         bool rightHitsDiagonal = false;
+                                        float leftSlope = 0;
+                                        float rightSlope = 0;
 
                                         // Check ground at both bottom corners
                                         float leftGroundY = MapHelper.GetGroundYPosition(
@@ -692,7 +700,8 @@ namespace Superorganism.AI
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
                                             collisionBounding,
-                                            ref leftHitsDiagonal
+                                            ref leftHitsDiagonal,
+                                            ref leftSlope
                                         );
 
                                         float rightGroundY = MapHelper.GetGroundYPosition(
@@ -701,7 +710,8 @@ namespace Superorganism.AI
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
                                             collisionBounding,
-                                            ref rightHitsDiagonal
+                                            ref rightHitsDiagonal,
+                                            ref rightSlope
                                         );
 
                                         float leftPos = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
@@ -918,6 +928,8 @@ namespace Superorganism.AI
                                     {
                                         bool leftHitsDiagonal = false;
                                         bool rightHitsDiagonal = false;
+                                        float leftSlope = 0;
+                                        float rightSlope = 0;
 
                                         // Check ground at both bottom corners
                                         float leftGroundY = MapHelper.GetGroundYPosition(
@@ -926,7 +938,8 @@ namespace Superorganism.AI
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
                                             collisionBounding,
-                                            ref leftHitsDiagonal
+                                            ref leftHitsDiagonal,
+                                            ref leftSlope
                                         );
 
                                         float rightGroundY = MapHelper.GetGroundYPosition(
@@ -935,7 +948,8 @@ namespace Superorganism.AI
                                             position.Y,
                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
                                             collisionBounding,
-                                            ref rightHitsDiagonal
+                                            ref rightHitsDiagonal,
+                                            ref rightSlope
                                         );
 
                                         float leftPos = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);

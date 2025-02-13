@@ -185,7 +185,8 @@ namespace Superorganism.Tiles
             return false;
         }
 
-        public static float GetGroundYPosition(TiledMap map, float worldX, float positionY, float entityHeight, ICollisionBounding collisionBounding, ref bool hitsDiagonalTile)
+        public static float GetGroundYPosition(TiledMap map, float worldX, float positionY, float entityHeight, 
+            ICollisionBounding collisionBounding, ref bool hitsDiagonalTile, ref float diagonalSlope)
         {
             // Convert world X to tile X
             int tileX = (int)(worldX / TileSize);
@@ -236,6 +237,7 @@ namespace Superorganism.Tiles
                                         float distanceFromLeft = collisionBounding.Center.X - tileLeft;
                                         float slopeY = tileBottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
 
+                                        diagonalSlope = slope;
                                         return slopeY;
                                     }
                                 }
@@ -293,11 +295,13 @@ namespace Superorganism.Tiles
                                             //return -1;
                                             distanceFromLeft = 64;
                                         }
+
                                         float slopeY = tileBottom - (slopeLeft + (slope * distanceFromLeft));
 
 
                                         if ((positionY) < slopeY)
                                         {
+                                            diagonalSlope = slope;
                                             hitsDiagonalTile = true;
                                             
                                         }
@@ -648,13 +652,42 @@ namespace Superorganism.Tiles
                         {
                             if (brec.Right >= tileRec.Left && brec.Left <= tileRec.Right)
                             {
-                                float distanceFromLeft = collisionBounding.Center.X - tileRec.Left;
-                                float slopeY = tileRec.Bottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
+                                float distanceFromLeft = -1;
+                                float slopeY = -1;
+
+                                if (brec.Left >= tileRec.Left)
+                                {
+                                    distanceFromLeft = collisionBounding.Center.X - tileRec.Left;
+                                    if (slope > 0)
+                                    {
+                                        slopeY = tileRec.Bottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
+                                    }
+                                    else
+                                    {
+                                        slopeY = tileRec.Bottom + (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
+                                    }
+                                }
+                                else if (brec.Right <= tileRec.Right)
+                                {
+                                    distanceFromLeft = collisionBounding.Center.X - tileRec.Left;
+                                    if (slope > 0)
+                                    {
+                                        slopeY = tileRec.Bottom - (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
+                                    }
+                                    else
+                                    {
+                                        slopeY = tileRec.Bottom + (slopeLeft + (slope * Math.Abs(distanceFromLeft)));
+                                    }
+                                }
 
                                 position.Y = position.Y;
                                 if (distanceFromLeft > 0)
                                 {
                                     newPosY = slopeY - brec.Height;
+                                    if (newPosY > 1300)
+                                    {
+
+                                    }
                                 }
 
                                 position.X = proposedPosition.X;
