@@ -110,6 +110,36 @@ namespace Superorganism.Entities
             GamePadState = GamePad.GetState(0);
             KeyboardState = Keyboard.GetState();
 
+            //bool flipped = Flipped;
+            //bool isOnGround = IsOnGround;
+            //bool isJumping = IsJumping;
+            //bool isCenterOnDiagonal = IsCenterOnDiagonal;
+
+            //float animationSpeed = AnimationSpeed;
+            //float movementSpeed = MovementSpeed;
+
+            //Vector2 position = Position;
+            //ICollisionBounding collisionBounding = CollisionBounding;
+            //float jumpDiagonalPosY = JumpDiagonalPosY;
+
+
+            //GamePhysicsHelper.HandleMovement(keyboardState, gamePadState, gameTime, ref movementSpeed, ref animationSpeed, ref flipped, ref isOnGround,
+            //    ref _velocity, Friction, ref _soundTimer, JumpStrength, ref isJumping, MoveSound, JumpSound, MoveSoundInterval, ShiftMoveSoundInterval, 
+            //    ref position, ref collisionBounding, Gravity, TextureInfo, ref jumpDiagonalPosY, ref isCenterOnDiagonal);
+
+            //Flipped = flipped;
+            //IsOnGround = isOnGround;
+            //IsJumping = isJumping;
+            //IsCenterOnDiagonal = isCenterOnDiagonal;
+            //AnimationSpeed = animationSpeed;
+            //MovementSpeed = movementSpeed;
+
+            //JumpDiagonalPosY = jumpDiagonalPosY;
+            //CollisionBounding = collisionBounding;
+            //Position = position;
+
+
+            
             // Update movement speed based on shift key
             if (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
             {
@@ -184,7 +214,7 @@ namespace Superorganism.Entities
 
             // Apply X movement if no collision
             if (!hasXCollision)
-            { 
+            {
                 _position.X = proposedXPosition.X;
                 _velocity.X = proposedXVelocity;
                 if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
@@ -199,7 +229,7 @@ namespace Superorganism.Entities
                 bool hasRightDiagonal = false;
                 BoundingRectangle xTileRec = new();
                 // Check if the collision is with a diagonal tile
-                if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition, 
+                if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition,
                         CollisionBounding, ref _velocity, ref newPosY, ref xTileRec, ref hasLeftDiagonal, ref hasRightDiagonal))
                 {
                     _position.X = proposedXPosition.X;
@@ -340,7 +370,7 @@ namespace Superorganism.Entities
                                      _position.Y = proposedYPosition.Y;
                                 }
 
-                                 
+
                             }
                             else
                             {
@@ -491,6 +521,8 @@ namespace Superorganism.Entities
             // Clamp velocity
             _velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
             IsCenterOnDiagonal = false;
+            
+            
         }
 
         private bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding,
