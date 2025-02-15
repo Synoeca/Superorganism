@@ -374,8 +374,17 @@ namespace Superorganism.Entities
                                         {
                                             if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 64)
                                             {
-                                                newGroundY = rightGroundY -
-                                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                if (rightGroundY - leftGroundY < 2)
+                                                {
+                                                    newGroundY = rightGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+                                                else
+                                                {
+                                                    newGroundY = leftGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+
                                             }
                                             else
                                             {
@@ -402,8 +411,17 @@ namespace Superorganism.Entities
                                                 }
                                                 else
                                                 {
-                                                    newGroundY = leftGroundY -
-                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    if (leftGroundY - _position.Y < 2)
+                                                    {
+                                                        newGroundY = leftGroundY -
+                                                                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    }
+                                                    else
+                                                    {
+                                                        newGroundY = rightGroundY -
+                                                                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    }
+
                                                 }
 
                                             }
