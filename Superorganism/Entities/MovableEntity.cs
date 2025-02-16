@@ -86,12 +86,28 @@ namespace Superorganism.Entities
             set => _isJumping = value;
         }
 
+        protected bool _isCenterOnDiagonal;
+
+        public bool IsCenterOnDiagonal
+        {
+            get => _isCenterOnDiagonal;
+            set => _isCenterOnDiagonal = value;
+        }
+
         protected float _friction;
 
         public float Friction
         {
             get => _friction;
             set => _friction = value;
+        }
+
+        protected float _jumpDiagonalPosY;
+
+        public float JumpDiagonalPosY
+        {
+            get => _jumpDiagonalPosY;
+            set => _jumpDiagonalPosY = value;
         }
 
         protected ICollisionBounding _collisionBounding;
