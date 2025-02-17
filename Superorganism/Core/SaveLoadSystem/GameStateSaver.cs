@@ -46,7 +46,7 @@ namespace Superorganism.Core.SaveLoadSystem
             string baseMapName = Path.GetFileNameWithoutExtension(mapFileName);
             string newMapFileName = $"{baseMapName}_Save{saveNumber}";
 
-            MapFileCreator.CreateMapFileForSave(baseMapName, newMapFileName);
+            newMapFileName = MapFileCreator.CreateMapFileForSave(baseMapName, newMapFileName);
 
             List<EntityData> entityDataList = [];
 

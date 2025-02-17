@@ -72,6 +72,7 @@ namespace Superorganism.Screens
 
             _map = new TiledMap();
             _map = _map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath($"{mapFileName}.tmx")), _content);
+            _map.MapFileName = mapFileName;
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
             MapHelper.TileSize = _map.TileWidth;
@@ -89,7 +90,8 @@ namespace Superorganism.Screens
             );
 
             GameState.Initialize(GameStateManager);
-            //GameState.CurrentMapName = GameState.CurrentMap.MapFileName;
+            GameState.CurrentMapName = GameState.CurrentMap.MapFileName;
+            //GameState.CurrentMapName = GameState.CurrentMap
 
 
 

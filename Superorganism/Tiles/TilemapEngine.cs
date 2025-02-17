@@ -1291,6 +1291,11 @@ namespace Superorganism.Tiles
         public Dictionary<string, int> TilesetFirstGid { get; set; } = new();
 
         /// <summary>
+        /// The Map's .tmx file name
+        /// </summary>
+        public string MapFileName { get; set; }
+
+        /// <summary>
         /// Loads a TMX file into a Map object
         /// </summary>
         /// <param name="filename">The filename of the TMX file</param>
