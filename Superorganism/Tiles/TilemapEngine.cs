@@ -420,9 +420,9 @@ namespace Superorganism.Tiles
     {
         // Bit flags for tile flipping in TMX format
         // These are stored in the high bits of the tile data
-        private const uint FlippedHorizontallyFlag = 0x80000000;  // Leftmost bit
-        private const uint FlippedVerticallyFlag = 0x40000000;    // Second from left
-        private const uint FlippedDiagonallyFlag = 0x20000000;    // Third from left
+        public const uint FlippedHorizontallyFlag = 0x80000000;  // Leftmost bit
+        public const uint FlippedVerticallyFlag = 0x40000000;    // Second from left
+        public const uint FlippedDiagonallyFlag = 0x20000000;    // Third from left
 
         // Internal flags used for rendering flipped tiles
         internal const byte HorizontalFlipDrawFlag = 1;   // Flip along vertical axis

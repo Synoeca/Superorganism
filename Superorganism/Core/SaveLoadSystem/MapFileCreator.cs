@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Superorganism.Core.Managers;
+using System;
 using System.IO;
 
 namespace Superorganism.Core.SaveLoadSystem
@@ -38,11 +39,9 @@ namespace Superorganism.Core.SaveLoadSystem
                 Directory.CreateDirectory(Path.GetDirectoryName(newContentMapPath) ?? throw new InvalidOperationException());
                 Directory.CreateDirectory(Path.GetDirectoryName(newRuntimeMapPath) ?? throw new InvalidOperationException());
 
-                // Copy to content directory
-                File.Copy(originalMapPath, newContentMapPath, true);
-                
-                // Also copy to runtime directory
-                File.Copy(originalMapPath, newRuntimeMapPath, true);
+                // Save the current state of the map to both locations
+                TmxSaver.SaveTmxFile(GameState.CurrentMap, originalMapPath, newContentMapPath);
+                TmxSaver.SaveTmxFile(GameState.CurrentMap, originalMapPath, newRuntimeMapPath);
 
                 retMapFileName = Path.GetFileNameWithoutExtension(newMapFileName);
             }
