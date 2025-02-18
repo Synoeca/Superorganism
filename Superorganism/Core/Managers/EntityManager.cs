@@ -16,9 +16,9 @@ namespace Superorganism.Core.Managers;
 public class EntityManager
 {
     private Ant _ant;
-    private List<AntEnemy> _antEnemies = [];
-    private List<Crop> _crops = [];
-    private List<Fly> _flies = [];
+    private readonly List<AntEnemy> _antEnemies = [];
+    private readonly List<Crop> _crops = [];
+    private readonly List<Fly> _flies = [];
     private ExplosionParticleSystem _explosions;
     private readonly Game _game;
     private readonly TiledMap _map;
@@ -152,17 +152,16 @@ public class EntityManager
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        int count = 15;
+        int count = 20;
         Random rand = new();
 
         for (int i = 0; i < count; i++)
         {
-            int enemyX = 6 + rand.Next(150); // Spread between tile 60-100
-            int enemyY = 5 + rand.Next(8);   // Spread between tile 5-12
+            int enemyX = 10 + rand.Next(150); // Spread between tile 60-100
+            int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
             AntEnemy antEnemy = new();
             antEnemy.InitializeAtTile(enemyX, enemyY);
             _antEnemies.Add(antEnemy);
-            //_antEnemies[i].InitializeAtTile(enemyX, enemyY);
         }
 
         InitializeCrops(graphicsDevice);
@@ -181,21 +180,20 @@ public class EntityManager
     private void InitializeCrops(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 50;
+        int count = 15;
         for (int i = 0; i < count; i++)
         {
-            //_crops[i] = new Crop();
             // Spread crops across different heights
             Crop crop = new();
             int cropX = 10 + (2 * i); // Spread them out horizontally
             int cropY = 5 + rand.Next(10); // Random height between tile 5-14
             Vector2 position = MapHelper.TileToWorld(cropX, cropY);
+
             // Add small random offset within tile
             position.X += rand.Next(-16, 16);
             position.Y += rand.Next(-16, 16);
             crop.Position = position;
             _crops.Add(crop);
-            //_crops[i].Position = position;
             DecisionMaker.Entities.Add(crop);
         }
     }
@@ -203,22 +201,20 @@ public class EntityManager
     private void InitializeFlies(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 100;
+        int count = 50;
         for (int i = 0; i < count; i++)
         {
-            //_flies[i] = new Fly();
             Fly fly = new();
             // Spread flies across a wider range and higher up
             int spreadX = 40 + rand.Next(80);  // Spread between tile 40-120
             int spreadY = 2 + rand.Next(10);   // Higher up between tile 2-11
             Vector2 position = MapHelper.TileToWorld(spreadX, spreadY);
+
             // Add random offsets within tile for more natural distribution
             position.X += rand.Next(-32, 32);
             position.Y += rand.Next(-32, 32);
             fly.Position = position;
             fly.Direction = (Direction)(rand.Next(4));
-            //_flies[i].Position = position;
-            //_flies[i].Direction = (Direction)(rand.Next(4));
             _flies.Add(fly);
             DecisionMaker.Entities.Add(fly);
         }

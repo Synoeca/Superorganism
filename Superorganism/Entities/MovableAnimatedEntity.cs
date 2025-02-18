@@ -180,7 +180,7 @@ namespace Superorganism.Entities
             if (UseRotation) { UpdateRotation(); }
 
             DecisionMaker.Action(ref _strategy, ref _strategyHistory, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
-				ref _velocity, 800, 420, TextureInfo, EntityStatus, ref _isOnGround, ref _isJumping, ref _friction);
+				ref _velocity, 800, 420, TextureInfo, EntityStatus, ref _isOnGround, ref _isJumping, ref _friction, ref _isCenterOnDiagonal, ref _jumpDiagonalPosY);
 		}
 	}
 }

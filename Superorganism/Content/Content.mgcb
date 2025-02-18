@@ -10,7 +10,6 @@
 
 #-------------------------------- References --------------------------------#
 
-/reference:..\..\ContentPipeline\bin\Debug\net8.0-windows7.0\ContentPipeline.dll
 
 #---------------------------------- Content ---------------------------------#
 
@@ -731,21 +730,8 @@
 /processorParam:TextureFormat=Color
 /build:tileset.png
 
-#begin Tileset/Maps/TestMapRev1.tmx
-/copy:Tileset/Maps/TestMapRev1.tmx
-
-#begin Tileset/Maps/TestMapRev4.tmx
-/copy:Tileset/Maps/TestMapRev4.tmx
-
 #begin Tileset/Maps/TestMapRev5.tmx
-/importer:TiledMapEngineContentImporter
-/processor:TiledMapEngineContentProcessor
-/build:Tileset/Maps/TestMapRev5.tmx
-
-#begin Tileset/Maps/tileset12.tsx
-/importer:TSXImporter
-/processor:TSXProcessor
-/build:Tileset/Maps/tileset12.tsx
+/copy:Tileset/Maps/TestMapRev5.tmx
 
 #begin Tileset/Maps/tileset64.png
 /importer:TextureImporter
@@ -759,10 +745,29 @@
 /processorParam:TextureFormat=Color
 /build:Tileset/Maps/tileset64.png
 
-#begin Tileset/Maps/tileset64.tsx
-/importer:TSXImporter
-/processor:TSXProcessor
-/build:Tileset/Maps/tileset64.tsx
+#begin Tileset/tiles.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Tileset/tiles.png
+
+#begin Tileset/tileset12.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Tileset/tileset12.png
 
 #begin Tileset/tileset64.png
 /importer:TextureImporter

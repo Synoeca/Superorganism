@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.Collisions;
-using Superorganism.Common;
 using Superorganism.Core.Managers;
 using Superorganism.Interfaces;
 using Superorganism.Tiles;
@@ -26,13 +25,17 @@ namespace Superorganism.Entities
 
 		public bool IsJumping { get; set; }
 
+        public bool IsCenterOnDiagonal { get; set; }
+
 		public float JumpStrength { get; set; } = -14f;
 
         public float JumpDiagonalPosY { get; set; } = 0;
 
-		//public float Friction { get; set; }
+        public KeyboardState PreviousKeyboardState { get; set; }
 
-		public float Gravity { get; set; } = 0.5f;
+        //public float Friction { get; set; }
+
+        public float Gravity { get; set; } = 0.5f;
 
 		//public float GroundLevel { get; set; } = 400f;
 
@@ -109,6 +112,35 @@ namespace Superorganism.Entities
             GamePadState = GamePad.GetState(0);
             KeyboardState = Keyboard.GetState();
 
+
+            //bool flipped = Flipped;
+            //bool isOnGround = IsOnGround;
+            //bool isJumping = IsJumping;
+            //bool isCenterOnDiagonal = IsCenterOnDiagonal;
+
+            //float animationSpeed = AnimationSpeed;
+            //float movementSpeed = MovementSpeed;
+
+            //Vector2 position = Position;
+            //ICollisionBounding collisionBounding = CollisionBounding;
+            //float jumpDiagonalPosY = JumpDiagonalPosY;
+
+
+            //GamePhysicsHelper.HandleMovement(keyboardState, gamePadState, gameTime, ref movementSpeed, ref animationSpeed, ref flipped, ref isOnGround,
+            //    ref _velocity, Friction, ref _soundTimer, JumpStrength, ref isJumping, MoveSound, JumpSound, MoveSoundInterval, ShiftMoveSoundInterval, 
+            //    ref position, ref collisionBounding, Gravity, TextureInfo, ref jumpDiagonalPosY, ref isCenterOnDiagonal);
+
+            //Flipped = flipped;
+            //IsOnGround = isOnGround;
+            //IsJumping = isJumping;
+            //IsCenterOnDiagonal = isCenterOnDiagonal;
+            //AnimationSpeed = animationSpeed;
+            //MovementSpeed = movementSpeed;
+
+            //JumpDiagonalPosY = jumpDiagonalPosY;
+            //CollisionBounding = collisionBounding;
+            //Position = position;
+
             // Update movement speed based on shift key
             if (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
             {
@@ -144,6 +176,46 @@ namespace Superorganism.Entities
                 }
             }
 
+            if (PreviousKeyboardState.IsKeyDown(Keys.F) && KeyboardState.IsKeyUp(Keys.F))
+            {
+                if (proposedXVelocity > 0)
+                {
+                    if (KeyboardState.IsKeyDown(Keys.Up) || KeyboardState.IsKeyDown(Keys.W))
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) + 5, Position.Y - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) - 5), false);
+                    }
+                    else
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) + 5, Position.Y), false);
+                    }
+
+                }
+                else if (proposedXVelocity < 0)
+                {
+                    if (KeyboardState.IsKeyDown(Keys.Up) || KeyboardState.IsKeyDown(Keys.W))
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X, Position.Y - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) - 5), false);
+                    }
+                    else
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, Position, false);
+                    }
+
+                }
+                else
+                {
+                    if (KeyboardState.IsKeyDown(Keys.Up) || KeyboardState.IsKeyDown(Keys.W))
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2, Position.Y - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) - 5), false);
+                    }
+                    else
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2, Position.Y), true);
+                    }
+
+                }
+            }
+
             // Handle jumping
             bool startingJump = IsOnGround && KeyboardState.IsKeyDown(Keys.Space);
             if (startingJump)
@@ -155,21 +227,19 @@ namespace Superorganism.Entities
             }
             else if (!IsJumping) // Only check for falling if we're not in a jump
             {
-                // Check if there's ground below us
-                //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
-                Vector2 groundCheckPos = _position;
                 bool diagonal = false;
                 bool isCenterOnDiagonal = false;
-                bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, CollisionBounding, ref diagonal, ref isCenterOnDiagonal);
-
+                bool hasGroundBelow = CheckCollisionAtPosition(_position, GameState.CurrentMap, CollisionBounding, ref diagonal, ref isCenterOnDiagonal);
+                IsCenterOnDiagonal = isCenterOnDiagonal;
                 if (!hasGroundBelow || diagonal)
                 {
                     IsOnGround = false;
                     if (_velocity.Y >= 0) // Only apply gravity if we're not moving upward
                     {
-                        _velocity.Y += Gravity;
+                        //_velocity.Y += Gravity;
                     }
                 }
+                _velocity.Y += Gravity;
             }
             else
             {
@@ -185,7 +255,7 @@ namespace Superorganism.Entities
 
             // Apply X movement if no collision
             if (!hasXCollision)
-            { 
+            {
                 _position.X = proposedXPosition.X;
                 _velocity.X = proposedXVelocity;
                 if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
@@ -196,9 +266,12 @@ namespace Superorganism.Entities
             else
             {
                 float newPosY = 0;
+                bool hasLeftDiagonal = false;
+                bool hasRightDiagonal = false;
                 BoundingRectangle xTileRec = new();
                 // Check if the collision is with a diagonal tile
-                if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition, CollisionBounding, ref _velocity, ref newPosY, ref xTileRec))
+                if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition,
+                        CollisionBounding, ref _velocity, ref newPosY, ref xTileRec, ref hasLeftDiagonal, ref hasRightDiagonal))
                 {
                     _position.X = proposedXPosition.X;
                     _velocity.X = proposedXVelocity;
@@ -208,13 +281,9 @@ namespace Superorganism.Entities
                         {
                             if (_velocity.Y == 0)
                             {
-                                _position.Y = newPosY;
                                 IsOnGround = true;
                             }
-                            //_position.Y = newPosY;
-                            //IsOnGround = true;
                         }
-                        //DiagonalPosY = newPosY;
                     }
 
                     if (Math.Abs(_velocity.X) > 0.1f && !IsJumping)
@@ -225,7 +294,12 @@ namespace Superorganism.Entities
                 else
                 {
                     // If it's not a diagonal tile, handle as normal collision
+                    if (!isCenterOnDiagonalTile)
+                    {
+                        //_velocity.X = 0;
+                    }
                     _velocity.X = 0;
+
                 }
             }
 
@@ -245,26 +319,28 @@ namespace Superorganism.Entities
                 {
                     if (Math.Abs(_velocity.Y) > 0) // Moving downward
                     {
-                        if (CollisionBounding is BoundingCircle bc)
+                        if (_velocity.Y < 0 && !isDiagonal) // Moving upward
                         {
-                            bc.Center = new Vector2(_position.X + bc.Radius, _position.Y + bc.Radius);
-                        }
-                        else if (CollisionBounding is BoundingRectangle br)
-                        {
-                            br.X = _position.X;
-                            br.Y = _position.Y;
-                            br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
+                            // Hit ceiling, stop upward movement
+                            _velocity.Y = 0;
+                            IsJumping = false;
                         }
 
-                        if (_velocity.Y > 0)
+                        else if (_velocity.Y > 0)
                         {
+                            bool leftHitsDiagonal = false;
+                            bool rightHitsDiagonal = false;
+                            float leftSlope = 0;
+                            float rightSlope = 0;
                             // Check ground at both bottom corners
-                            float leftGroundY = MapHelper.GetGroundYPosition(
+                           float leftGroundY = MapHelper.GetGroundYPosition(
                                 GameState.CurrentMap,
                                 _position.X,
                                 _position.Y,
                                 TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
-                                CollisionBounding
+                                CollisionBounding,
+                                ref leftHitsDiagonal,
+                                ref leftSlope
                             );
 
                             float rightGroundY = MapHelper.GetGroundYPosition(
@@ -272,30 +348,185 @@ namespace Superorganism.Entities
                                 _position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale),
                                 _position.Y,
                                 TextureInfo.UnitTextureHeight * TextureInfo.SizeScale,
-                                CollisionBounding
+                                CollisionBounding,
+                                ref rightHitsDiagonal,
+                                ref rightSlope
                             );
 
-                            float leftPos = leftGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                            float rightPos = rightGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                            float groundY = 0;
+                            if (IsCenterOnDiagonal)
+                            {
+                                if (leftHitsDiagonal && rightHitsDiagonal)
+                                {
+                                    groundY = Math.Min(leftGroundY, rightGroundY);
+                                }
+                                else if (leftHitsDiagonal)
+                                {
+                                    groundY = leftGroundY;  // Use the diagonal Y
+                                }
+                                else if (rightHitsDiagonal)
+                                {
+                                    groundY = rightGroundY;  // Use the diagonal Y
+                                }
 
-                            if (!isDiagonal)
-                            { }
+                            }
+                            else
+                            {
+                                groundY = Math.Min(leftGroundY, rightGroundY);
+                            }
 
-                            float groundY = Math.Min(leftGroundY, rightGroundY);
                             float newGroundY;
                             if (groundY < _position.Y)
                             {
                                 newGroundY = Math.Max(leftGroundY, rightGroundY) -
                                              (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
 
-                                _position.Y = newGroundY;
-                                IsOnGround = true;
-                                if (IsJumping) IsJumping = false;
+                                float distanceToNewGround = Math.Abs(_position.Y - newGroundY);
+                                if (newGroundY - _position.Y < 5)
+                                {
+                                    if (newGroundY >= 1254 && newGroundY < 1255.5)
+                                    {
+
+                                    }
+                                    _position.Y = newGroundY;
+                                    IsOnGround = true;
+                                    _velocity.Y = 0;
+                                    if (IsJumping) IsJumping = false;
+                                }
+                                else
+                                {
+                                     _position.Y = proposedYPosition.Y;
+                                }
+
+
                             }
                             else
                             {
                                 newGroundY = groundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                                if (JumpDiagonalPosY == 0)
+
+                                // For landing on mixed diagonal/flat tiles
+                                if (leftHitsDiagonal || rightHitsDiagonal)
+                                {
+                                    if (leftHitsDiagonal && rightHitsDiagonal)
+                                    {
+                                        newGroundY = Math.Min(leftGroundY, rightGroundY) -
+                                                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+
+                                    }
+                                    else if (leftHitsDiagonal)
+                                    {
+                                        if (leftSlope < 0)  // Downward slope (\)
+                                        {
+                                            if (leftGroundY > rightGroundY && leftGroundY - rightGroundY < 64)
+                                            {
+                                                newGroundY = rightGroundY -
+                                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                            }
+                                            else
+                                            {
+                                                newGroundY = leftGroundY -
+                                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                if (newGroundY - _position.Y > 64)
+                                                {
+                                                    newGroundY = rightGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+                                            }
+                                        }
+                                        else  // Upward slope (/)
+                                        {
+                                            if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 64)
+                                            {
+                                                if (rightGroundY - leftGroundY < 2)
+                                                {
+                                                    newGroundY = rightGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+                                                else
+                                                {
+                                                    newGroundY = leftGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                newGroundY = leftGroundY -
+                                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                            }
+                                        }
+                                    }
+                                    else if (rightHitsDiagonal)
+                                    {
+                                        if (rightSlope < 0)  // Downward slope (\)
+                                        {
+                                            if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 64)
+                                            {
+                                                newGroundY = rightGroundY -
+                                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                            }
+                                            else
+                                            {
+                                                if (leftGroundY < _position.Y)
+                                                {
+                                                    newGroundY = rightGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+                                                else
+                                                {
+                                                    if (leftGroundY < rightGroundY)
+                                                    {
+                                                        newGroundY = leftGroundY -
+                                                                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    }
+                                                    else
+                                                    {
+                                                        newGroundY = rightGroundY -
+                                                                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    }
+                                                }
+
+                                            }
+                                        }
+                                        else  // Upward slope (/)
+                                        {
+                                            //if (leftGroundY < rightGroundY && (rightGroundY - leftGroundY) < 64)
+                                            //{
+                                            //    newGroundY = leftGroundY -
+                                            //                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                            //}
+                                            if (leftGroundY < rightGroundY)
+                                            {
+                                                if (rightGroundY - leftGroundY < 64)
+                                                {
+                                                    newGroundY = leftGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+                                                else
+                                                {
+                                                    newGroundY = rightGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    if (newGroundY - _position.Y > 64)
+                                                    {
+                                                        newGroundY = leftGroundY -
+                                                                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    }
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                newGroundY = rightGroundY -
+                                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Rest remains the same
+                                if (JumpDiagonalPosY == 0 ||
+                                    (leftHitsDiagonal || rightHitsDiagonal) ||
+                                    newGroundY < JumpDiagonalPosY)
                                 {
                                     JumpDiagonalPosY = newGroundY;
                                 }
@@ -305,6 +536,8 @@ namespace Superorganism.Entities
                                     _position.Y = proposedYPosition.Y;
                                     IsOnGround = false;
                                 }
+
+
                                 else
                                 {
                                     _position.Y = newGroundY;
@@ -313,9 +546,7 @@ namespace Superorganism.Entities
                                     _velocity.Y = 0;
                                     JumpDiagonalPosY = 0;
                                 }
-
                             }
-
                         }
                         else
                         {
@@ -325,8 +556,6 @@ namespace Superorganism.Entities
                     }
 
                 }
-
-                //DiagonalPosY = 0;
             }
 
             // Check map bounds
@@ -337,6 +566,9 @@ namespace Superorganism.Entities
 
             // Clamp velocity
             _velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
+            IsCenterOnDiagonal = false;
+
+            PreviousKeyboardState = KeyboardState;
         }
 
         private bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding,
@@ -359,7 +591,7 @@ namespace Superorganism.Entities
 
                 leftTile = (int)(testBounds.Left / MapHelper.TileSize) - 1;
                 rightTile = (int)Math.Ceiling(testBounds.Right / MapHelper.TileSize);
-                topTile = (int)(testBounds.Top / MapHelper.TileSize) - 1;
+                topTile = (int)(testBounds.Top / MapHelper.TileSize) - 2;
                 bottomTile = (int)Math.Ceiling(testBounds.Bottom / MapHelper.TileSize) - 1;
             }
             else if (CollisionBounding is BoundingCircle bc)
@@ -407,21 +639,6 @@ namespace Superorganism.Entities
             {
                 for (int x = leftTile; x <= rightTile; x++)
                 {
-
-                    if (x == 63)
-                    {
-
-                    }
-                    if (x == 63 && y == 19)
-                    {
-
-                    }
-
-                    if (x == 63 && y == 20)
-                    {
-
-                    }
-
                     int tileId = layer.GetTile(x, y);
 
                     if (tileId != 0)
@@ -454,8 +671,26 @@ namespace Superorganism.Entities
                             {
                                 if (CollisionBounding is BoundingRectangle br)
                                 {
-                                    isDiagonalTile = true;
-                                   
+                                    float tileLeft = x * MapHelper.TileSize;
+                                    float slope = (slopeRight - slopeLeft) / (float)MapHelper.TileSize;
+                                    float distanceFromLeft = CollisionBounding.Center.X - tileLeft;
+                                    float tileBottom = (y + 1) * MapHelper.TileSize;
+
+                                    float slopeY;
+                                    if (slope > 0)
+                                    {
+                                        slopeY = (tileBottom - slopeLeft) - (slope * distanceFromLeft);
+                                    }
+                                    else
+                                    {
+                                        slopeY = (tileBottom - slopeRight) + (slope * (MapHelper.TileSize - Math.Abs(distanceFromLeft)));
+                                    }
+
+                                    if (position.Y < slopeY)
+                                    {
+                                        isDiagonalTile = true;
+                                    }
+
                                 }
                                 else if (CollisionBounding is BoundingCircle bc)
                                 {
@@ -465,7 +700,7 @@ namespace Superorganism.Entities
                             }
                         }
                         isThisDiagonalTile = isDiagonalTile;
-                        if (x == tilex && y == tiley && !isDiagonalTile)
+                        if (x == tilex && y == 0 && !isDiagonalTile)
                         {
                             
                             continue;
@@ -492,7 +727,11 @@ namespace Superorganism.Entities
                         {
                             if (CollisionBounding.Center.X <= tileRect.Right && CollisionBounding.Center.X >= tileRect.Left)
                             {
-                                isCenterOnDiagonal = true;
+                                if (isDiagonalTile)
+                                {
+                                    isCenterOnDiagonal = true;
+                                }
+
                             }
                             else
                             {

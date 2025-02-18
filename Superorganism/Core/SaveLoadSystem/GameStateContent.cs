@@ -12,6 +12,7 @@ namespace Superorganism.Core.SaveLoadSystem
         public bool IsGameWon { get; set; }
         public TimeSpan GameProgressTime { get; set; }
         public string SaveFilename { get; set; }
+        public string MapFileName { get; set; }
     }
 
     public class EntityData
