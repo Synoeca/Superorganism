@@ -668,6 +668,22 @@ namespace Superorganism.Tiles
         }
 
         /// <summary>
+        /// Sets the tile at the specified position in the layer
+        /// </summary>
+        /// <param name="x">The x-coordinate of the tile</param>
+        /// <param name="y">The y-coordinate of the tile</param>
+        /// <param name="tileId">The new tile ID (0 for empty tile)</param>
+        public void SetTile(int x, int y, int tileId)
+        {
+            if (x < 0 || x >= Width || y < 0 || y >= Height)
+                throw new InvalidOperationException("Tile coordinates out of bounds");
+
+            int index = (y * Width) + x;
+            Tiles[index] = tileId;
+            FlipAndRotate[index] = 0; // Reset any flip/rotate flags
+        }
+
+        /// <summary>
         /// Caches the information about each specific tile in the layer
         /// (its texture and bounds within that texture) in a list indexed 
         /// by the tile index for quick retreival/processing

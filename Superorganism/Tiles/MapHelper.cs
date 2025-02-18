@@ -280,13 +280,6 @@ namespace Superorganism.Tiles
                                     float tileBottom = (tileY + 1) * TileSize;
                                     float slope = (slopeRight - slopeLeft) / (float)TileSize;
 
-                                    if (tileX == 85 && tileY == 18)
-                                    {
-
-                                    }
-
-
-
                                     // Check if worldX is within tile bounds
                                     if (worldX >= tileLeft && worldX <= tileRight)
                                     {
@@ -356,6 +349,7 @@ namespace Superorganism.Tiles
             return targetTileset?.Tiles?.GetValueOrDefault(localTileId)?.Properties
                    ?? new Dictionary<string, string>();
         }
+
         public static bool HandleDiagonalCollision(TiledMap map, Vector2 position, Vector2 proposedPosition,
             ICollisionBounding collisionBounding, ref Vector2 velocity, ref float newPosY, ref BoundingRectangle xTileRec,
             ref bool hasLeftDiagonal, ref bool hasRightDiagonal)
@@ -626,20 +620,7 @@ namespace Superorganism.Tiles
         private static bool CheckDiagonalTile(Layer layer, int x, int y, ref float newPosY,
             ICollisionBounding collisionBounding, Vector2 position, Vector2 proposedPosition, ref BoundingRectangle xTileRec)
         {
-            int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
-            int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
-
             int tileId = layer.GetTile(x, y);
-            int tile1 = layer.GetTile(64, 19);
-            int tile2 = layer.GetTile(62, 19);
-            if (x == 63 && y == 19)
-            {
-                
-            }
-            if (x == 74 && y == 19)
-            {
-
-            }
             if (tileId == 0) return false;
 
             Dictionary<string, string> properties = GetTileProperties(tileId);

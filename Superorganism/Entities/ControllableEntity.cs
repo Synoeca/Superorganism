@@ -31,9 +31,11 @@ namespace Superorganism.Entities
 
         public float JumpDiagonalPosY { get; set; } = 0;
 
-		//public float Friction { get; set; }
+        public KeyboardState PreviousKeyboardState { get; set; }
 
-		public float Gravity { get; set; } = 0.5f;
+        //public float Friction { get; set; }
+
+        public float Gravity { get; set; } = 0.5f;
 
 		//public float GroundLevel { get; set; } = 400f;
 
@@ -110,6 +112,7 @@ namespace Superorganism.Entities
             GamePadState = GamePad.GetState(0);
             KeyboardState = Keyboard.GetState();
 
+
             //bool flipped = Flipped;
             //bool isOnGround = IsOnGround;
             //bool isJumping = IsJumping;
@@ -138,8 +141,11 @@ namespace Superorganism.Entities
             //CollisionBounding = collisionBounding;
             //Position = position;
 
+            if (PreviousKeyboardState.GetPressedKeys().Length == 0)
+            {
+                //PreviousKeyboardState.
+            }
 
-            
             // Update movement speed based on shift key
             if (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
             {
@@ -151,6 +157,8 @@ namespace Superorganism.Entities
                 MovementSpeed = 1.0f;
                 AnimationSpeed = 0.15f;
             }
+
+
 
             float proposedXVelocity = 0;
 
@@ -173,6 +181,31 @@ namespace Superorganism.Entities
                     proposedXVelocity = 0;
                     _soundTimer = 0f;
                 }
+            }
+
+            if (PreviousKeyboardState.IsKeyDown(Keys.F) && KeyboardState.IsKeyUp(Keys.F))
+            {
+                if (proposedXVelocity > 0)
+                {
+                    MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) + 5, Position.Y), false);
+                }
+                else if (proposedXVelocity < 0)
+                {
+                    MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, Position, false);
+                }
+                else
+                {
+                    MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale)/2, Position.Y), true);
+                }
+
+                //if (Flipped)
+                //{
+                //    MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, Position);
+                //}
+                //else
+                //{
+                //    MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + TextureInfo.UnitTextureWidth * TextureInfo.SizeScale, Position.Y));
+                //}
             }
 
             // Handle jumping
@@ -278,7 +311,14 @@ namespace Superorganism.Entities
                 {
                     if (Math.Abs(_velocity.Y) > 0) // Moving downward
                     {
-                        if (_velocity.Y > 0)
+                        if (_velocity.Y < 0 && !isDiagonal) // Moving upward
+                        {
+                            // Hit ceiling, stop upward movement
+                            _velocity.Y = 0;
+                            IsJumping = false;
+                        }
+
+                        else if (_velocity.Y > 0)
                         {
                             bool leftHitsDiagonal = false;
                             bool rightHitsDiagonal = false;
@@ -363,6 +403,7 @@ namespace Superorganism.Entities
                                     }
                                     _position.Y = newGroundY;
                                     IsOnGround = true;
+                                    _velocity.Y = 0;
                                     if (IsJumping) IsJumping = false;
                                 }
                                 else
@@ -521,8 +562,8 @@ namespace Superorganism.Entities
             // Clamp velocity
             _velocity.X = MathHelper.Clamp(_velocity.X, -MovementSpeed * 2, MovementSpeed * 2);
             IsCenterOnDiagonal = false;
-            
-            
+
+            PreviousKeyboardState = KeyboardState;
         }
 
         private bool CheckCollisionAtPosition(Vector2 position, TiledMap map, ICollisionBounding collisionBounding,
@@ -545,7 +586,7 @@ namespace Superorganism.Entities
 
                 leftTile = (int)(testBounds.Left / MapHelper.TileSize) - 1;
                 rightTile = (int)Math.Ceiling(testBounds.Right / MapHelper.TileSize);
-                topTile = (int)(testBounds.Top / MapHelper.TileSize) - 1;
+                topTile = (int)(testBounds.Top / MapHelper.TileSize) - 2;
                 bottomTile = (int)Math.Ceiling(testBounds.Bottom / MapHelper.TileSize) - 1;
             }
             else if (CollisionBounding is BoundingCircle bc)
@@ -589,15 +630,6 @@ namespace Superorganism.Entities
             if (topTile < 0 || bottomTile < 0) { topTile = bottomTile = 0; }
             if (topTile >= MapHelper.MapHeight || bottomTile >= MapHelper.MapHeight) { topTile = bottomTile = MapHelper.MapHeight - 1; }
 
-            if (tilex == 52)
-            {
-                if (tiley == 20)
-                {
-
-                }
-            }
-
-
             for (int y = topTile; y <= bottomTile; y++)
             {
                 for (int x = leftTile; x <= rightTile; x++)
@@ -607,14 +639,6 @@ namespace Superorganism.Entities
 
                     if (tileId != 0)
                     {
-                        if (x == 52)
-                        {
-                            if (y == 20)
-                            {
-
-                            }
-                        }
-
                         Dictionary<string, string> property = MapHelper.GetTileProperties(tileId);
 
                         // Skip non-collidable tiles
