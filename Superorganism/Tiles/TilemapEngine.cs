@@ -733,7 +733,6 @@ namespace Superorganism.Tiles
                 for (int x = 0; x < Width; x++)
                 {
                     int i = (y * Width) + x;
-
                     byte flipAndRotate = FlipAndRotate[i];
                     SpriteEffects flipEffect = SpriteEffects.None;
                     float rotation = 0f;
@@ -768,10 +767,33 @@ namespace Superorganism.Tiles
                         }
                     }
 
-                    int index = Tiles[i] - 1;
+                    int tileId = Tiles[i];
+                    int index = tileId - 1;
+
                     if (index >= 0 && index < TileInfoCache!.Length)
                     {
                         TileInfo info = TileInfoCache[index];
+
+                        // Get tile opacity from tileset
+                        float tileOpacity = Opacity; // Default to layer opacity
+
+                        // Find the tileset that contains this tile
+                        foreach (Tileset tileset in tilesets)
+                        {
+                            if (tileId >= tileset.FirstGid && tileset.Tiles.ContainsKey(tileId - tileset.FirstGid))
+                            {
+                                Tile tile = tileset.Tiles[tileId - tileset.FirstGid];
+                                if (tile.Properties.TryGetValue("Opacity", out string opacityStr))
+                                {
+                                    if (float.TryParse(opacityStr, out float tileSpecificOpacity))
+                                    {
+                                        // Combine layer opacity with tile opacity
+                                        tileOpacity *= tileSpecificOpacity;
+                                    }
+                                }
+                                break;
+                            }
+                        }
 
                         // Position tiles relative to ground level
                         Vector2 position = new(
@@ -783,7 +805,7 @@ namespace Superorganism.Tiles
                             info.Texture,
                             position,
                             info.Rectangle,
-                            Color.White * Opacity,
+                            Color.White * tileOpacity,
                             rotation,
                             Vector2.Zero, // Don't use center origin since it positions manually
                             1f,

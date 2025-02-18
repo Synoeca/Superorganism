@@ -193,11 +193,6 @@ namespace Superorganism.Tiles
             int tileY = (int)(positionY / TileSize);
             if (tileX < 0 || tileX >= MapWidth) return MapHeight * TileSize;
 
-            if (tileX == 85 && tileY == 18)
-            {
-
-            }
-
             // Search downward until we find ground
             for (; tileY < MapHeight; tileY++)
             {
@@ -258,6 +253,11 @@ namespace Superorganism.Tiles
                         if (tileId != 0)
                         {
                             Dictionary<string, string> property = GetTileProperties(tileId);
+
+                            if (tileX == 61 && tileY == 21)
+                            {
+
+                            }
 
                             // Skip non-collidable tiles
                             if (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false")

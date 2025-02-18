@@ -1,0 +1,464 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.1" orientation="orthogonal" renderorder="right-down" width="200" height="50" tilewidth="64" tileheight="64" infinite="0" nextlayerid="14" nextobjectid="1">
+  <properties>
+    <property name="mapmeta" value="mapvalue" />
+  </properties>
+  <tileset firstgid="1" name="tileset64" tilewidth="64" tileheight="64" tilecount="64" columns="8">
+    <properties>
+      <property name="Theme" value="Ground" />
+    </properties>
+    <image source="tileset64.png" width="512" height="512" />
+    <tile id="0">
+      <properties>
+        <property name="TileId" type="int" value="1" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="1">
+      <properties>
+        <property name="TileId" type="int" value="2" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="2">
+      <properties>
+        <property name="TileId" type="int" value="3" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="3">
+      <properties>
+        <property name="TileId" type="int" value="4" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="4">
+      <properties>
+        <property name="TileId" type="int" value="5" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="5">
+      <properties>
+        <property name="TileId" type="int" value="6" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="6">
+      <properties>
+        <property name="TileId" type="int" value="7" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="7">
+      <properties>
+        <property name="TileId" type="int" value="8" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="8">
+      <properties>
+        <property name="TileId" type="int" value="9" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="9">
+      <properties>
+        <property name="TileId" type="int" value="10" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="10">
+      <properties>
+        <property name="TileId" type="int" value="11" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="11">
+      <properties>
+        <property name="TileId" type="int" value="12" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="12">
+      <properties>
+        <property name="TileId" type="int" value="13" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="13">
+      <properties>
+        <property name="TileId" type="int" value="14" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="14">
+      <properties>
+        <property name="TileId" type="int" value="15" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="15">
+      <properties>
+        <property name="TileId" type="int" value="16" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="16">
+      <properties>
+        <property name="TileId" type="int" value="17" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="17">
+      <properties>
+        <property name="TileId" type="int" value="18" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="18">
+      <properties>
+        <property name="TileId" type="int" value="19" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="19">
+      <properties>
+        <property name="TileId" type="int" value="20" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="20">
+      <properties>
+        <property name="SlopeLeft" type="int" value="64" />
+        <property name="SlopeRight" type="int" value="0" />
+        <property name="TileId" type="int" value="21" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="21">
+      <properties>
+        <property name="TileId" type="int" value="22" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="22">
+      <properties>
+        <property name="TileId" type="int" value="23" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="23">
+      <properties>
+        <property name="TileId" type="int" value="24" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="24">
+      <properties>
+        <property name="SlopeLeft" type="int" value="64" />
+        <property name="SlopeRight" type="int" value="32" />
+        <property name="TileId" type="int" value="25" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="25">
+      <properties>
+        <property name="SlopeLeft" type="int" value="32" />
+        <property name="SlopeRight" type="int" value="0" />
+        <property name="TileId" type="int" value="26" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="26">
+      <properties>
+        <property name="TileId" type="int" value="27" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="27">
+      <properties>
+        <property name="TileId" type="int" value="28" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="28" type="Grass">
+      <properties>
+        <property name="TileId" type="int" value="29" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="29">
+      <properties>
+        <property name="TileId" type="int" value="30" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="30">
+      <properties>
+        <property name="SlopeLeft" type="int" value="64" />
+        <property name="SlopeRight" type="int" value="32" />
+        <property name="TileId" type="int" value="31" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="31">
+      <properties>
+        <property name="TileId" type="int" value="32" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="32">
+      <properties>
+        <property name="TileId" type="int" value="33" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="33">
+      <properties>
+        <property name="TileId" type="int" value="34" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="34">
+      <properties>
+        <property name="TileId" type="int" value="35" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="35">
+      <properties>
+        <property name="TileId" type="int" value="36" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="36">
+      <properties>
+        <property name="TileId" type="int" value="37" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="37">
+      <properties>
+        <property name="TileId" type="int" value="38" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="38">
+      <properties>
+        <property name="TileId" type="int" value="39" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="39">
+      <properties>
+        <property name="TileId" type="int" value="40" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="40">
+      <properties>
+        <property name="TileId" type="int" value="41" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="41">
+      <properties>
+        <property name="TileId" type="int" value="42" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="42">
+      <properties>
+        <property name="TileId" type="int" value="43" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="43">
+      <properties>
+        <property name="TileId" type="int" value="44" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="44">
+      <properties>
+        <property name="TileId" type="int" value="45" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="45">
+      <properties>
+        <property name="TileId" type="int" value="46" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="46" type="Grass" probability="2">
+      <properties>
+        <property name="TileId" type="int" value="47" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="47">
+      <properties>
+        <property name="TileId" type="int" value="48" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="48">
+      <properties>
+        <property name="TileId" type="int" value="49" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="49">
+      <properties>
+        <property name="TileId" type="int" value="50" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="50">
+      <properties>
+        <property name="TileId" type="int" value="51" />
+        <property name="isCollidable" type="bool" value="false" />
+      </properties>
+    </tile>
+    <tile id="51">
+      <properties>
+        <property name="TileId" type="int" value="52" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="52">
+      <properties>
+        <property name="SlopeLeft" type="int" value="0" />
+        <property name="SlopeRight" type="int" value="32" />
+        <property name="TileId" type="int" value="53" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="53">
+      <properties>
+        <property name="SlopeLeft" type="int" value="32" />
+        <property name="SlopeRight" type="int" value="64" />
+        <property name="TileId" type="int" value="54" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="54">
+      <properties>
+        <property name="TileId" type="int" value="55" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="55">
+      <properties>
+        <property name="TileId" type="int" value="56" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="56">
+      <properties>
+        <property name="SlopeLeft" type="int" value="0" />
+        <property name="SlopeRight" type="int" value="64" />
+        <property name="TileId" type="int" value="57" />
+        <property name="isCollidable" type="bool" value="true" />
+        <property name="isDiagonal" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="57">
+      <properties>
+        <property name="TileId" type="int" value="58" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="58">
+      <properties>
+        <property name="TileId" type="int" value="59" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="59">
+      <properties>
+        <property name="TileId" type="int" value="60" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="60">
+      <properties>
+        <property name="TileId" type="int" value="61" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="61">
+      <properties>
+        <property name="TileId" type="int" value="62" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="62">
+      <properties>
+        <property name="TileId" type="int" value="63" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="63">
+      <properties>
+        <property name="TileId" type="int" value="64" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+  </tileset>
+  <tileset firstgid="65" name="tileset12" tilewidth="64" tileheight="64" tilecount="4" columns="2">
+    <image source="../../tileset.png" width="128" height="130" />
+    <tile id="0">
+      <properties>
+        <property name="TildId" type="int" value="1" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="1">
+      <properties>
+        <property name="TildId" type="int" value="2" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="2">
+      <properties>
+        <property name="TildId" type="int" value="3" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+    <tile id="3">
+      <properties>
+        <property name="TildId" type="int" value="4" />
+        <property name="isCollidable" type="bool" value="true" />
+      </properties>
+    </tile>
+  </tileset>
+  <group id="5" name="GroupA">
+    <properties>
+      <property name="Damage" value="Low" />
+    </properties>
+    <objectgroup color="#ffaa7f" id="11" name="ObjectLayerA" class="ObjLayerA" opacity="0.9" tintcolor="#00007f" offsetx="2.5" offsety="-2.5" parallaxx="0.8" parallaxy="1.2">
+      <properties>
+        <property name="Level" type="int" value="1" />
+      </properties>
+    </objectgroup>
+    <layer id="12" name="Grass" width="200" height="50" visible="0">
+      <data encoding="base64" compression="gzip">H4sIAAAAAAAACu3WQQqDMBAFUF2UnkJ6hK5acO/9z6QDGcjC0ooKVt+DTyagWQQ+pGkAAAAAAAAAAAAAAACAXzwXptsosIf7l30YXD1/6DXlvfKM6EN2op7hCPKdUe/n9GWtO3ErmTvzUeb4Nv+Fs8k+tFPinR1rzp/6AQAAAAAAAAAAAAAAAAAAAAAAAAAAAABc1wgy29ckQJwAAA==</data>
+    </layer>
+    <layer id="1" name="Terrain" width="200" height="50">
+      <data encoding="base64" compression="gzip">H4sIAAAAAAAACu3YzUrEMBSG4REUERRXLtStN6Cg4NKf+78mG5hiCE0n7cRpWp8XPqytbdPje9LM7HYAAAAAAAAAAAAAAAAAAADYKu9LDwBomIsuegTI98f5vkfCNoBfzjIBtsZXtP3R5TM5/trlrctjI7nv8jDwDN9zC1DA5T4or9eU32tT6/phfZR7F6w5dwPPGs8DUwjrxzhrYKle7u+b64fcz9pjGLtua/N9S0nfPXEt45r2NQy9dhXtv9nvG+q/8HkspN8+NXPmjPiZS7Zj0u9nxtbZpfNaf93ceMfY6lwvdWpwW5A53qX0HobrxcT3SSkZWy7Hnt9yXhoYg9Trk7QPY3K9ER+b0hPHnL9Vx5+PPC7TahB8H/q+I15f1mDI/7F+yJ1X04NTz9017hc+/3J8mRrk1mqHXE39Hjt2iJr+10gr45ga67bT1Tp199DfzvlflV6fE8v3noz3R8qcPlp7as/Pueut9f3135IytC8+1nL+eu2xlNN6aXm3AkuPQdSAAxzgQF0HrkUNOMABDnCAAxzgAAc4wAEOcIADHOAABzjAAQ5wgAMc4AAHOMABDnCAA7unrgaiBhzgAAc4wAEOcIADHOAABzjAAQ5wgAMc4AAHOMABDnCAAxzgAAc48N8d+AFXNZciQJwAAA==</data>
+    </layer>
+  </group>
+</map>

@@ -440,8 +440,9 @@
   </tile>
   <tile id="3">
    <properties>
+    <property name="Opacity" type="float" value="0.5"/>
     <property name="TildId" type="int" value="4"/>
-    <property name="isCollidable" type="bool" value="true"/>
+    <property name="isCollidable" type="bool" value="false"/>
    </properties>
   </tile>
  </tileset>
@@ -454,14 +455,14 @@
     <property name="Level" type="int" value="1"/>
    </properties>
   </objectgroup>
-  <layer id="12" name="Grass" width="200" height="50" visible="0">
+  <layer id="12" name="Grass" width="200" height="50">
    <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAACu3WMQqDQBAF0LUInkI8QioFe+9/pihZcQpFRROCeQ8+O1PssM3ApgQAAAAAAAAAAAAAAADs8TyY6qLAJ5Qb/aj/xkPgYs2Q9uSMMs07EWv4BdM/I/ZLunzGnXjkLM2sc92Gu3A30z4U6f3PLkK9th8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAwP96ATLb1yRAnAAA
+   H4sIAAAAAAAACu3WPQqEMBAG0FgsnmLxCFsp2O/9z6QLEadQVPxB3PfgIzNFhjQDSQkAAAAAAAAAAAAAAABY47Mx74MCZygX+p/vFQ+Bg9V9mp0zyjTuRKzhDoZ/RuyntPmMO/HKmZpZ5boJd+Fphn0ocl+Eem4/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAID/1QH25V4SQJwAAA==
   </data>
   </layer>
   <layer id="1" name="Terrain" width="200" height="50">
    <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAACu3Y3UqEQACA0QlWJCi66qK67QUKCrqs7f2fKaVdGkzNMX9GOR8cdttddNZ1RikESZIkSZIkSZIkSZIkSZIk7bW3tQcgZVwRzBGpq3p+HML3HClWHouUWxcdpL11jJ6/Vz4a779UXisPmbir3Ld8h8+xB2BA5YmG1TxWf/099/7HVt8fdV0Ltuy25bseW14bUtGwhdaay+XIx6nH0Lfd3Nb7nDSvPfGxjI/p+RjWc+0yev06dM+/w0mIHpdszJpRJj6Pm2NtjbfbNt6+9rrWM42bAerPpZ53zc7n4ZD90e85gzHwW+o8idfmtceemyXP8ad/vk+a+nxv+39HfH+ZMieW+n2m2M/Sa/cU+ysWHjM/Uu/V5pTLOpjLOFK5b9uOpX4r5wTkYeq52LW9rV6/2K65rzNrndPmEgBM7woAAAAAAAAACI8AAAAAAAAAQPgCzIScHUCcAAA=
+   H4sIAAAAAAAACu3YwUrDMACA4QgrQ1A8eVCvvoCCgkfd3v+ZbHHDUNvZdG2aju+Hj81ttFnXpMUQJEmSJEmSJEmSJEmSJEmSdKl9LD0AqeCqYI5IfTXzYxN+5ki18Fik0rrqIV1au+j5Z+2r9f5b7b32VIiH2mPHd9iPPQAD2h5oWO1j9d/fc+9/bM39Ud+1YM3uO77rruO1IVUta2ipubwd+Tj1GE5tt7T1viTta098LONjejyGzVy7jl6/Df3zb3MQosecjVkztonP4+ZYW+Ptdo33VJe61jONuwGaz6Wed+2O5+GQ/Z1rnyDHeKb2WsAY+Ct1nsRrc85xrmF+5DzHX858nzTN+d71/474/jJlTuT6fabYT+61e4r9VZnHzK/Ue7U5lbIOljKOVO7b1iPXb+WcgDJMPRf7trfW6xfrNfd1Zqlz2lwCgOndAAAAAAAAAADhGQAAAAAAAAAI3+M20WdAnAAA
   </data>
   </layer>
  </group>
