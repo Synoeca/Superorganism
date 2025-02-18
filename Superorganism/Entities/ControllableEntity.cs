@@ -180,15 +180,39 @@ namespace Superorganism.Entities
             {
                 if (proposedXVelocity > 0)
                 {
-                    MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) + 5, Position.Y), false);
+                    if (KeyboardState.IsKeyDown(Keys.Up) || KeyboardState.IsKeyDown(Keys.W))
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) + 5, Position.Y - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) - 5), false);
+                    }
+                    else
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) + 5, Position.Y), false);
+                    }
+
                 }
                 else if (proposedXVelocity < 0)
                 {
-                    MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, Position, false);
+                    if (KeyboardState.IsKeyDown(Keys.Up) || KeyboardState.IsKeyDown(Keys.W))
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X, Position.Y - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) - 5), false);
+                    }
+                    else
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, Position, false);
+                    }
+
                 }
                 else
                 {
-                    MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale)/2, Position.Y), true);
+                    if (KeyboardState.IsKeyDown(Keys.Up) || KeyboardState.IsKeyDown(Keys.W))
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2, Position.Y - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) - 5), false);
+                    }
+                    else
+                    {
+                        MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2, Position.Y), true);
+                    }
+
                 }
             }
 
