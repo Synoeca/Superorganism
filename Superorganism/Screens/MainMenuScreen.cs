@@ -17,18 +17,14 @@ namespace Superorganism.Screens
                 "Superorganism",
                 "Saves");
 
-            bool hasSaveFiles = Directory.Exists(savePath) &&
-                Directory.GetFiles(savePath, "*.sav").Any();
-
             // Add Continue option if save files exist
-            if (hasSaveFiles)
+            if (HasSaveFiles())
             {
                 MenuEntry continueGameMenuEntry = new("Continue");
                 continueGameMenuEntry.Selected += ContinueGameMenuEntrySelected;
                 MenuEntries.Add(continueGameMenuEntry);
             }
 
-            // Changed "Play Game" to "New Game"
             MenuEntry newGameMenuEntry = new("New Game");
             MenuEntry loadMenuEntry = new("Load Game");
             MenuEntry instructionsMenuEntry = new("Instructions");
@@ -46,6 +42,17 @@ namespace Superorganism.Screens
             MenuEntries.Add(instructionsMenuEntry);
             MenuEntries.Add(optionsMenuEntry);
             MenuEntries.Add(exitMenuEntry);
+        }
+
+        public bool HasSaveFiles()
+        {
+            string savePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Superorganism",
+                "Saves");
+
+            return Directory.Exists(savePath) &&
+                                Directory.GetFiles(savePath, "*.sav").Any();
         }
 
         private void ContinueGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)

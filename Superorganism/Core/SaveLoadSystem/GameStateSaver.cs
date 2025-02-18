@@ -20,22 +20,33 @@ namespace Superorganism.Core.SaveLoadSystem
             Converters = { new Vector2Converter() }
         };
 
-        public static void SaveGameState(GameStateInfo gameState, string saveFileName = null)
+        public static void SaveGameState(GameStateInfo gameState, string mapFileName, string saveFileName = null)
         {
             // If no custom file name is provided, fall back to generating a numbered save
+            string saveNumber;
             if (string.IsNullOrEmpty(saveFileName))
             {
                 int nextNumber = GetNextSaveNumber();
-                saveFileName = $"Save{nextNumber}.sav";  // Default name pattern
+                saveNumber = nextNumber.ToString();
+                saveFileName = $"Save{saveNumber}.sav";
             }
             else
             {
+                // Extract save number from filename
+                saveNumber = Path.GetFileNameWithoutExtension(saveFileName).Replace("Save", "");
+
                 // If the name doesn't already end with ".sav", add the extension
                 if (!saveFileName.EndsWith(".sav", StringComparison.OrdinalIgnoreCase))
                 {
                     saveFileName += ".sav";
                 }
             }
+
+            // Generate the map file name by combining the base map name with the save number
+            string baseMapName = Path.GetFileNameWithoutExtension(mapFileName);
+            string newMapFileName = $"{baseMapName}_Save{saveNumber}";
+
+            newMapFileName = MapFileCreator.CreateMapFileForSave(baseMapName, newMapFileName);
 
             List<EntityData> entityDataList = [];
 
@@ -98,7 +109,8 @@ namespace Superorganism.Core.SaveLoadSystem
                 IsGameOver = !(player!.HitPoints  > 0),
                 IsGameWon = !gameState.Entities.OfType<Crop>().Any(),
                 GameProgressTime = gameState.GameProgressTime,
-                SaveFilename = saveFileName
+                SaveFilename = saveFileName,
+                MapFileName = newMapFileName
             };
 
             string savePath = Path.Combine(BaseContentPath, saveFileName);

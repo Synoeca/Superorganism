@@ -16,6 +16,8 @@ namespace ContentPipeline
 
         public int TileHeight;
 
+        public string MapFileName;
+
         [ContentSerializerIgnore]
         public string Filename;
 

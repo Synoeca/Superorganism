@@ -221,7 +221,7 @@ namespace Superorganism.Screens
                 // If the current input is empty, fall back to the default name
                 string fileName = string.IsNullOrWhiteSpace(_currentInput)
                     ? _defaultSaveName
-                    : _currentInput;  // We no longer append ".sav" here, as the user provides the full name
+                    : _currentInput; 
                 SaveToFile(fileName);
                 _isNaming = false;
                 _currentInput = "";
@@ -323,9 +323,6 @@ namespace Superorganism.Screens
             return null;
         }
 
-
-
-
         private void HandleDeleteOption()
         {
             List<SaveFileEntry> currentEntries = _pages[_currentPage];
@@ -347,16 +344,50 @@ namespace Superorganism.Screens
         {
             try
             {
-                string filePath = Path.Combine(_savePath, fileName);
-                if (File.Exists(filePath))
+                string savePath = Path.Combine(_savePath, fileName);
+                if (File.Exists(savePath))
                 {
-                    File.Delete(filePath);
+                    // Read the save file to get the map file name
+                    string jsonContent = File.ReadAllText(savePath);
+                    GameStateContent saveState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, _serializerOptions);
+
+                    // Delete the map file if it exists
+                    if (!string.IsNullOrEmpty(saveState.MapFileName))
+                    {
+                        string mapContentPath = Path.Combine(
+                            Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory)!.Parent!.Parent!.Parent!.FullName,
+                            "Content", "Tileset", "Maps");
+                        string mapRuntimePath = Path.Combine(
+                            AppDomain.CurrentDomain.BaseDirectory,
+                            "Content", "Tileset", "Maps");
+
+                        // Ensure the map filename has .tmx extension
+                        string mapFileName = Path.HasExtension(saveState.MapFileName)
+                            ? saveState.MapFileName
+                            : $"{saveState.MapFileName}.tmx";
+
+                        string contentMapPath = Path.Combine(mapContentPath, mapFileName);
+                        string runtimeMapPath = Path.Combine(mapRuntimePath, mapFileName);
+
+                        // Delete map files if they exist
+                        if (File.Exists(contentMapPath))
+                        {
+                            File.Delete(contentMapPath);
+                        }
+                        if (File.Exists(runtimeMapPath))
+                        {
+                            File.Delete(runtimeMapPath);
+                        }
+                    }
+
+                    // Delete the save file
+                    File.Delete(savePath);
                     PopulateEntries();
                 }
             }
             catch (Exception)
             {
-                const string message = "Failed to delete save file.";
+                const string message = "Failed to delete save file and associated map file.";
                 MessageBoxScreen errorBox = new(message);
                 ScreenManager.AddScreen(errorBox, ControllingPlayer);
             }
@@ -483,6 +514,7 @@ namespace Superorganism.Screens
                     Entities = DecisionMaker.Entities,
                     GameProgressTime = gameplayScreen.GameStateManager.GameTime.TotalGameTime
                 },
+                GameState.CurrentMapName,
                 fileName
             );
 

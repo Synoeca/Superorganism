@@ -8,6 +8,8 @@ namespace Superorganism.Core.Managers
     {
         private static GameStateManager _instance;
 
+        public static string CurrentMapName { get; set; }
+
         public static void Initialize(GameStateManager manager)
         {
             _instance = manager ?? throw new ArgumentNullException(nameof(manager));
