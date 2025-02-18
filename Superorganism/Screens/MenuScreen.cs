@@ -26,7 +26,7 @@ namespace Superorganism.Screens
         private readonly InputAction _menuCancel;
 
         // Gets the list of menu entries, so derived classes can add or change the menu contents.
-        protected IList<MenuEntry> MenuEntries => _menuEntries;
+        public IList<MenuEntry> MenuEntries => _menuEntries;
 
         protected MenuScreen(string menuTitle)
         {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -136,6 +137,18 @@ namespace Superorganism.ScreenManagement
                 _tmpScreensList.RemoveAt(_tmpScreensList.Count - 1);
 
                 screen.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
+
+                if (screen is MainMenuScreen mms)
+                {
+                    if (!mms.HasSaveFiles())
+                    {
+                        MenuEntry continueEntry = mms.MenuEntries.FirstOrDefault(me => me.Text.Equals("Continue"));
+                        if (continueEntry != null)
+                        {
+                            mms.MenuEntries.Remove(continueEntry);
+                        }
+                    }
+                }
 
                 if (screen.ScreenState == ScreenState.TransitionOn || screen.ScreenState == ScreenState.Active)
                 {
