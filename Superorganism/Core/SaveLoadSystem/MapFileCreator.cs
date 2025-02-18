@@ -6,7 +6,7 @@ namespace Superorganism.Core.SaveLoadSystem
     public static class MapFileCreator
     {
         private static readonly string MapContentPath = Path.Combine(
-            Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName,
+            Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory)!.Parent!.Parent!.Parent!.FullName,
             "Content", "Tileset", "Maps");
 
         private static readonly string RuntimeMapPath = Path.Combine(
@@ -15,7 +15,7 @@ namespace Superorganism.Core.SaveLoadSystem
 
         public static string CreateMapFileForSave(string originalMapName, string newMapName)
         {
-            string retMapFileName = "";
+            string retMapFileName;
             try
             {
                 // Generate new filename using the base map name (without any datetime)
@@ -35,12 +35,12 @@ namespace Superorganism.Core.SaveLoadSystem
                 }
 
                 // Create directories if they don't exist
-                Directory.CreateDirectory(Path.GetDirectoryName(newContentMapPath));
-                Directory.CreateDirectory(Path.GetDirectoryName(newRuntimeMapPath));
+                Directory.CreateDirectory(Path.GetDirectoryName(newContentMapPath) ?? throw new InvalidOperationException());
+                Directory.CreateDirectory(Path.GetDirectoryName(newRuntimeMapPath) ?? throw new InvalidOperationException());
 
                 // Copy to content directory
                 File.Copy(originalMapPath, newContentMapPath, true);
-
+                
                 // Also copy to runtime directory
                 File.Copy(originalMapPath, newRuntimeMapPath, true);
 

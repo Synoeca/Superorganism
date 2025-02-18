@@ -141,11 +141,6 @@ namespace Superorganism.Entities
             //CollisionBounding = collisionBounding;
             //Position = position;
 
-            if (PreviousKeyboardState.GetPressedKeys().Length == 0)
-            {
-                //PreviousKeyboardState.
-            }
-
             // Update movement speed based on shift key
             if (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
             {
@@ -157,8 +152,6 @@ namespace Superorganism.Entities
                 MovementSpeed = 1.0f;
                 AnimationSpeed = 0.15f;
             }
-
-
 
             float proposedXVelocity = 0;
 
@@ -197,15 +190,6 @@ namespace Superorganism.Entities
                 {
                     MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale)/2, Position.Y), true);
                 }
-
-                //if (Flipped)
-                //{
-                //    MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, Position);
-                //}
-                //else
-                //{
-                //    MapModifier.ModifyTileBelowPlayer(GameState.CurrentMap, new Vector2(Position.X + TextureInfo.UnitTextureWidth * TextureInfo.SizeScale, Position.Y));
-                //}
             }
 
             // Handle jumping
@@ -345,19 +329,7 @@ namespace Superorganism.Entities
                                 ref rightSlope
                             );
 
-                            float leftPos = leftGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                            float rightPos = rightGroundY - (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-
-                            if (!isDiagonal)
-                            { }
-
                             float groundY = 0;
-
-                            if (!leftHitsDiagonal && rightHitsDiagonal)
-                            {
-
-                            }
-
                             if (IsCenterOnDiagonal)
                             {
                                 if (leftHitsDiagonal && rightHitsDiagonal)
@@ -380,15 +352,6 @@ namespace Superorganism.Entities
                             }
 
                             float newGroundY;
-                            float bottom = 0;
-                            if (CollisionBounding is BoundingRectangle br)
-                            {
-                                bottom = br.Bottom;
-                            }
-                            else if (CollisionBounding is BoundingCircle bcc)
-                            {
-                                bottom = bcc.Center.Y - bcc.Radius;
-                            }
                             if (groundY < _position.Y)
                             {
                                 newGroundY = Math.Max(leftGroundY, rightGroundY) -
@@ -439,6 +402,11 @@ namespace Superorganism.Entities
                                             {
                                                 newGroundY = leftGroundY -
                                                              (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                if (newGroundY - _position.Y > 64)
+                                                {
+                                                    newGroundY = rightGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
                                             }
                                         }
                                         else  // Upward slope (/)
@@ -482,7 +450,7 @@ namespace Superorganism.Entities
                                                 }
                                                 else
                                                 {
-                                                    if (leftGroundY - _position.Y < 2)
+                                                    if (leftGroundY < rightGroundY)
                                                     {
                                                         newGroundY = leftGroundY -
                                                                      (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
@@ -492,17 +460,35 @@ namespace Superorganism.Entities
                                                         newGroundY = rightGroundY -
                                                                      (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                                     }
-
                                                 }
 
                                             }
                                         }
                                         else  // Upward slope (/)
                                         {
-                                            if (leftGroundY < rightGroundY && (rightGroundY - leftGroundY) < 64)
+                                            //if (leftGroundY < rightGroundY && (rightGroundY - leftGroundY) < 64)
+                                            //{
+                                            //    newGroundY = leftGroundY -
+                                            //                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                            //}
+                                            if (leftGroundY < rightGroundY)
                                             {
-                                                newGroundY = leftGroundY -
-                                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                if (rightGroundY - leftGroundY < 64)
+                                                {
+                                                    newGroundY = leftGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+                                                else
+                                                {
+                                                    newGroundY = rightGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    if (newGroundY - _position.Y > 64)
+                                                    {
+                                                        newGroundY = leftGroundY -
+                                                                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    }
+                                                }
+
                                             }
                                             else
                                             {
@@ -530,11 +516,6 @@ namespace Superorganism.Entities
 
                                 else
                                 {
-                                    if (newGroundY < 1255)
-                                    {
-
-                                    }
-
                                     _position.Y = newGroundY;
                                     IsOnGround = true;
                                     if (IsJumping) IsJumping = false;
@@ -634,7 +615,6 @@ namespace Superorganism.Entities
             {
                 for (int x = leftTile; x <= rightTile; x++)
                 {
-                    //int tileId = layer.GetTile(x, y);
                     int tileId = layer.GetTile(x, y);
 
                     if (tileId != 0)
