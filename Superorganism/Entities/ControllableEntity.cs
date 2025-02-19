@@ -447,12 +447,20 @@ namespace Superorganism.Entities
                                                     newGroundY = leftGroundY -
                                                                  (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                                 }
-
                                             }
                                             else
                                             {
-                                                newGroundY = leftGroundY -
-                                                             (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                if (leftGroundY - rightGroundY < 64)
+                                                {
+                                                    newGroundY = leftGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+                                                else
+                                                {
+                                                    newGroundY = rightGroundY -
+                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                }
+
                                             }
                                         }
                                     }
