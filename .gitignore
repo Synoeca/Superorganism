@@ -372,3 +372,4 @@ FodyWeavers.xsd
 *.sav
 /.vs
 /.vs/slnx.sqlite
+/Superorganism.sln.DotSettings
