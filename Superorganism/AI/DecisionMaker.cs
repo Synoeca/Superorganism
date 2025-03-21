@@ -1085,17 +1085,17 @@ namespace Superorganism.AI
                         {
                             // Check if there's ground below us
                             //Vector2 groundCheckPos = _position + new Vector2(0, 1.0f);
-                            Vector2 groundCheckPos = position + new Vector2(0, 1.0f);
+                            //Vector2 groundCheckPos = position + new Vector2(0, 1.0f);
                             bool diagonal = false;
                             bool isCenterOnDiagonal = false;
-                            bool hasGroundBelow = CheckCollisionAtPosition(groundCheckPos, GameState.CurrentMap, collisionBounding, ref diagonal, ref isCenterOnDiagonal);
+                            bool hasGroundBelow = CheckCollisionAtPosition(position, GameState.CurrentMap, collisionBounding, ref diagonal, ref isCenterOnDiagonal);
 
                             if (!hasGroundBelow || diagonal)
                             {
                                 isOnGround = false;
                                 if (velocity.Y >= 0) // Only apply gravity if we're not moving upward
                                 {
-                                    velocity.Y += gravity;
+                                    //velocity.Y += gravity;
                                 }
                             }
                             velocity.Y += gravity;
@@ -1178,38 +1178,22 @@ namespace Superorganism.AI
                             {
                                 if (Math.Abs(velocity.Y) > 0) // Moving downward
                                 {
-                                    if (collisionBounding is BoundingCircle bc)
-                                    {
-                                        bc.Center = new Vector2(position.X + bc.Radius, position.Y + bc.Radius);
-                                    }
-                                    else if (collisionBounding is BoundingRectangle br)
-                                    {
-                                        br.X = position.X;
-                                        if (Math.Abs(br.Y - position.Y) < 2)
-                                        {
-                                            br.Y = position.Y;
-                                        }
-
-                                        br.Center = new Vector2(br.X + (br.Width / 2), br.Y + (br.Height / 2));
-                                    }
-
                                     if (velocity.Y > 0)
                                     {
                                         bool leftHitsDiagonal = false;
                                         bool rightHitsDiagonal = false;
                                         float leftSlope = 0;
                                         float rightSlope = 0;
-
                                         // Check ground at both bottom corners
                                         float leftGroundY = MapHelper.GetGroundYPosition(
-                                            GameState.CurrentMap,
-                                            position.X,
-                                            position.Y,
-                                            textureInfo.UnitTextureHeight * textureInfo.SizeScale,
-                                            collisionBounding,
-                                            ref leftHitsDiagonal,
-                                            ref leftSlope
-                                        );
+                                             GameState.CurrentMap,
+                                             position.X,
+                                             position.Y,
+                                             textureInfo.UnitTextureHeight * textureInfo.SizeScale,
+                                             collisionBounding,
+                                             ref leftHitsDiagonal,
+                                             ref leftSlope
+                                         );
 
                                         float rightGroundY = MapHelper.GetGroundYPosition(
                                             GameState.CurrentMap,
@@ -1227,15 +1211,56 @@ namespace Superorganism.AI
                                         if (!isDiagonal)
                                         { }
 
-                                        float groundY = Math.Min(leftGroundY, rightGroundY);
+                                        float groundY = 0;
+
+                                        if (!leftHitsDiagonal && rightHitsDiagonal)
+                                        {
+
+                                        }
+
+                                        if (isCenterOnDiagonal)
+                                        {
+                                            if (leftHitsDiagonal && rightHitsDiagonal)
+                                            {
+                                                groundY = Math.Min(leftGroundY, rightGroundY);
+                                            }
+                                            else if (leftHitsDiagonal)
+                                            {
+                                                groundY = leftGroundY;  // Use the diagonal Y
+                                            }
+                                            else if (rightHitsDiagonal)
+                                            {
+                                                groundY = rightGroundY;  // Use the diagonal Y
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            groundY = Math.Min(leftGroundY, rightGroundY);
+                                        }
+
                                         float newGroundY;
+                                        float bottom = 0;
+                                        if (collisionBounding is BoundingRectangle br)
+                                        {
+                                            bottom = br.Bottom;
+                                        }
+                                        else if (collisionBounding is BoundingCircle bcc)
+                                        {
+                                            bottom = bcc.Center.Y - bcc.Radius;
+                                        }
                                         if (groundY < position.Y)
                                         {
                                             newGroundY = Math.Max(leftGroundY, rightGroundY) -
                                                          (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
 
-                                            if (Math.Abs(position.Y - newGroundY) < 15)
+                                            float distanceToNewGround = Math.Abs(position.Y - newGroundY);
+                                            if (newGroundY - position.Y < 5)
                                             {
+                                                if (newGroundY >= 1254 && newGroundY < 1255.5)
+                                                {
+
+                                                }
                                                 position.Y = newGroundY;
                                                 isOnGround = true;
                                                 if (isJumping) isJumping = false;
@@ -1250,27 +1275,132 @@ namespace Superorganism.AI
                                         else
                                         {
                                             newGroundY = groundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                                            //if (JumpDiagonalPosY == 0)
-                                            //{
-                                            //    JumpDiagonalPosY = newGroundY;
-                                            //}
 
-                                            if (position.Y < newGroundY)
+                                            // For landing on mixed diagonal/flat tiles
+                                            if (leftHitsDiagonal || rightHitsDiagonal)
+                                            {
+                                                if (leftHitsDiagonal && rightHitsDiagonal)
+                                                {
+                                                    newGroundY = Math.Min(leftGroundY, rightGroundY) -
+                                                                 (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+
+                                                }
+                                                else if (leftHitsDiagonal)
+                                                {
+                                                    if (leftSlope < 0)  // Downward slope (\)
+                                                    {
+                                                        if (leftGroundY > rightGroundY && leftGroundY - rightGroundY < 64)
+                                                        {
+                                                            newGroundY = rightGroundY -
+                                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                        }
+                                                        else
+                                                        {
+                                                            newGroundY = leftGroundY -
+                                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                        }
+                                                    }
+                                                    else  // Upward slope (/)
+                                                    {
+                                                        if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 64)
+                                                        {
+                                                            if (rightGroundY - leftGroundY < 2)
+                                                            {
+                                                                newGroundY = rightGroundY -
+                                                                             (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            }
+                                                            else
+                                                            {
+                                                                newGroundY = leftGroundY -
+                                                                             (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            }
+
+                                                        }
+                                                        else
+                                                        {
+                                                            newGroundY = leftGroundY -
+                                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                        }
+                                                    }
+                                                }
+                                                else if (rightHitsDiagonal)
+                                                {
+                                                    if (rightSlope < 0)  // Downward slope (\)
+                                                    {
+                                                        if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 64)
+                                                        {
+                                                            newGroundY = rightGroundY -
+                                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                        }
+                                                        else
+                                                        {
+                                                            if (leftGroundY < position.Y)
+                                                            {
+                                                                newGroundY = rightGroundY -
+                                                                             (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            }
+                                                            else
+                                                            {
+                                                                if (leftGroundY - position.Y < 2)
+                                                                {
+                                                                    newGroundY = leftGroundY -
+                                                                                 (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                                }
+                                                                else
+                                                                {
+                                                                    newGroundY = rightGroundY -
+                                                                                 (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                                }
+
+                                                            }
+
+                                                        }
+                                                    }
+                                                    else  // Upward slope (/)
+                                                    {
+                                                        if (leftGroundY < rightGroundY && (rightGroundY - leftGroundY) < 64)
+                                                        {
+                                                            newGroundY = leftGroundY -
+                                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                        }
+                                                        else
+                                                        {
+                                                            newGroundY = rightGroundY -
+                                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Rest remains the same
+                                            if (jumpDiagonalPosY == 0 ||
+                                                (leftHitsDiagonal || rightHitsDiagonal) ||
+                                                newGroundY < jumpDiagonalPosY)
+                                            {
+                                                jumpDiagonalPosY = newGroundY;
+                                            }
+
+                                            if (position.Y < jumpDiagonalPosY)
                                             {
                                                 position.Y = proposedYPosition.Y;
                                                 isOnGround = false;
                                             }
+
+
                                             else
                                             {
+                                                if (newGroundY < 1255)
+                                                {
+
+                                                }
+
                                                 position.Y = newGroundY;
                                                 isOnGround = true;
                                                 if (isJumping) isJumping = false;
                                                 velocity.Y = 0;
-                                                //JumpDiagonalPosY = 0;
+                                                jumpDiagonalPosY = 0;
                                             }
-
                                         }
-
                                     }
                                     else
                                     {
@@ -1284,15 +1414,28 @@ namespace Superorganism.AI
                             //DiagonalPosY = 0;
                         }
 
+                        //// Check map bounds
+                        //mapBounds = MapHelper.GetMapWorldBounds();
+                        //position.X = MathHelper.Clamp(position.X,
+                        //    (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
+                        //    mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
+
+
+                        //Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
+                        //position = newPosition;
+
                         // Check map bounds
                         mapBounds = MapHelper.GetMapWorldBounds();
                         position.X = MathHelper.Clamp(position.X,
                             (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
                             mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
 
+                        // Clamp velocity
+                        //velocity.X = MathHelper.Clamp(velocity.X, -chaseSpeed * 2, chaseSpeed * 2);
 
-                        Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
-                        position = newPosition;
+                        //Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
+                        //position = newPosition;
+
 
                         // Check if transition is complete
                         if (currentStrategyDuration >= TransitionDuration)
