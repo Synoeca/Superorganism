@@ -1632,7 +1632,11 @@ namespace Superorganism.AI
                         {
                             if (collisionBounding.Center.X <= tileRect.Right && collisionBounding.Center.X >= tileRect.Left)
                             {
-                                isCenterOnDiagonal = true;
+                                if (isDiagonalTile)
+                                {
+                                    isCenterOnDiagonal = true;
+                                }
+
                             }
                             else
                             {

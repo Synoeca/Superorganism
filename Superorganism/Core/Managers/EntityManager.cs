@@ -161,7 +161,7 @@ public class EntityManager
             int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
             AntEnemy antEnemy = new();
             //antEnemy.InitializeAtTile(enemyX, enemyY);
-            antEnemy.InitializeAtTile(71, 10);
+            antEnemy.InitializeAtTile(79, 14);
             _antEnemies.Add(antEnemy);
         }
 
