@@ -587,8 +587,6 @@ namespace Superorganism.AI
                                                     {
                                                         if (leftGroundY < rightGroundY && (rightGroundY - leftGroundY) < 64)
                                                         {
-                                                            //newGroundY = leftGroundY -
-                                                            //             (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
                                                             if (leftGroundY - position.Y < 2)
                                                             {
                                                                 newGroundY = rightGroundY -

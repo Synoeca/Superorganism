@@ -642,7 +642,7 @@ namespace Superorganism.Tiles
                                     }
                                     else
                                     {
-                                        if (tileRec.Right - br.Left > 0 || isGoingRight)
+                                        if (/*tileRec.Right - br.Left > 0 ||*/ isGoingRight)
                                         {
                                             return false;
                                         }
