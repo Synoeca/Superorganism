@@ -270,6 +270,16 @@ namespace Superorganism.Entities
                 bool hasRightDiagonal = false;
                 BoundingRectangle xTileRec = new();
                 // Check if the collision is with a diagonal tile
+
+                if (proposedXVelocity > 0)
+                {
+
+                }
+                if (proposedXVelocity < 0)
+                {
+
+                }
+
                 if (MapHelper.HandleDiagonalCollision(GameState.CurrentMap, _position, proposedXPosition,
                         CollisionBounding, ref _velocity, ref newPosY, ref xTileRec, ref hasLeftDiagonal, ref hasRightDiagonal))
                 {

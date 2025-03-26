@@ -118,7 +118,7 @@ namespace Superorganism.AI
         GameTime gameTime, ref Direction direction, ref Vector2 position,
         ref double directionTimer, ref double directionInterval, ref ICollisionBounding collisionBounding,
         ref Vector2 velocity, int screenWidth, int groundHeight, TextureInfo textureInfo, EntityStatus entityStatus, 
-        ref bool isOnGround, ref bool isJumping, ref float friction , ref bool isCenterOnDiagonalSlope, ref float jumpDiagonalPosY)
+        ref bool isOnGround, ref bool isJumping, ref float friction , ref bool isCenterOnDiagonalSlope, ref float jumpDiagonalPosY, ref bool flipped)
         {
             double currentStrategyDuration = GetStrategyDuration(strategyHistory, gameTime);
             Rectangle mapBounds = MapHelper.GetMapWorldBounds();
@@ -233,20 +233,49 @@ namespace Superorganism.AI
                     }
                 case Strategy.Patrol:
                     {
-                        const float movementSpeed = 0.7f;
+                        const float movementSpeed = 1.0f;
                         const float gravity = 0.1f;
 
                         float proposedXVelocity = velocity.X;
 
                         // Initialize movement if needed
+                        //if (velocity.X == 0)
+                        //{
+                        //    if (flipped)
+                        //    {
+                        //        proposedXVelocity = -movementSpeed;
+                        //    }
+                        //    else
+                        //    {
+                        //        proposedXVelocity = movementSpeed;
+                        //    }
+
+                        //}
                         if (velocity.X == 0)
                         {
+                            //if (flipped)
+                            //{
+                            //    proposedXVelocity = -movementSpeed;
+                            //}
+                            //else
+                            //{
+                            //    proposedXVelocity = movementSpeed;
+                            //}
                             proposedXVelocity = movementSpeed;
+
                         }
 
                         // Change direction every 3 seconds based on strategy duration
                         if (currentStrategyDuration >= Rand.Next(Rand.Next(3, 21), 21))
                         {
+                            //if (flipped)
+                            //{
+                            //    proposedXVelocity = -movementSpeed;
+                            //}
+                            //else
+                            //{
+                            //    proposedXVelocity = movementSpeed;
+                            //}
                             proposedXVelocity = -proposedXVelocity; // Reverse direction
                             (Strategy Strategy, double StartTime, double LastActionTime) current = strategyHistory[^1];
                             //strategyHistory[^1] = (current.Strategy, current.StartTime, (DateTime.Now - GameStartTime).TotalSeconds);

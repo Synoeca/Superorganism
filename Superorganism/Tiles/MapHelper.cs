@@ -418,6 +418,10 @@ namespace Superorganism.Tiles
                     {
                         foreach (Layer layer in group.Layers.Values)
                         {
+                            if (x == 99 && y == 13)
+                            {
+
+                            }
                             if (CheckDiagonalTile(layer, x, y, ref newPosY, collisionBounding, position, proposedPosition, ref xTileRec))
                             {
                                 if (x * TileSize < collisionBounding.Center.X)
@@ -439,6 +443,8 @@ namespace Superorganism.Tiles
             // Now check proposed position for collisions
             int proposedLeftTile, proposedRightTile, proposedTopTile, proposedBottomTile;
 
+            ICollisionBounding cb;
+
             if (collisionBounding is BoundingRectangle br2)
             {
                 BoundingRectangle proposedBounds = new(
@@ -452,6 +458,7 @@ namespace Superorganism.Tiles
                 proposedRightTile = (int)Math.Ceiling(proposedBounds.Center.X / MapHelper.TileSize);
                 proposedTopTile = (int)(proposedBounds.Center.Y / MapHelper.TileSize) - 1;
                 proposedBottomTile = (int)Math.Ceiling(proposedBounds.Center.Y / MapHelper.TileSize) - 1;
+                cb = proposedBounds;
             }
             else if (collisionBounding is BoundingCircle bc2)
             {
@@ -460,6 +467,7 @@ namespace Superorganism.Tiles
                 proposedRightTile = (int)Math.Ceiling((proposedCenter.X + bc2.Radius) / MapHelper.TileSize);
                 proposedTopTile = (int)((proposedCenter.Y - bc2.Radius) / MapHelper.TileSize);
                 proposedBottomTile = (int)Math.Ceiling((proposedCenter.Y + bc2.Radius) / MapHelper.TileSize);
+                cb = bc2;
             }
             else
             {
@@ -474,13 +482,15 @@ namespace Superorganism.Tiles
 
             // Check for collisions at proposed position
             bool hasCollisionAtProposedPos = false;
+            bool isGoingRight = proposedPosition.X - position.X > 0;
+
             for (int y = proposedTopTile; y <= proposedBottomTile && !hasCollisionAtProposedPos; y++)
             {
                 for (int x = proposedLeftTile; x <= proposedRightTile && !hasCollisionAtProposedPos; x++)
                 {
                     foreach (Layer layer in map.Layers.Values)
                     {
-                        if (CheckBlockingCollision(layer, x, y, collisionBounding, isOnDiagonalTile))
+                        if (CheckBlockingCollision(layer, x, y, cb, isOnDiagonalTile, isGoingRight))
                         {
                             hasCollisionAtProposedPos = true;
                             break;
@@ -491,8 +501,25 @@ namespace Superorganism.Tiles
                     {
                         foreach (Layer layer in group.Layers.Values)
                         {
-                            if (CheckBlockingCollision(layer, x, y, collisionBounding, isOnDiagonalTile))
+                            if (x == 99 && y == 14)
                             {
+
+                            }
+
+                            if (proposedPosition.X > position.X)
+                            {
+
+                            }
+                            if (x == 99 && y == 13)
+                            {
+
+                            }
+                            if (CheckBlockingCollision(layer, x, y, cb, isOnDiagonalTile, isGoingRight))
+                            {
+                                if (x == 99 && y == 14)
+                                {
+
+                                }
                                 hasCollisionAtProposedPos = true;
                                 break;
                             }
@@ -506,9 +533,9 @@ namespace Superorganism.Tiles
         }
 
 
-
+        
         private static bool CheckBlockingCollision(Layer layer, int x, int y, ICollisionBounding collisionBounding,
-            bool isOnDiagonalTile)
+            bool isOnDiagonalTile, bool isGoingRight)
         {
             int tileId = layer.GetTile(x, y);
             if (tileId == 0) return false;
@@ -521,13 +548,17 @@ namespace Superorganism.Tiles
                 if (properties.TryGetValue("isDiagonal", out string isDiagonal) && isSolid == "true")
                 {
                     BoundingRectangle tileRec = new(
-                        (float)x * TileSize - 1, 
+                        (float)x * TileSize - 3, 
                         (float)y * TileSize, 
                         TileSize, 
                         TileSize
                     );
                     if (collisionBounding is BoundingRectangle br)
                     {
+                        if (x == 99 && y == 14)
+                        {
+
+                        }
                         if (br.CollidesWith(tileRec))
                         {
                             if (properties.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
@@ -535,6 +566,11 @@ namespace Superorganism.Tiles
                                 int.TryParse(slopeLeftStr, out int slopeLeft) &&
                                 int.TryParse(slopeRightStr, out int slopeRight))
                             {
+                                if (x == 100 && y == 14)
+                                {
+
+                                }
+
                                 if (collisionBounding.Center.X >= tileRec.Left &&
                                     collisionBounding.Center.X <= tileRec.Right)
                                 {
@@ -547,7 +583,17 @@ namespace Superorganism.Tiles
                                         if (br.Right - tileRec.Left <= 64)
                                         {
                                             //return !(br.Bottom >= tileRec.Bottom - slopeLeft);
-                                            return !(br.Bottom - (tileRec.Bottom - slopeLeft) < 20);
+                                            if (br.Right - tileRec.Left > 2)
+                                            {
+                                                if (!isGoingRight)
+                                                {
+                                                    return false;
+                                                }
+                                                return !(br.Bottom - (tileRec.Bottom - slopeLeft) < 20);
+                                            }
+
+                                            return false;
+
                                         }
 
                                     }
@@ -556,7 +602,11 @@ namespace Superorganism.Tiles
                                         if (tileRec.Right - br.Left <= 64)
                                         {
                                             //return !(br.Bottom >= tileRec.Bottom - slopeRight);
-                                            return !(br.Bottom - (tileRec.Bottom - slopeRight) < 20);
+                                            if (tileRec.Right - br.Left > 2)
+                                            {
+                                                 return !(br.Bottom - (tileRec.Bottom - slopeRight) < 20);
+                                            }
+                                            return false;
                                         }
                                     }
                                 }
@@ -576,7 +626,7 @@ namespace Superorganism.Tiles
                 }
                 else
                 {
-                    BoundingRectangle tileRec = new((float)x * TileSize, (float)y * TileSize, TileSize, TileSize);
+                    BoundingRectangle tileRec = new((float)x * TileSize - 3, (float)y * TileSize, TileSize, TileSize);
 
                     if (collisionBounding is BoundingRectangle br)
                     {
@@ -592,6 +642,10 @@ namespace Superorganism.Tiles
                                     }
                                     else
                                     {
+                                        if (tileRec.Right - br.Left > 0 || isGoingRight)
+                                        {
+                                            return false;
+                                        }
                                         return true;
                                     }
                                 }
@@ -644,7 +698,7 @@ namespace Superorganism.Tiles
                         );
                         if (brec.CollidesWith(tileRec))
                         {
-                            if (brec.Right >= tileRec.Left && brec.Left <= tileRec.Right)
+                            if (brec.Right > tileRec.Left && brec.Left < tileRec.Right)
                             {
                                 float distanceFromLeft = -1;
                                 float slopeY = -1;

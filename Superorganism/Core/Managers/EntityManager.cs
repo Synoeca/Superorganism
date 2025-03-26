@@ -148,7 +148,7 @@ public class EntityManager
     private void InitializeEntities(GraphicsDevice graphicsDevice)
     {
         _ant = new Ant();
-        _ant.InitializeAtTile(72, 10);
+        _ant.InitializeAtTile(96, 10);
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
@@ -161,7 +161,7 @@ public class EntityManager
             int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
             AntEnemy antEnemy = new();
             //antEnemy.InitializeAtTile(enemyX, enemyY);
-            antEnemy.InitializeAtTile(79, 14);
+           antEnemy.InitializeAtTile(100, 13);
             _antEnemies.Add(antEnemy);
         }
 
