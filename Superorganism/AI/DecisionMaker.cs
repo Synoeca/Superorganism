@@ -427,6 +427,11 @@ namespace Superorganism.AI
                                             ref rightSlope
                                         );
 
+                                        if (leftGroundY == 960f || rightGroundY == 960f)
+                                        {
+
+                                        }
+
                                         float leftPos = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
                                         float rightPos = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
 
@@ -582,8 +587,19 @@ namespace Superorganism.AI
                                                     {
                                                         if (leftGroundY < rightGroundY && (rightGroundY - leftGroundY) < 64)
                                                         {
-                                                            newGroundY = leftGroundY -
-                                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            //newGroundY = leftGroundY -
+                                                            //             (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            if (leftGroundY - position.Y < 2)
+                                                            {
+                                                                newGroundY = rightGroundY -
+                                                                             (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+
+                                                            }
+                                                            else
+                                                            {
+                                                                newGroundY = leftGroundY -
+                                                                             (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            }
                                                         }
                                                         else
                                                         {
@@ -611,10 +627,16 @@ namespace Superorganism.AI
 
                                             else
                                             {
-                                                if (newGroundY < 1255)
+                                                if (newGroundY == 919.06f)
                                                 {
 
                                                 }
+
+                                                if (Math.Abs(position.Y - newGroundY) > 20)
+                                                {
+
+                                                }
+                                                
 
                                                 position.Y = newGroundY;
                                                 isOnGround = true;
