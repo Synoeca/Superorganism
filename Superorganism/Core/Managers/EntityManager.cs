@@ -152,7 +152,7 @@ public class EntityManager
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        int count = 1;
+        const int count = 1;
         Random rand = new();
 
         for (int i = 0; i < count; i++)
@@ -160,8 +160,8 @@ public class EntityManager
             int enemyX = 10 + rand.Next(150); // Spread between tile 60-100
             int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
             AntEnemy antEnemy = new();
-            //antEnemy.InitializeAtTile(enemyX, enemyY);
-           antEnemy.InitializeAtTile(100, 13);
+            antEnemy.InitializeAtTile(enemyX, enemyY);
+           //antEnemy.InitializeAtTile(100, 13);
             _antEnemies.Add(antEnemy);
         }
 

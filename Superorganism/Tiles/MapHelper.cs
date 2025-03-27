@@ -642,8 +642,16 @@ namespace Superorganism.Tiles
                                     }
                                     else
                                     {
-                                        if (/*tileRec.Right - br.Left > 0 ||*/ isGoingRight)
+                                        if (isGoingRight)
                                         {
+                                            if (tileRec.Right > br.Left || tileRec.Left > br.Right)
+                                            {
+                                                if (tileRec.Bottom < br.Bottom)
+                                                {
+                                                    return true;
+                                                }
+                                                return false;
+                                            }
                                             return false;
                                         }
                                         return true;

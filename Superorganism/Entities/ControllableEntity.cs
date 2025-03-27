@@ -466,7 +466,7 @@ namespace Superorganism.Entities
                                                                  (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                                 }
                                                 else
-                                                {
+                                                {//
                                                     newGroundY = rightGroundY -
                                                                  (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
                                                 }
