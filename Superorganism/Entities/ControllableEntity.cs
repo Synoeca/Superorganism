@@ -303,7 +303,6 @@ namespace Superorganism.Entities
                 else
                 {
                     // If it's not a diagonal tile, handle as normal collision
-                    
                     _velocity.X = 0;
                     xMovementBlocked = true;
 
@@ -329,8 +328,22 @@ namespace Superorganism.Entities
                         if (_velocity.Y < 0 && !isDiagonal) // Moving upward
                         {
                             // Hit ceiling, stop upward movement
-                            _velocity.Y = 0;
-                            IsJumping = false;
+                            if (!xMovementBlocked)
+                            {
+                                _velocity.Y = 0;
+                                IsJumping = false;
+                            }
+                            else
+                            {
+                                if (Flipped)
+                                {
+                                    _position.X += MovementSpeed;
+                                }
+                                else
+                                {
+                                    _position.X -= MovementSpeed;
+                                }
+                            }
                         }
 
                         else if (_velocity.Y > 0)

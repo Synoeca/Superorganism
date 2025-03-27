@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Superorganism.Collisions;
 using Superorganism.Common;
@@ -298,6 +299,7 @@ namespace Superorganism.AI
                         bool diagonalX = false;
                         bool isCenterOnDiagonalTile = false;
                         bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, GameState.CurrentMap, collisionBounding, ref diagonalX, ref isCenterOnDiagonalTile);
+                        bool xMovementBlocked = false;
 
                         // Apply X movement if no collision
                         if (!hasXCollision)
@@ -343,6 +345,7 @@ namespace Superorganism.AI
                             {
                                 // If it's not a diagonal tile, handle as normal collision
                                 velocity.X = 0;
+                                xMovementBlocked = true;
                             }
                         }
 
@@ -365,8 +368,22 @@ namespace Superorganism.AI
                                     if (velocity.Y < 0 && !isDiagonal) // Moving upward
                                     {
                                         // Hit ceiling, stop upward movement
-                                        velocity.Y = 0;
-                                        isJumping = false;
+                                        if (!xMovementBlocked)
+                                        {
+                                            velocity.Y = 0;
+                                            isJumping = false;
+                                        }
+                                        else
+                                        {
+                                            if (flipped)
+                                            {
+                                                position.X += movementSpeed;
+                                            }
+                                            else
+                                            {
+                                                position.X -= movementSpeed;
+                                            }
+                                        }
                                     }
                                     else if (velocity.Y > 0)
                                     {
@@ -462,8 +479,12 @@ namespace Superorganism.AI
                                                         }
                                                         else
                                                         {
-                                                            newGroundY = leftGroundY -
-                                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            if (xMovementBlocked)
+                                                            {
+                                                                position.X += movementSpeed;
+                                                                newGroundY = leftGroundY -
+                                                                             (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            }
                                                             if (newGroundY - position.Y > 64)
                                                             {
                                                                 newGroundY = rightGroundY -
@@ -573,8 +594,17 @@ namespace Superorganism.AI
                                                         //}
                                                         else
                                                         {
-                                                            newGroundY = rightGroundY -
-                                                                         (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            if (xMovementBlocked)
+                                                            {
+                                                                position.X -= movementSpeed;
+                                                                newGroundY = leftGroundY -
+                                                                             (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            }
+                                                            else
+                                                            {
+                                                                newGroundY = rightGroundY -
+                                                                             (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                                                            }
                                                         }
                                                     }
                                                 }
