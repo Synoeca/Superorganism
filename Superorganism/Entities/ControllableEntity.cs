@@ -518,27 +518,20 @@ namespace Superorganism.Entities
                                         }
                                         else  // Upward slope (/)
                                         {
-                                            //if (leftGroundY < rightGroundY && (rightGroundY - leftGroundY) < 64)
-                                            //{
-                                            //    if (leftGroundY - _position.Y < 2)
-                                            //    {
-                                            //        newGroundY = rightGroundY -
-                                            //                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-
-                                            //    }
-                                            //    else
-                                            //    {
-                                            //        newGroundY = leftGroundY -
-                                            //                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
-                                            //    }
-                                            //}
-
                                             if (leftGroundY < rightGroundY)
                                             {
                                                 if (rightGroundY - leftGroundY < 64)
                                                 {
-                                                    newGroundY = leftGroundY -
-                                                                 (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    if (leftGroundY > _position.Y)
+                                                    {
+                                                        newGroundY = leftGroundY -
+                                                                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    }
+                                                    else
+                                                    {
+                                                        newGroundY = rightGroundY -
+                                                                     (TextureInfo.UnitTextureHeight * TextureInfo.SizeScale);
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -570,7 +563,6 @@ namespace Superorganism.Entities
                                     }
                                 }
 
-                                // Rest remains the same
                                 if (JumpDiagonalPosY == 0 ||
                                     (leftHitsDiagonal || rightHitsDiagonal) ||
                                     newGroundY < JumpDiagonalPosY || _position.Y >= JumpDiagonalPosY)
@@ -583,8 +575,6 @@ namespace Superorganism.Entities
                                     _position.Y = proposedYPosition.Y;
                                     IsOnGround = false;
                                 }
-
-
                                 else
                                 {
                                     _position.Y = newGroundY;

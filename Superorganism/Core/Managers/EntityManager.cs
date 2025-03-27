@@ -148,11 +148,11 @@ public class EntityManager
     private void InitializeEntities(GraphicsDevice graphicsDevice)
     {
         _ant = new Ant();
-        _ant.InitializeAtTile(96, 10);
+        _ant.InitializeAtTile(69, 10);
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        const int count = 50;
+        const int count = 1;
         Random rand = new();
 
         for (int i = 0; i < count; i++)
@@ -160,8 +160,8 @@ public class EntityManager
             int enemyX = 10 + rand.Next(150); // Spread between tile 60-100
             int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
             AntEnemy antEnemy = new();
-            antEnemy.InitializeAtTile(enemyX, enemyY);
-            //antEnemy.InitializeAtTile(89, 15);
+            //antEnemy.InitializeAtTile(enemyX, enemyY);
+            antEnemy.InitializeAtTile(64, 19);
             _antEnemies.Add(antEnemy);
         }
 
