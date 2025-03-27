@@ -315,7 +315,20 @@ namespace Superorganism.Entities
                 bool isDiagonal = false;
                 bool isCenterOnDiagonal = false;
                 Vector2 proposedYPosition = _position + new Vector2(0, _velocity.Y);
+                if (xMovementBlocked)
+                {
+                    if (Flipped)
+                    {
+                        proposedYPosition.X += MovementSpeed;
+                    }
+                    else
+                    {
+                        proposedYPosition.X -= MovementSpeed;
+                    }
+                }
+
                 bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, GameState.CurrentMap, CollisionBounding, ref isDiagonal, ref isCenterOnDiagonal);
+
                 if (!hasYCollision && !isDiagonal)
                 {
                     _position.Y = proposedYPosition.Y;
