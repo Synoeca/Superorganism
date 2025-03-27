@@ -13,7 +13,10 @@ using Superorganism.Tiles;
 
 namespace Superorganism.Core.Managers;
 
-public class EntityManager
+/// <summary>
+/// Manage entities
+/// </summary>
+public class EntitySpawner
 {
     private Ant _ant;
     private readonly List<AntEnemy> _antEnemies = [];
@@ -108,7 +111,7 @@ public class EntityManager
     }
     public TiledMap GetCurrentMap() => _map;
 
-    public EntityManager(Game game, ContentManager content,
+    public EntitySpawner(Game game, ContentManager content,
         GraphicsDevice graphicsDevice, TiledMap map, GameStateInfo gameStateInfo)
     {
         _game = game;
@@ -148,7 +151,7 @@ public class EntityManager
     private void InitializeEntities(GraphicsDevice graphicsDevice)
     {
         _ant = new Ant();
-        _ant.InitializeAtTile(69, 10);
+        _ant.InitializeAtTile(114, 10);
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
@@ -161,7 +164,7 @@ public class EntityManager
             int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
             AntEnemy antEnemy = new();
             //antEnemy.InitializeAtTile(enemyX, enemyY);
-            antEnemy.InitializeAtTile(64, 19);
+            antEnemy.InitializeAtTile(116, 14);
             _antEnemies.Add(antEnemy);
         }
 

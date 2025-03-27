@@ -659,7 +659,18 @@ namespace Superorganism.Tiles
                                             }
                                             return false;
                                         }
-                                        return true;
+                                        else
+                                        {
+                                            if (tileRec.Right > br.Right)
+                                            {
+                                                if (tileRec.Left > br.Left)
+                                                {
+                                                    return false;
+                                                }
+                                            }
+                                            return true;
+                                        }
+
                                     }
                                 }
                             }

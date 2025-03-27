@@ -591,7 +591,6 @@ namespace Superorganism.Entities
                             IsOnGround = false;
                         }
                     }
-
                 }
             }
 

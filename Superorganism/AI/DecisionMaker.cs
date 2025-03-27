@@ -12,6 +12,9 @@ using Superorganism.Tiles;
 
 namespace Superorganism.AI
 {
+	/// <summary>
+	/// Make decisions for the AI entities
+	/// </summary>
 	public static class DecisionMaker
 	{
 		private static readonly Random Rand = new();
@@ -603,9 +606,15 @@ namespace Superorganism.AI
                                                 }
                                             }
 
+                                            //if (jumpDiagonalPosY == 0 ||
+                                            //    (leftHitsDiagonal || rightHitsDiagonal) ||
+                                            //    newGroundY < jumpDiagonalPosY)
+                                            //{
+                                            //    jumpDiagonalPosY = newGroundY;
+                                            //}
                                             if (jumpDiagonalPosY == 0 ||
                                                 (leftHitsDiagonal || rightHitsDiagonal) ||
-                                                newGroundY < jumpDiagonalPosY)
+                                                newGroundY < jumpDiagonalPosY || position.Y >= jumpDiagonalPosY)
                                             {
                                                 jumpDiagonalPosY = newGroundY;
                                             }
@@ -631,10 +640,7 @@ namespace Superorganism.AI
                                         isOnGround = false;
                                     }
                                 }
-
                             }
-
-                            //DiagonalPosY = 0;
                         }
 
                         // Check map bounds
