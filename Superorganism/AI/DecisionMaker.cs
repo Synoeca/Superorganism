@@ -568,7 +568,7 @@ namespace Superorganism.AI
                                                             }
                                                             else
                                                             {
-                                                                if (leftGroundY - position.Y < 2)
+                                                                if (leftGroundY - position.Y < 2 || rightGroundY - position.Y > 64)
                                                                 {
                                                                     newGroundY = leftGroundY -
                                                                                  (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
