@@ -293,6 +293,11 @@ namespace Superorganism.Tiles
                                             {
                                                 distance = 64;
                                             }
+
+                                            if (distance < 0)
+                                            {
+                                                //return (tileY * TileSize)
+                                            }
                                             slopeY = (tileBottom - slopeLeft) - (slope * distance);
                                         }
                                         else

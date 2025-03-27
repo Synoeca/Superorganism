@@ -152,7 +152,7 @@ public class EntityManager
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        const int count = 1;
+        const int count = 50;
         Random rand = new();
 
         for (int i = 0; i < count; i++)
