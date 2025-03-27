@@ -606,12 +606,6 @@ namespace Superorganism.AI
                                                 }
                                             }
 
-                                            //if (jumpDiagonalPosY == 0 ||
-                                            //    (leftHitsDiagonal || rightHitsDiagonal) ||
-                                            //    newGroundY < jumpDiagonalPosY)
-                                            //{
-                                            //    jumpDiagonalPosY = newGroundY;
-                                            //}
                                             if (jumpDiagonalPosY == 0 ||
                                                 (leftHitsDiagonal || rightHitsDiagonal) ||
                                                 newGroundY < jumpDiagonalPosY || position.Y >= jumpDiagonalPosY)
@@ -652,8 +646,6 @@ namespace Superorganism.AI
                         // Clamp velocity
                         velocity.X = MathHelper.Clamp(velocity.X, -movementSpeed * 2, movementSpeed * 2);
                         isCenterOnDiagonalSlope = false;
-                        //Vector2 newPosition = new(position.X + velocity.X, position.Y + velocity.Y);
-                        //position = newPosition;
 
                         foreach (Entity entity in Entities)
                         {

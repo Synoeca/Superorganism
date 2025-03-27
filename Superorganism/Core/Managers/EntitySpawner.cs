@@ -155,7 +155,7 @@ public class EntitySpawner
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        const int count = 1;
+        const int count = 100;
         Random rand = new();
 
         for (int i = 0; i < count; i++)
@@ -163,8 +163,8 @@ public class EntitySpawner
             int enemyX = 10 + rand.Next(150); // Spread between tile 60-100
             int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
             AntEnemy antEnemy = new();
-            //antEnemy.InitializeAtTile(enemyX, enemyY);
-            antEnemy.InitializeAtTile(116, 14);
+            antEnemy.InitializeAtTile(enemyX, enemyY);
+            //antEnemy.InitializeAtTile(116, 14);
             _antEnemies.Add(antEnemy);
         }
 
