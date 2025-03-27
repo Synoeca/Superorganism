@@ -544,7 +544,7 @@ namespace Superorganism.Entities
                                 // Rest remains the same
                                 if (JumpDiagonalPosY == 0 ||
                                     (leftHitsDiagonal || rightHitsDiagonal) ||
-                                    newGroundY < JumpDiagonalPosY)
+                                    newGroundY < JumpDiagonalPosY || _position.Y >= JumpDiagonalPosY)
                                 {
                                     JumpDiagonalPosY = newGroundY;
                                 }
@@ -558,6 +558,10 @@ namespace Superorganism.Entities
 
                                 else
                                 {
+                                    if (newGroundY >= 1423.2f)
+                                    {
+
+                                    }
                                     _position.Y = newGroundY;
                                     IsOnGround = true;
                                     if (IsJumping) IsJumping = false;
