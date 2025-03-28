@@ -25,6 +25,8 @@ public static class MovementUtilities
         ref float jumpDiagonalPosY,
         ref bool isCenterOnDiagonal,
         ref float soundTimer,
+        ref float movementSpeed,
+        ref float animationSpeed,
         KeyboardState keyboardState,
         KeyboardState previousKeyboardState,
         TiledMap currentMap,
@@ -37,8 +39,8 @@ public static class MovementUtilities
         Action<GameTime> playMoveSound,
         GameTime gameTime)
     {
-        float movementSpeed = 1.0f;
-        float animationSpeed = 0.15f;
+        movementSpeed = 1.0f;
+        animationSpeed = 0.15f;
 
         // Update movement speed based on shift key
         if (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift))
@@ -57,7 +59,7 @@ public static class MovementUtilities
         }
         else if (keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D))
         {
-            proposedXVelocity = movementSpeed;
+             proposedXVelocity = movementSpeed;
             flipped = false;
         }
         else if (isOnGround)

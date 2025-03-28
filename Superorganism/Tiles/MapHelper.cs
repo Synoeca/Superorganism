@@ -423,7 +423,7 @@ namespace Superorganism.Tiles
                     {
                         foreach (Layer layer in group.Layers.Values)
                         {
-                            if (x == 99 && y == 13)
+                            if (x == 94 && y == 17)
                             {
 
                             }
@@ -506,25 +506,8 @@ namespace Superorganism.Tiles
                     {
                         foreach (Layer layer in group.Layers.Values)
                         {
-                            if (x == 99 && y == 14)
-                            {
-
-                            }
-
-                            if (proposedPosition.X > position.X)
-                            {
-
-                            }
-                            if (x == 99 && y == 13)
-                            {
-
-                            }
                             if (CheckBlockingCollision(layer, x, y, cb, isOnDiagonalTile, isGoingRight))
                             {
-                                if (x == 99 && y == 14)
-                                {
-
-                                }
                                 hasCollisionAtProposedPos = true;
                                 break;
                             }
@@ -553,7 +536,7 @@ namespace Superorganism.Tiles
                 if (properties.TryGetValue("isDiagonal", out string isDiagonal) && isSolid == "true")
                 {
                     BoundingRectangle tileRec = new(
-                        (float)x * TileSize - 3, 
+                        (float)x * TileSize - 1, 
                         (float)y * TileSize, 
                         TileSize, 
                         TileSize
@@ -714,8 +697,10 @@ namespace Superorganism.Tiles
 
                     if (collisionBounding is BoundingRectangle brec)
                     {
+                        brec.X = proposedPosition.X;
+                        brec.Y = proposedPosition.Y;
                         BoundingRectangle tileRec = new(
-                            (float)x * TileSize - 2, 
+                            (float)x * TileSize, 
                             (float)y * TileSize, 
                             TileSize, 
                             TileSize
