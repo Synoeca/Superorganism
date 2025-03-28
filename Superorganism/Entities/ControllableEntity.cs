@@ -112,35 +112,6 @@ namespace Superorganism.Entities
             GamePadState = GamePad.GetState(0);
             KeyboardState = Keyboard.GetState();
 
-
-            //bool flipped = Flipped;
-            //bool isOnGround = IsOnGround;
-            //bool isJumping = IsJumping;
-            //bool isCenterOnDiagonal = IsCenterOnDiagonal;
-
-            //float animationSpeed = AnimationSpeed;
-            //float movementSpeed = MovementSpeed;
-
-            //Vector2 position = Position;
-            //ICollisionBounding collisionBounding = CollisionBounding;
-            //float jumpDiagonalPosY = JumpDiagonalPosY;
-
-
-            //GamePhysicsHelper.HandleMovement(keyboardState, gamePadState, gameTime, ref movementSpeed, ref animationSpeed, ref flipped, ref isOnGround,
-            //    ref _velocity, Friction, ref _soundTimer, JumpStrength, ref isJumping, MoveSound, JumpSound, MoveSoundInterval, ShiftMoveSoundInterval, 
-            //    ref position, ref collisionBounding, Gravity, TextureInfo, ref jumpDiagonalPosY, ref isCenterOnDiagonal);
-
-            //Flipped = flipped;
-            //IsOnGround = isOnGround;
-            //IsJumping = isJumping;
-            //IsCenterOnDiagonal = isCenterOnDiagonal;
-            //AnimationSpeed = animationSpeed;
-            //MovementSpeed = movementSpeed;
-
-            //JumpDiagonalPosY = jumpDiagonalPosY;
-            //CollisionBounding = collisionBounding;
-            //Position = position;
-
             // Update movement speed based on shift key
             if (KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift))
             {
