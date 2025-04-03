@@ -506,6 +506,10 @@ namespace Superorganism.Tiles
                     {
                         foreach (Layer layer in group.Layers.Values)
                         {
+                            if (x == 118 && y == 15)
+                            {
+
+                            }
                             if (CheckBlockingCollision(layer, x, y, cb, isOnDiagonalTile, isGoingRight))
                             {
                                 hasCollisionAtProposedPos = true;
@@ -543,7 +547,7 @@ namespace Superorganism.Tiles
                     );
                     if (collisionBounding is BoundingRectangle br)
                     {
-                        if (x == 99 && y == 14)
+                        if (x == 118 && y == 15)
                         {
 
                         }
@@ -620,25 +624,46 @@ namespace Superorganism.Tiles
                     {
                         if (br.CollidesWith(tileRec))
                         {
+                            if (x == 118 && y == 15)
+                            {
+
+                            }
                             if (isOnDiagonalTile)
                             {
                                 if (br.Bottom > tileRec.Top)
                                 {
                                     if (br.Bottom - tileRec.Top < 35)
                                     {
+                                        if (x == 118 && y == 15)
+                                        {
+
+                                        }
                                         return false;
                                     }
                                     else
                                     {
                                         if (isGoingRight)
                                         {
+                                            if ((x == 118 && y == 15) && br.Right > 7560)
+                                            {
+
+                                            }
                                             if (tileRec.Right > br.Left || tileRec.Left > br.Right)
                                             {
                                                 if (tileRec.Bottom < br.Bottom)
                                                 {
                                                     return true;
                                                 }
+
+                                                //if (br.Right > tileRec.Left)
+                                                //{
+                                                //    return true;
+                                                //}
                                                 return false;
+                                            }
+                                            if (x == 118 && y == 15)
+                                            {
+
                                             }
                                             return false;
                                         }
@@ -667,7 +692,6 @@ namespace Superorganism.Tiles
                 }
 
             }
-
             return false;
         }
 

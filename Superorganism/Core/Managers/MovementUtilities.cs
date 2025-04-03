@@ -10,6 +10,9 @@ using Superorganism.Tiles;
 
 namespace Superorganism.Core.Managers;
 
+/// <summary>
+/// 
+/// </summary>
 public static class MovementUtilities
 {
     private static readonly Random Rand = new();
@@ -764,6 +767,16 @@ public static class MovementUtilities
                 }
                 else if (leftHitsDiagonal)
                 {
+                    if (newGroundY < 920f)
+                    {
+
+                    }
+
+                    float prevNewGy = newGroundY;
+                    if (prevNewGy > 963f)
+                    {
+
+                    }
                     HandleLeftDiagonalSlope(
                         ref position,
                         ref newGroundY,
@@ -773,6 +786,10 @@ public static class MovementUtilities
                         xMovementBlocked,
                         movementSpeed,
                         textureInfo);
+                    if (newGroundY < 920f)
+                    {
+
+                    }
                 }
                 else if (rightHitsDiagonal)
                 {
@@ -797,11 +814,19 @@ public static class MovementUtilities
 
             if (position.Y < jumpDiagonalPosY)
             {
+                if (position.Y - proposedYPosition.Y > 20)
+                {
+
+                }
                 position.Y = proposedYPosition.Y;
                 isOnGround = false;
             }
             else
             {
+                if (position.Y -  newGroundY > 20)
+                {
+
+                }
                 position.Y = newGroundY;
                 isOnGround = true;
                 if (isJumping) isJumping = false;
@@ -873,20 +898,34 @@ public static class MovementUtilities
     {
         if (leftSlope < 0)  // Downward slope (\)
         {
-            if (leftGroundY > rightGroundY && leftGroundY - rightGroundY < 64)
+            if (leftGroundY > rightGroundY && leftGroundY - rightGroundY < 64 && position.Y < rightGroundY)
             {
                 newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
             }
             else
             {
+                float prevNewGrounY = newGroundY;
+                if (prevNewGrounY > 959)
+                {
+
+                }
                 if (xMovementBlocked)
                 {
-                    position.X += movementSpeed;
+                    //position.X += movementSpeed;
                     newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
                 }
                 if (newGroundY - position.Y > 64)
                 {
                     newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                }
+                else
+                {
+                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                }
+
+                if (newGroundY < 920f)
+                {
+
                 }
             }
         }

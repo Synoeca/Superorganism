@@ -38,10 +38,6 @@ namespace Superorganism.Entities
 
         public float Gravity { get; set; } = 0.5f;
 
-		//public float GroundLevel { get; set; } = 400f;
-
-		//public float? EntityGroundY { get; set; }
-
 		public SoundEffect MoveSound { get; set; }
 		public SoundEffect JumpSound { get; set; }
 		private float _soundTimer;
