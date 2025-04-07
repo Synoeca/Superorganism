@@ -547,10 +547,6 @@ namespace Superorganism.Tiles
                     );
                     if (collisionBounding is BoundingRectangle br)
                     {
-                        if (x == 118 && y == 15)
-                        {
-
-                        }
                         if (br.CollidesWith(tileRec))
                         {
                             if (properties.TryGetValue("SlopeLeft", out string slopeLeftStr) &&
@@ -558,10 +554,6 @@ namespace Superorganism.Tiles
                                 int.TryParse(slopeLeftStr, out int slopeLeft) &&
                                 int.TryParse(slopeRightStr, out int slopeRight))
                             {
-                                if (x == 100 && y == 14)
-                                {
-
-                                }
 
                                 if (collisionBounding.Center.X >= tileRec.Left &&
                                     collisionBounding.Center.X <= tileRec.Right)
