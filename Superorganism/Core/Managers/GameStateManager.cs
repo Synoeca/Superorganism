@@ -14,7 +14,7 @@ namespace Superorganism.Core.Managers
 {
     public class GameStateManager
     {
-        private readonly EntityManager _entityManager;
+        private readonly EntitySpawner _entitySpawner;
         private readonly GameAudioManager _audioManager;
         private readonly InputAction _pauseAction;
         private readonly Camera2D _camera;
@@ -42,7 +42,7 @@ namespace Superorganism.Core.Managers
             _map = map;
             _content = content;
 
-            _entityManager = new EntityManager(game, content, graphicsDevice, map, gameStateInfo);
+            _entitySpawner = new EntitySpawner(game, content, graphicsDevice, map, gameStateInfo);
 
             _pauseAction = new InputAction(
                 [Buttons.Start, Buttons.Back],
@@ -64,15 +64,15 @@ namespace Superorganism.Core.Managers
             IsGameWon = false;
             ElapsedTime = 0;
             _enemyCollisionTimer = 0;
-            CropsLeft = _entityManager.CropsCount;
+            CropsLeft = _entitySpawner.CropsCount;
         }
 
         // Updated methods to handle multiple enemies
-        public Vector2[] GetEnemyPositions() => _entityManager.GetEnemyPositions();
+        public Vector2[] GetEnemyPositions() => _entitySpawner.GetEnemyPositions();
 
-        public Strategy[] GetEnemyStrategies() => _entityManager.GetEnemyStrategies();
+        public Strategy[] GetEnemyStrategies() => _entitySpawner.GetEnemyStrategies();
 
-        public ICollisionBounding[] GetEnemyBoundings() => _entityManager.GetEnemyCollisionBoundings();
+        public ICollisionBounding[] GetEnemyBoundings() => _entitySpawner.GetEnemyCollisionBoundings();
 
         public float GetEntityDistance(Entity entity1, Entity entity2) => Vector2.Distance(
             entity1.Position,
@@ -80,7 +80,7 @@ namespace Superorganism.Core.Managers
         );
 
         public float GetDistanceToPlayer(Entity entity) => Vector2.Distance(
-            _entityManager.PlayerPosition,
+            _entitySpawner.PlayerPosition,
             entity.Position
         );
 
@@ -92,7 +92,7 @@ namespace Superorganism.Core.Managers
 
             foreach (Vector2 enemyPos in enemyPositions)
             {
-                float distance = Vector2.Distance(_entityManager.PlayerPosition, enemyPos);
+                float distance = Vector2.Distance(_entitySpawner.PlayerPosition, enemyPos);
                 if (distance < closestDistance)
                 {
                     closestDistance = distance;
@@ -104,14 +104,14 @@ namespace Superorganism.Core.Managers
 
         // Updated to return array of strategy histories
         public List<(Strategy Strategy, double StartTime, double LastActionTime)>[] GetEnemyStrategyHistories()
-            => _entityManager.GetEnemyStrategyHistories();
+            => _entitySpawner.GetEnemyStrategyHistories();
 
         public void Update(GameTime gameTime)
         {
             if (IsGameOver || IsGameWon) return;
             GameTime = gameTime;
             UpdateTimers(gameTime);
-            _entityManager.Update(gameTime);
+            _entitySpawner.Update(gameTime);
             CheckCollisions();
             CheckWinLoseConditions();
         }
@@ -129,33 +129,33 @@ namespace Superorganism.Core.Managers
         private void CheckCollisions()
         {
             // Handle crop collisions
-            if (_entityManager.CheckCropCollisions())
+            if (_entitySpawner.CheckCropCollisions())
             {
                 CropsLeft--;
                 _audioManager.PlayCropPickup();
             }
 
             // Handle enemy collisions with timer
-            if (_entityManager.IsCollidingWithEnemy())
+            if (_entitySpawner.IsCollidingWithEnemy())
             {
                 if (_enemyCollisionTimer <= 0)
                 {
-                    if (!_entityManager.IsPlayerInvincible)
+                    if (!_entitySpawner.IsPlayerInvincible)
                     {
-                        _entityManager.ApplyEnemyDamage();
+                        _entitySpawner.ApplyEnemyDamage();
                         _audioManager.PlayFliesDestroy();
                         _enemyCollisionTimer = EnemyCollisionInterval;
                         _camera.StartShake(0.5f);
                     }
                 }
-                else if (!_entityManager.IsPlayerInvincible)
+                else if (!_entitySpawner.IsPlayerInvincible)
                 {
-                    _entityManager.ResetEntityColors();
+                    _entitySpawner.ResetEntityColors();
                 }
             }
 
             // Handle fly collisions
-            if (_entityManager.CheckFlyCollisions())
+            if (_entitySpawner.CheckFlyCollisions())
             {
                 _audioManager.PlayFliesDestroy();
                 _camera.StartShake(0.2f);
@@ -167,7 +167,7 @@ namespace Superorganism.Core.Managers
             if (CropsLeft <= 0)
                 IsGameWon = true;
 
-            if (_entityManager.PlayerHealth <= 0)
+            if (_entitySpawner.PlayerHealth <= 0)
                 IsGameOver = true;
         }
 
@@ -178,17 +178,17 @@ namespace Superorganism.Core.Managers
         // Updated save/load state methods
         public void SetPlayerPosition(Vector2 statePlayerPosition)
         {
-            _entityManager.PlayerPosition = statePlayerPosition;
+            _entitySpawner.PlayerPosition = statePlayerPosition;
         }
 
         public void SetPlayerHealth(int statePlayerHealth)
         {
-            _entityManager.PlayerHealth = statePlayerHealth;
+            _entitySpawner.PlayerHealth = statePlayerHealth;
         }
 
         public void SetEnemyPosition(int index, Vector2 position)
         {
-            _entityManager.SetEnemyPosition(index, position);
+            _entitySpawner.SetEnemyPosition(index, position);
         }
 
         public void SetEnemyStrategy(int index, string stateCurrentEnemyStrategy)
@@ -209,7 +209,7 @@ namespace Superorganism.Core.Managers
                     newStrategy = Strategy.Transition;
                     break;
             }
-            _entityManager.SetEnemyStrategy(index, newStrategy);
+            _entitySpawner.SetEnemyStrategy(index, newStrategy);
         }
 
         // Convenience method to set all enemies to the same strategy
@@ -231,11 +231,11 @@ namespace Superorganism.Core.Managers
                     newStrategy = Strategy.Transition;
                     break;
             }
-            _entityManager.SetAllEnemyStrategies(newStrategy);
+            _entitySpawner.SetAllEnemyStrategies(newStrategy);
         }
 
         // Helper method to get number of enemies
-        public int GetEnemyCount() => _entityManager.EnemyCount;
+        public int GetEnemyCount() => _entitySpawner.EnemyCount;
 
         // Existing methods remain unchanged
         public bool HandlePauseInput(InputState input, PlayerIndex? controllingPlayer, out PlayerIndex playerIndex)
@@ -245,23 +245,23 @@ namespace Superorganism.Core.Managers
 
         public void Reset()
         {
-            _entityManager.Reset();
+            _entitySpawner.Reset();
             InitializeGameState();
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            _entityManager.Draw(gameTime, spriteBatch);
+            _entitySpawner.Draw(gameTime, spriteBatch);
         }
 
-        public Vector2 GetPlayerPosition() => _entityManager.PlayerPosition;
-        public int GetPlayerHealth() => _entityManager.PlayerHealth;
-        public int GetPlayerMaxHealth() => _entityManager.PlayerMaxHealth;
+        public Vector2 GetPlayerPosition() => _entitySpawner.PlayerPosition;
+        public int GetPlayerHealth() => _entitySpawner.PlayerHealth;
+        public int GetPlayerMaxHealth() => _entitySpawner.PlayerMaxHealth;
         public void ResumeMusic() => _audioManager.ResumeMusic();
 
         public void Unload()
         {
-            _entityManager.Unload();
+            _entitySpawner.Unload();
         }
     }
 }
