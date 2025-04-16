@@ -35,6 +35,7 @@ public static class MovementUtilities
         TiledMap currentMap,
         ICollisionBounding collisionBounding,
         TextureInfo textureInfo,
+        EntityStatus entityStatus,
         ref bool flipped,
         float friction,
         float gravity,
@@ -42,13 +43,15 @@ public static class MovementUtilities
         Action<GameTime> playMoveSound,
         GameTime gameTime)
     {
-        movementSpeed = 1.0f;
+        //movementSpeed = 1.0f;
+        movementSpeed = entityStatus.Agility * 1.0f;
         animationSpeed = 0.15f;
 
         // Update movement speed based on shift key
         if (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift))
         {
-            movementSpeed = 4.5f;
+            //movementSpeed = 4.5f;
+            movementSpeed = entityStatus.Agility * 2.0f;
             animationSpeed = 0.1f;
         }
 
@@ -177,6 +180,7 @@ public static class MovementUtilities
         TiledMap currentMap,
         ICollisionBounding collisionBounding,
         TextureInfo textureInfo,
+        EntityStatus entityStatus,
         ref bool flipped,
         Strategy strategy,
         List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
@@ -200,6 +204,7 @@ public static class MovementUtilities
                     currentMap,
                     collisionBounding,
                     textureInfo,
+                    entityStatus,
                     ref flipped,
                     ref strategy,
                     ref strategyHistory,
@@ -220,6 +225,7 @@ public static class MovementUtilities
                     currentMap,
                     collisionBounding,
                     textureInfo,
+                    entityStatus,
                     ref flipped,
                     ref strategy,
                     strategyHistory,
@@ -240,6 +246,7 @@ public static class MovementUtilities
                     currentMap,
                     collisionBounding,
                     textureInfo,
+                    entityStatus,
                     ref flipped,
                     ref strategy,
                     ref strategyHistory,
@@ -253,8 +260,7 @@ public static class MovementUtilities
     /// <summary>
     /// Handles AI patrol strategy movement
     /// </summary>
-    public static void HandlePatrolStrategy(
-        ref Vector2 position,
+    public static void HandlePatrolStrategy(ref Vector2 position,
         ref Vector2 velocity,
         ref bool isOnGround,
         ref bool isJumping,
@@ -263,6 +269,7 @@ public static class MovementUtilities
         TiledMap currentMap,
         ICollisionBounding collisionBounding,
         TextureInfo textureInfo,
+        EntityStatus entityStatus,
         ref bool flipped,
         ref Strategy strategy,
         ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
@@ -271,7 +278,8 @@ public static class MovementUtilities
         ref Vector2 lastKnownTargetPosition,
         GameTime gameTime)
     {
-        const float movementSpeed = 1.0f;
+        //const float movementSpeed = 1.0f;
+        float movementSpeed = entityStatus.Agility;
         const float gravity = 0.2f;
 
         float proposedXVelocity = velocity.X;
@@ -329,8 +337,7 @@ public static class MovementUtilities
     /// <summary>
     /// Handles AI chase strategy movement
     /// </summary>
-    public static void HandleChaseStrategy(
-        ref Vector2 position,
+    public static void HandleChaseStrategy(ref Vector2 position,
         ref Vector2 velocity,
         ref bool isOnGround,
         ref bool isJumping,
@@ -339,6 +346,7 @@ public static class MovementUtilities
         TiledMap currentMap,
         ICollisionBounding collisionBounding,
         TextureInfo textureInfo,
+        EntityStatus entityStatus,
         ref bool flipped,
         ref Strategy strategy,
         List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
@@ -347,7 +355,8 @@ public static class MovementUtilities
         ref Vector2 lastKnownTargetPosition,
         GameTime gameTime)
     {
-        const float chaseSpeed = 3.0f;
+        //const float chaseSpeed = 3.0f;
+        float chaseSpeed = entityStatus.Agility * 2.0f;
         const float gravity = 0.2f;
 
         // Find target
@@ -412,8 +421,7 @@ public static class MovementUtilities
     /// <summary>
     /// Handles AI transition strategy movement
     /// </summary>
-    public static void HandleTransitionStrategy(
-        ref Vector2 position,
+    public static void HandleTransitionStrategy(ref Vector2 position,
         ref Vector2 velocity,
         ref bool isOnGround,
         ref bool isJumping,
@@ -422,6 +430,7 @@ public static class MovementUtilities
         TiledMap currentMap,
         ICollisionBounding collisionBounding,
         TextureInfo textureInfo,
+        EntityStatus entityStatus,
         ref bool flipped,
         ref Strategy strategy,
         ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,

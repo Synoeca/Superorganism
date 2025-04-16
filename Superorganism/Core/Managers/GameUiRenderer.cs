@@ -11,28 +11,50 @@ using Superorganism.Tiles;
 
 namespace Superorganism.Core.Managers
 {
-    public class GameUiManager
+    /// <summary>
+    /// Renders game UI elements and debug visualizations
+    /// </summary>
+    public class GameUiRenderer
     {
         private readonly SpriteFont _gameFont;
         private readonly SpriteBatch _spriteBatch;
         private Texture2D _grayTexture;
         private Texture2D _redTexture;
+        private Texture2D _greenTexture;
+        private Texture2D _orangeTexture;
         private Texture2D _borderTexture;
 
         // UI Constants
         private const int ScreenMargin = 40; 
         private const int BarPadding = 10;
+        private const int BarSpacing = 10;
 
         // Debug flags
         private bool _showCollisionBounds;
         private bool _showEntityInfo;
         private bool _showMousePosition;
 
+        /// <summary>
+        /// Toggles the visibility of collision boundaries in debug view.
+        /// </summary>
         public void ToggleCollisionBounds() => _showCollisionBounds = !_showCollisionBounds;
+
+        /// <summary>
+        /// Toggles the display of detailed entity information in debug view.
+        /// </summary>
         public void ToggleEntityInfo() => _showEntityInfo = !_showEntityInfo;
+
+        /// <summary>
+        /// Toggles the visibility of mouse position coordinates in debug view.
+        /// </summary>
         public void ToggleMousePosition() => _showMousePosition = !_showMousePosition;
 
-        public GameUiManager(SpriteFont gameFont, SpriteBatch spriteBatch)
+        /// <summary>
+        /// Initializes a new instance of the GameUiRenderer with required rendering resources.
+        /// </summary>
+        /// <param name="gameFont">The font used for rendering text elements.</param>
+        /// <param name="spriteBatch">The sprite batch used for drawing operations.</param>
+        public GameUiRenderer(SpriteFont gameFont, SpriteBatch spriteBatch)
         {
             _gameFont = gameFont;
             _spriteBatch = spriteBatch;
@@ -44,6 +66,8 @@ namespace Superorganism.Core.Managers
             // Create textures once and store them
             _grayTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Gray);
             _redTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Red);
+            _greenTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Green);
+            _orangeTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Orange);
             _borderTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Red);
         }
 
@@ -135,36 +159,112 @@ namespace Superorganism.Core.Managers
             );
         }
 
-
-        public void DrawHealthBar(int currentHealth, int maxHealth)
+        /// <summary>
+        /// Draws health, stamina, and hunger bars for the player.
+        /// </summary>
+        /// <param name="hitPoints">Current hit points value.</param>
+        /// <param name="maxHitPoints">Maximum hit points value.</param>
+        /// <param name="stamina">Current stamina value.</param>
+        /// <param name="maxStamina">Maximum stamina value.</param>
+        /// <param name="hunger">Current hunger value.</param>
+        /// <param name="maxHunger">Maximum hunger value.</param>
+        public void DrawPlayerStatus(int hitPoints, int maxHitPoints, float stamina, float maxStamina, float hunger, float maxHunger)
         {
             const int barWidth = 200;
             const int barHeight = 30;
 
+            // Calculate positions
+            int healthBarY = ScreenMargin;
+            int staminaBarY = healthBarY + barHeight + BarSpacing;
+            int hungerBarY = staminaBarY + barHeight + BarSpacing;
+
+            // Draw health bar
+            DrawStatusBar(hitPoints, maxHitPoints, barWidth, barHeight, ScreenMargin, healthBarY, _redTexture, "Health");
+
+            // Draw stamina bar
+            DrawStatusBar((int)stamina, (int)maxStamina, barWidth, barHeight, ScreenMargin, staminaBarY, _greenTexture, "Stamina");
+
+            // Draw hunger bar
+            DrawStatusBar((int)hunger, (int)maxHunger, barWidth, barHeight, ScreenMargin, hungerBarY, _orangeTexture, "Hunger");
+        }
+
+        /// <summary>
+        /// Draws a generic status bar with label.
+        /// </summary>
+        /// <param name="currentValue">Current value to display.</param>
+        /// <param name="maxValue">Maximum possible value.</param>
+        /// <param name="barWidth">Width of the status bar.</param>
+        /// <param name="barHeight">Height of the status bar.</param>
+        /// <param name="xPosition">X position of the bar.</param>
+        /// <param name="yPosition">Y position of the bar.</param>
+        /// <param name="fillTexture">Texture to use for filling the bar.</param>
+        /// <param name="label">Label text to display.</param>
+        private void DrawStatusBar(int currentValue, int maxValue, int barWidth, int barHeight,
+                                   int xPosition, int yPosition, Texture2D fillTexture, string label)
+        {
             // Draw background (gray) bar
-            Rectangle backgroundRect = new(ScreenMargin, ScreenMargin, barWidth, barHeight);
+            Rectangle backgroundRect = new(xPosition, yPosition, barWidth, barHeight);
             _spriteBatch.Draw(_grayTexture, backgroundRect, Color.White);
 
-            // Calculate and clamp health percentage
-            float healthPercentage = Math.Clamp((float)currentHealth / maxHealth, 0f, 1f);
+            // Calculate and clamp percentage
+            float percentage = Math.Clamp((float)currentValue / maxValue, 0f, 1f);
 
-            // Draw foreground (red) bar only if health > 0
-            if (healthPercentage > 0)
+            // Draw foreground bar only if value > 0
+            if (percentage > 0)
             {
-                Rectangle healthRect = new(ScreenMargin, ScreenMargin, (int)(barWidth * healthPercentage), barHeight);
-                _spriteBatch.Draw(_redTexture, healthRect, Color.White);
+                Rectangle foregroundRect = new(xPosition, yPosition, (int)(barWidth * percentage), barHeight);
+                _spriteBatch.Draw(fillTexture, foregroundRect, Color.White);
             }
 
-            // Draw health text with padding
-            string healthText = $"{currentHealth}/{maxHealth}";
+            // Draw text with padding
+            string statusText = $"{label}: {currentValue}/{maxValue}";
             const float textScale = 0.55f;
-            Vector2 textSize = _gameFont.MeasureString(healthText) * textScale;
+            Vector2 textSize = _gameFont.MeasureString(statusText) * textScale;
             Vector2 textPosition = new(
-                ScreenMargin + (barWidth - textSize.X) / 2,
-                ScreenMargin + (barHeight - textSize.Y) / 2 - 2
+                xPosition + (barWidth - textSize.X) / 2,
+                yPosition + (barHeight - textSize.Y) / 2 - 2
             );
-            DrawTextWithShadow(healthText, textPosition, Color.White, textScale);
+            DrawTextWithShadow(statusText, textPosition, Color.White, textScale);
         }
+
+        // Original DrawHealthBar can now be simplified to use DrawStatusBar
+        public void DrawHealthBar(int currentHealth, int maxHealth)
+        {
+            const int barWidth = 200;
+            const int barHeight = 30;
+            DrawStatusBar(currentHealth, maxHealth, barWidth, barHeight, ScreenMargin, ScreenMargin, _redTexture, "Health");
+        }
+
+
+        //public void DrawHealthBar(int currentHealth, int maxHealth)
+        //{
+        //    const int barWidth = 200;
+        //    const int barHeight = 30;
+
+        //    // Draw background (gray) bar
+        //    Rectangle backgroundRect = new(ScreenMargin, ScreenMargin, barWidth, barHeight);
+        //    _spriteBatch.Draw(_grayTexture, backgroundRect, Color.White);
+
+        //    // Calculate and clamp health percentage
+        //    float healthPercentage = Math.Clamp((float)currentHealth / maxHealth, 0f, 1f);
+
+        //    // Draw foreground (red) bar only if health > 0
+        //    if (healthPercentage > 0)
+        //    {
+        //        Rectangle healthRect = new(ScreenMargin, ScreenMargin, (int)(barWidth * healthPercentage), barHeight);
+        //        _spriteBatch.Draw(_redTexture, healthRect, Color.White);
+        //    }
+
+        //    // Draw health text with padding
+        //    string healthText = $"{currentHealth}/{maxHealth}";
+        //    const float textScale = 0.55f;
+        //    Vector2 textSize = _gameFont.MeasureString(healthText) * textScale;
+        //    Vector2 textPosition = new(
+        //        ScreenMargin + (barWidth - textSize.X) / 2,
+        //        ScreenMargin + (barHeight - textSize.Y) / 2 - 2
+        //    );
+        //    DrawTextWithShadow(healthText, textPosition, Color.White, textScale);
+        //}
 
         public void DrawCropsLeft(int cropsLeft)
         {

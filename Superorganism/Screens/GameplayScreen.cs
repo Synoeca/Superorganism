@@ -20,7 +20,7 @@ namespace Superorganism.Screens
     {
         // Core components
         public GameStateManager GameStateManager;
-        private GameUiManager _uiManager;
+        private GameUiRenderer _uiRenderer;
         private Camera2D _camera;
         private ParallaxBackground _parallaxBackground;
         private TiledMap _map;
@@ -96,7 +96,7 @@ namespace Superorganism.Screens
 
 
             // Initialize UI and other components
-            _uiManager = new GameUiManager(
+            _uiRenderer = new GameUiRenderer(
                 _content.Load<SpriteFont>("gamefont"),
                 ScreenManager.SpriteBatch
             );
@@ -119,13 +119,13 @@ namespace Superorganism.Screens
 
             // Debug visualization toggles
             if (input.IsNewKeyPress(Keys.F1, ControllingPlayer, out _))
-                _uiManager.ToggleCollisionBounds();
+                _uiRenderer.ToggleCollisionBounds();
 
             if (input.IsNewKeyPress(Keys.F2, ControllingPlayer, out _))
-                _uiManager.ToggleEntityInfo();
+                _uiRenderer.ToggleEntityInfo();
 
             if (input.IsNewKeyPress(Keys.F3, ControllingPlayer, out _))
-                _uiManager.ToggleMousePosition();
+                _uiRenderer.ToggleMousePosition();
 
             if ((GameStateManager.IsGameOver || GameStateManager.IsGameWon) &&
                 input.IsNewKeyPress(Keys.R, ControllingPlayer, out playerIndex))
@@ -187,18 +187,19 @@ namespace Superorganism.Screens
                 RasterizerState.CullNone
             );
 
-            _uiManager.DrawHealthBar(GameStateManager.GetPlayerHealth(), GameStateManager.GetPlayerMaxHealth());
-            _uiManager.DrawCropsLeft(GameStateManager.CropsLeft);
-            _uiManager.DrawDebugInfo(gameTime, DecisionMaker.Entities, _camera.TransformMatrix, GameStateManager.GetPlayerPosition());
+            //_uiRenderer.DrawHealthBar(GameStateManager.GetPlayerHealth(), GameStateManager.GetPlayerMaxHealth());
+            _uiRenderer.DrawPlayerStatus(100, 100, 100, 100, 100 ,100);
+            _uiRenderer.DrawCropsLeft(GameStateManager.CropsLeft);
+            _uiRenderer.DrawDebugInfo(gameTime, DecisionMaker.Entities, _camera.TransformMatrix, GameStateManager.GetPlayerPosition());
 
             // Draw win/lose screen if game is over
             if (GameStateManager.IsGameOver)
             {
-                _uiManager.DrawGameOverScreen();
+                _uiRenderer.DrawGameOverScreen();
             }
             else if (GameStateManager.IsGameWon)
             {
-                _uiManager.DrawWinScreen();
+                _uiRenderer.DrawWinScreen();
             }
 
             spriteBatch.End();
@@ -216,7 +217,7 @@ namespace Superorganism.Screens
 
         public override void Unload()
         {
-            _uiManager?.Dispose();
+            _uiRenderer?.Dispose();
             _parallaxBackground?.Unload();
             GameStateManager?.Unload();
             _content?.Unload();

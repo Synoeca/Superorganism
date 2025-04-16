@@ -129,6 +129,7 @@ namespace Superorganism.Entities
                 GameState.CurrentMap,
                 CollisionBounding,
                 TextureInfo,
+				EntityStatus,
                 ref Flipped,
                 Friction,
                 Gravity,

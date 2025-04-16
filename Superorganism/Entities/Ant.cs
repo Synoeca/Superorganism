@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Superorganism.Common;
 
 namespace Superorganism.Entities
 {
@@ -15,6 +16,7 @@ namespace Superorganism.Entities
 		    IsSpriteAtlas = true;
 		    HasDirection = false;
             Color = Color.White;
+            EntityStatus = new EntityStatus();
         }
 
         /// <summary>
