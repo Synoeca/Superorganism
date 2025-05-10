@@ -39,7 +39,7 @@ namespace Superorganism.Entities
         /// <summary>
         /// Loads the entity's texture content and initializes its texture information
         /// </summary>
-        /// <param name="content">Content manager for loading assets</param>
+        /// <param name="content">Content organizer for loading assets</param>
         /// <param name="assetName">Name of the texture asset to load</param>
         /// <param name="numOfSpriteCols">Number of sprite columns in the texture</param>
         /// <param name="numOfSpriteRows">Number of sprite rows in the texture</param>

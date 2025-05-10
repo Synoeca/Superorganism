@@ -258,6 +258,102 @@ public static class MovementUtilities
     }
 
     /// <summary>
+    /// Handles player input for movement with stamina restrictions
+    /// </summary>
+    public static void HandlePlayerInputWithStaminaRestrictions(
+        ref Vector2 position,
+        ref Vector2 velocity,
+        ref bool isOnGround,
+        ref bool isJumping,
+        ref float jumpDiagonalPosY,
+        ref bool isCenterOnDiagonal,
+        ref float soundTimer,
+        ref float movementSpeed,
+        ref float animationSpeed,
+        KeyboardState keyboardState,
+        KeyboardState previousKeyboardState,
+        TiledMap currentMap,
+        ICollisionBounding collisionBounding,
+        TextureInfo textureInfo,
+        EntityStatus entityStatus,
+        ref bool flipped,
+        float friction,
+        float gravity,
+        float jumpStrength,
+        Action<GameTime> playMoveSound,
+        bool canSprint,
+        bool canJump,
+        GameTime gameTime)
+    {
+        //movementSpeed = 1.0f;
+        movementSpeed = entityStatus.Agility * 1.0f;
+        animationSpeed = 0.15f;
+
+        // Update movement speed based on shift key AND stamina
+        bool isAttemptingToSprint = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
+        bool isSprinting = isAttemptingToSprint && canSprint;
+
+        if (isSprinting)
+        {
+            //movementSpeed = 4.5f;
+            movementSpeed = entityStatus.Agility * 2.0f;
+            animationSpeed = 0.1f;
+        }
+
+        float proposedXVelocity = 0;
+
+        // Calculate proposed horizontal movement
+        if (keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A))
+        {
+            proposedXVelocity = -movementSpeed;
+            flipped = true;
+        }
+        else if (keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D))
+        {
+            proposedXVelocity = movementSpeed;
+            flipped = false;
+        }
+        else if (isOnGround)
+        {
+            proposedXVelocity = velocity.X * friction;
+            if (Math.Abs(proposedXVelocity) < 0.1f)
+            {
+                proposedXVelocity = 0;
+                soundTimer = 0f;
+            }
+        }
+
+        // Handle map modifications with F key
+        if (previousKeyboardState.IsKeyDown(Keys.F) && keyboardState.IsKeyUp(Keys.F))
+        {
+            HandleMapModification(position, proposedXVelocity, keyboardState, currentMap, textureInfo);
+        }
+
+        // Handle jumping and physics movement - only allow jumping if enough stamina
+        bool isAttemptingToJump = isOnGround && keyboardState.IsKeyDown(Keys.Space);
+        bool startingJump = isAttemptingToJump && canJump;
+
+        HandleMovementPhysics(
+            ref position,
+            ref velocity,
+            ref isOnGround,
+            ref isJumping,
+            ref jumpDiagonalPosY,
+            ref isCenterOnDiagonal,
+            proposedXVelocity,
+            gravity,
+            startingJump,
+            jumpStrength,
+            textureInfo,
+            collisionBounding,
+            currentMap,
+            flipped,
+            movementSpeed,
+            gameTime,
+            playMoveSound);
+    }
+
+    /// <summary>
     /// Handles AI patrol strategy movement
     /// </summary>
     public static void HandlePatrolStrategy(ref Vector2 position,

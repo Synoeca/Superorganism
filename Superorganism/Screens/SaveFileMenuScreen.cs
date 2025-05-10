@@ -506,13 +506,13 @@ namespace Superorganism.Screens
         private void SaveToFile(string fileName)
         {
             GameplayScreen gameplayScreen = GetGameplayScreen();
-            if (gameplayScreen?.GameStateManager == null) return;
+            if (gameplayScreen?.GameStateOrganizer == null) return;
 
             GameStateSaver.SaveGameState(
                 new GameStateInfo
                 {
                     Entities = DecisionMaker.Entities,
-                    GameProgressTime = gameplayScreen.GameStateManager.GameTime.TotalGameTime
+                    GameProgressTime = gameplayScreen.GameStateOrganizer.GameTime.TotalGameTime
                 },
                 GameState.CurrentMapName,
                 fileName
@@ -527,7 +527,7 @@ namespace Superorganism.Screens
         private void CreateNewSave()
         {
             GameplayScreen gameplayScreen = GetGameplayScreen();
-            if (gameplayScreen?.GameStateManager == null) return;
+            if (gameplayScreen?.GameStateOrganizer == null) return;
 
             // Start naming process
             _isNaming = true;

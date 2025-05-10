@@ -19,7 +19,7 @@ namespace Superorganism.Screens
     public class GameplayScreen : GameScreen
     {
         // Core components
-        public GameStateManager GameStateManager;
+        public GameStateOrganizer GameStateOrganizer;
         private GameUiRenderer _uiRenderer;
         private Camera2D _camera;
         private ParallaxBackground _parallaxBackground;
@@ -79,7 +79,7 @@ namespace Superorganism.Screens
             MapHelper.MapWidth = _map.Width;
             MapHelper.MapHeight = _map.Height;
 
-            GameStateManager = new GameStateManager(
+            GameStateOrganizer = new GameStateOrganizer(
                 ScreenManager.Game,
                 _content,
                 ScreenManager.GraphicsDevice,
@@ -89,7 +89,7 @@ namespace Superorganism.Screens
                 loadedState
             );
 
-            GameState.Initialize(GameStateManager);
+            GameState.Initialize(GameStateOrganizer);
             GameState.CurrentMapName = GameState.CurrentMap.MapFileName;
             //GameState.CurrentMapName = GameState.CurrentMap
 
@@ -104,15 +104,15 @@ namespace Superorganism.Screens
             _parallaxBackground = new ParallaxBackground();
             _parallaxBackground.LoadContent(_content);
 
-            _camera.Initialize(GameStateManager.GetPlayerPosition(), ScreenManager);
+            _camera.Initialize(GameStateOrganizer.GetPlayerPosition(), ScreenManager);
             ScreenManager.GameplayScreenCamera2D = _camera;
         }
 
         public override void HandleInput(GameTime gameTime, InputState input)
         {
-            if (GameStateManager.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
+            if (GameStateOrganizer.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
             {
-                //GameStateManager.PauseMusic();
+                //GameStateOrganizer.PauseMusic();
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
             }
@@ -127,10 +127,10 @@ namespace Superorganism.Screens
             if (input.IsNewKeyPress(Keys.F3, ControllingPlayer, out _))
                 _uiRenderer.ToggleMousePosition();
 
-            if ((GameStateManager.IsGameOver || GameStateManager.IsGameWon) &&
+            if ((GameStateOrganizer.IsGameOver || GameStateOrganizer.IsGameWon) &&
                 input.IsNewKeyPress(Keys.R, ControllingPlayer, out playerIndex))
             {
-                GameStateManager.Reset();
+                GameStateOrganizer.Reset();
                 ScreenManager.ResetScreen(this);
             }
         }
@@ -141,8 +141,8 @@ namespace Superorganism.Screens
 
             if (!IsActive) return;
 
-            GameStateManager.Update(gameTime);
-            _camera.Update(GameStateManager.GetPlayerPosition(), gameTime);
+            GameStateOrganizer.Update(gameTime);
+            _camera.Update(GameStateOrganizer.GetPlayerPosition(), gameTime);
             UpdatePauseAlpha(coveredByOtherScreen); // Pass coveredByOtherScreen
         }
 
@@ -174,7 +174,7 @@ namespace Superorganism.Screens
                 Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
             );
 
-            GameStateManager.Draw(gameTime, spriteBatch);
+            GameStateOrganizer.Draw(gameTime, spriteBatch);
 
             spriteBatch.End();
 
@@ -187,17 +187,18 @@ namespace Superorganism.Screens
                 RasterizerState.CullNone
             );
 
-            //_uiRenderer.DrawHealthBar(GameStateManager.GetPlayerHealth(), GameStateManager.GetPlayerMaxHealth());
-            _uiRenderer.DrawPlayerStatus(100, 100, 100, 100, 100 ,100);
-            _uiRenderer.DrawCropsLeft(GameStateManager.CropsLeft);
-            _uiRenderer.DrawDebugInfo(gameTime, DecisionMaker.Entities, _camera.TransformMatrix, GameStateManager.GetPlayerPosition());
+            _uiRenderer.DrawPlayerStatus(GameStateOrganizer.GetPlayerHealth(), GameStateOrganizer.GetPlayerMaxHealth(),
+                GameStateOrganizer.GetPlayerStamina(), GameStateOrganizer.GetPlayerMaxStamina(),
+                GameStateOrganizer.GetPlayerHunger(), GameStateOrganizer.GetPlayerMaxHunger());
+            _uiRenderer.DrawCropsLeft(GameStateOrganizer.CropsLeft);
+            _uiRenderer.DrawDebugInfo(gameTime, DecisionMaker.Entities, _camera.TransformMatrix, GameStateOrganizer.GetPlayerPosition());
 
             // Draw win/lose screen if game is over
-            if (GameStateManager.IsGameOver)
+            if (GameStateOrganizer.IsGameOver)
             {
                 _uiRenderer.DrawGameOverScreen();
             }
-            else if (GameStateManager.IsGameWon)
+            else if (GameStateOrganizer.IsGameWon)
             {
                 _uiRenderer.DrawWinScreen();
             }
@@ -219,7 +220,7 @@ namespace Superorganism.Screens
         {
             _uiRenderer?.Dispose();
             _parallaxBackground?.Unload();
-            GameStateManager?.Unload();
+            GameStateOrganizer?.Unload();
             _content?.Unload();
         }
     }

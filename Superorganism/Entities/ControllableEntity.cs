@@ -17,7 +17,7 @@ namespace Superorganism.Entities
 
 		public bool IsControlled { get; set; }
 
-        private float _movementSpeed;
+        protected float _movementSpeed;
         public float MovementSpeed
         {
             get => _movementSpeed;
@@ -40,7 +40,7 @@ namespace Superorganism.Entities
 
 		public SoundEffect MoveSound { get; set; }
 		public SoundEffect JumpSound { get; set; }
-		private float _soundTimer;
+        protected float _soundTimer;
 		private const float MoveSoundInterval = 0.25f;
 		private const float ShiftMoveSoundInterval = 0.15f;
 
@@ -51,7 +51,7 @@ namespace Superorganism.Entities
 				: MoveSoundInterval;
 		}
 
-		private void PlayMoveSound(GameTime gameTime)
+        protected void PlayMoveSound(GameTime gameTime)
 		{
 			_soundTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
 			if (_soundTimer >= GetMoveSoundInterval())
@@ -104,7 +104,7 @@ namespace Superorganism.Entities
 			}
 		}
 
-        public void HandleInput(KeyboardState keyboardState, GamePadState gamePadState, GameTime gameTime)
+        public virtual void HandleInput(KeyboardState keyboardState, GamePadState gamePadState, GameTime gameTime)
         {
             GamePadState = GamePad.GetState(0);
             KeyboardState = Keyboard.GetState();
@@ -112,7 +112,6 @@ namespace Superorganism.Entities
             // Check for jump before movement utilities to handle the sound
             bool wasJumping = _isJumping;
             bool wasOnGround = _isOnGround;
-
             // Use MovementUtilities to handle player input and physics
             MovementUtilities.HandlePlayerInput(
                 ref _position,

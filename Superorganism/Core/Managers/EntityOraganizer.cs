@@ -16,7 +16,7 @@ namespace Superorganism.Core.Managers;
 /// <summary>
 /// Manage entities
 /// </summary>
-public class EntitySpawner
+public class EntityOraganizer
 {
     private Ant _ant;
     private readonly List<AntEnemy> _antEnemies = [];
@@ -50,7 +50,21 @@ public class EntitySpawner
         set => _ant.HitPoints = value;
     }
 
+    public int PlayerStamina
+    {
+        get => _ant.Stamina;
+        set => _ant.Stamina = value;
+    }
+
+    public int PlayerHunger
+    {
+        get => _ant.Hunger;
+        set => _ant.Hunger = value;
+    }
+
     public int PlayerMaxHealth => _ant.MaxHitPoint;
+    public int PlayerMaxStamina => _ant.MaxStamina;
+    public int PlayerMaxHunger => _ant.MaxHunger;
     public int CropsCount => _crops.Count;
     public bool IsPlayerInvincible { get; private set; }
     public Vector2[] GetEnemyPositions()
@@ -111,7 +125,7 @@ public class EntitySpawner
     }
     public TiledMap GetCurrentMap() => _map;
 
-    public EntitySpawner(Game game, ContentManager content,
+    public EntityOraganizer(Game game, ContentManager content,
         GraphicsDevice graphicsDevice, TiledMap map, GameStateInfo gameStateInfo)
     {
         _game = game;
