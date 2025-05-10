@@ -12,6 +12,8 @@
         /// </summary>
         public float Strength { get; set; } = 1;
 
+        public float JumpStrength { get; set; } = -14f;
+
         /// <summary>
         /// Sensory and awareness attribute
         /// </summary>
@@ -135,21 +137,21 @@
         private float _hungerTimer = 0f;
 
         /// <summary>
-        /// Updates resource systems based on entity state
+        /// Updates resource management (stamina, hunger) based on entity status and activity level
+        /// Handles stamina consumption during sprinting, regeneration during rest, 
+        /// hunger decrease over time, and applies status effects like health damage when starving
         /// </summary>
-        /// <param name="deltaTime">Time elapsed since last update</param>
-        /// <param name="isActivelyMoving">Whether entity is actively moving</param>
-        /// <param name="isSprinting">Whether entity is attempting to sprint</param>
-        /// <returns>True if sprinting is allowed, false if stamina is depleted</returns>
-        public bool UpdateResources(float deltaTime, bool isActivelyMoving, bool isSprinting)
+        /// <param name="deltaTime">Time elapsed since last update in seconds</param>
+        /// <param name="isActivelyMoving">Whether the entity is actively moving</param>
+        /// <param name="isSprinting">Whether the entity is attempting to sprint</param>
+        /// <returns>The current movement speed based on agility and stamina levels</returns>
+        public float UpdateResourceManagement(float deltaTime, bool isActivelyMoving, bool isSprinting)
         {
-            bool canSprint = true;
-
             // Handle hunger decrease based on activity level
-            _hungerTimer += deltaTime;
+            HungerTimer += deltaTime;
 
             float currentHungerDecreaseTime;
-            if (isActivelyMoving && isSprinting && Stamina > 0)
+            if (isActivelyMoving && isSprinting)
             {
                 currentHungerDecreaseTime = SprintingHungerDecreaseTime;
             }
@@ -163,54 +165,72 @@
             }
 
             // Check if it's time to decrease hunger
-            if (_hungerTimer >= currentHungerDecreaseTime)
+            if (HungerTimer >= currentHungerDecreaseTime)
             {
                 Hunger = System.Math.Max(0, Hunger - 1);
-                _hungerTimer = 0f; // Reset timer after decreasing hunger
+                HungerTimer = 0f; // Reset timer after decreasing hunger
             }
 
-            // Handle stamina consumption ONLY when sprinting and has stamina
-            if (isActivelyMoving && isSprinting)
+            // First, check if enough stamina for actions
+            bool canSprint = Stamina > SprintStaminaThreshold;
+            bool canJump = Stamina > JumpStaminaThreshold;
+
+            // Calculate movement speed multiplier
+            float speedMultiplier = Agility;
+
+            // Then update the sprinting logic
+            if (isActivelyMoving && isSprinting && canSprint)
             {
-                if (Stamina > 0)
-                {
-                    // Reset stamina regeneration timer when sprinting
-                    _staminaRegenTimer = 0f;
+                // Reset stamina regeneration timer when sprinting
+                StaminaRegenTimer = 0f;
 
-                    // Calculate stamina cost
-                    float staminaCost = StaminaSprintCost * deltaTime;
+                // Calculate stamina cost (only when sprinting)
+                float staminaCost = StaminaSprintCost * deltaTime;
 
-                    // Apply stamina cost
-                    Stamina = System.Math.Max(0, Stamina - (int)System.Math.Ceiling(staminaCost));
-                    canSprint = true;
-                }
-                else
+                // Apply stamina cost
+                Stamina = System.Math.Max(0, Stamina - (int)System.Math.Ceiling(staminaCost));
+
+                // Adjust movement speed based on stamina level
+                if (Stamina < LowStaminaThreshold)
                 {
-                    // No stamina left, can't sprint
-                    canSprint = false;
+                    speedMultiplier = Agility * LowStaminaSpeedMultiplier;
                 }
+
+                // Update ability flags after stamina cost is applied
+                canSprint = Stamina > SprintStaminaThreshold;
+                canJump = Stamina > JumpStaminaThreshold;
             }
             else
             {
                 // Handle stamina regeneration when not sprinting
-                _staminaRegenTimer += deltaTime;
+                StaminaRegenTimer += deltaTime;
 
-                if (_staminaRegenTimer >= StaminaRegenDelay)
+                if (StaminaRegenTimer >= StaminaRegenDelay)
                 {
                     // Regenerate stamina
                     float regenAmount = StaminaRegenRate * deltaTime;
                     Stamina = System.Math.Min(MaxStamina, Stamina + (int)System.Math.Ceiling(regenAmount));
+
+                    // Reset movement speed to normal when rested
+                    if (Stamina >= LowStaminaThreshold)
+                    {
+                        speedMultiplier = Agility;
+                    }
+
+                    // Update ability flags after regeneration
+                    canSprint = Stamina > SprintStaminaThreshold;
+                    canJump = Stamina > JumpStaminaThreshold;
                 }
             }
 
-            // Apply hunger effects
+            // Apply hunger effects (could add additional logic here)
             if (Hunger <= 0)
             {
-                // Apply health damage when starving
+                // Maybe apply health damage when starving
                 HitPoints = System.Math.Max(0, HitPoints - 1);
             }
 
-            return canSprint;
+            return speedMultiplier;
         }
 
         /// <summary>

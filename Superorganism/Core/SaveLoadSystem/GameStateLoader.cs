@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Superorganism.Entities;
+using Superorganism.Common;
 
 namespace Superorganism.Core.SaveLoadSystem
 {
@@ -58,36 +59,63 @@ namespace Superorganism.Core.SaveLoadSystem
             switch (data.Type)
             {
                 case "Ant":
-                    return new Ant
+                    Ant ant = new Ant
                     {
-                        Position = data.Position,
-                        HitPoints = data.Health
+                        Position = data.Position
                     };
+                    // Apply EntityStatus first
+                    if (data.Status != null)
+                    {
+                        ant.EntityStatus = DeserializeEntityStatus(data.Status);
+                    }
+                    // Then set HitPoints through the property (which updates EntityStatus.HitPoints)
+                    ant.EntityStatus.HitPoints = data.Health;
+                    return ant;
 
                 case "AntEnemy":
                     AntEnemy enemy = new()
                     {
                         Position = data.Position,
-                        //Health = data.Health,
                         Strategy = data.CurrentStrategy,
-                        StrategyHistory = data.StrategyHistory.Select(sh =>
-                            (sh.Strategy, sh.StartTime, sh.LastActionTime)).ToList()
+                        StrategyHistory = data.StrategyHistory?.Select(sh =>
+                            (sh.Strategy, sh.StartTime, sh.LastActionTime)).ToList() ?? new()
                     };
+                    // Apply EntityStatus first
+                    if (data.Status != null)
+                    {
+                        enemy.EntityStatus = DeserializeEntityStatus(data.Status);
+                    }
+                    // Then set Health through EntityStatus.HitPoints
+                    enemy.EntityStatus.HitPoints = data.Health;
                     return enemy;
 
                 case "Crop":
-                    return new Crop
+                    Crop crop = new Crop
                     {
-                        Position = data.Position,
-                        //Health = data.Health
+                        Position = data.Position
                     };
+                    // Apply EntityStatus first
+                    if (data.Status != null)
+                    {
+                        //crop.EntityStatus = DeserializeEntityStatus(data.Status);
+                    }
+                    // Then set Health through EntityStatus.HitPoints
+                    //crop.EntityStatus.HitPoints = data.Health;
+                    return crop;
 
                 case "Fly":
-                    return new Fly
+                    Fly fly = new Fly
                     {
-                        Position = data.Position,
-                        //Health = data.Health
+                        Position = data.Position
                     };
+                    // Apply EntityStatus first
+                    if (data.Status != null)
+                    {
+                        fly.EntityStatus = DeserializeEntityStatus(data.Status);
+                    }
+                    // Then set Health through EntityStatus.HitPoints
+                    fly.EntityStatus.HitPoints = data.Health;
+                    return fly;
 
                 default:
                     return null;
@@ -96,10 +124,56 @@ namespace Superorganism.Core.SaveLoadSystem
 
         private static GameStateInfo CreateNewGameState()
         {
+            Ant newAnt = new()
+            {
+                Position = new Vector2(100, 100),
+                EntityStatus =
+                {
+                    HitPoints = 100
+                }
+            };
             return new GameStateInfo
             {
-                Entities = [new Ant { Position = new Vector2(100, 100), HitPoints = 100 }],
+                Entities = [newAnt],
                 GameProgressTime = TimeSpan.Zero
+            };
+        }
+
+        // Helper method to deserialize EntityStatus
+        private static EntityStatus DeserializeEntityStatus(EntityStatusData statusData)
+        {
+            if (statusData == null) return new EntityStatus();
+
+            return new EntityStatus
+            {
+                // Core attributes
+                Strength = statusData.Strength,
+                Perception = statusData.Perception,
+                Endurance = statusData.Endurance,
+                Charisma = statusData.Charisma,
+                Intelligence = statusData.Intelligence,
+                Agility = statusData.Agility,
+                Luck = statusData.Luck,
+
+                // Resource tracking
+                HitPoints = statusData.HitPoints,
+                MaxHitPoints = statusData.MaxHitPoints,
+                Stamina = statusData.Stamina,
+                MaxStamina = statusData.MaxStamina,
+                Hunger = statusData.Hunger,
+                MaxHunger = statusData.MaxHunger,
+
+                // Resource management timing
+                StaminaRegenDelay = statusData.StaminaRegenDelay,
+                StaminaRegenRate = statusData.StaminaRegenRate,
+                StaminaSprintCost = statusData.StaminaSprintCost,
+                StaminaRegenTimer = statusData.StaminaRegenTimer,
+                IdleHungerDecreaseTime = statusData.IdleHungerDecreaseTime,
+                MovingHungerDecreaseTime = statusData.MovingHungerDecreaseTime,
+                SprintingHungerDecreaseTime = statusData.SprintingHungerDecreaseTime,
+                LowStaminaThreshold = statusData.LowStaminaThreshold,
+                LowStaminaSpeedMultiplier = statusData.LowStaminaSpeedMultiplier,
+                HungerTimer = statusData.HungerTimer
             };
         }
     }

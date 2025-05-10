@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Superorganism.Common;
 using Superorganism.Core.Managers;
 using Superorganism.Entities;
 
@@ -58,7 +59,8 @@ namespace Superorganism.Core.SaveLoadSystem
                 {
                     Type = "Ant",
                     Position = player.Position,
-                    Health = player.HitPoints
+                    Health = player.EntityStatus.HitPoints,  // Use the property accessor that gets from EntityStatus
+                    Status = SerializeEntityStatus(player.EntityStatus)
                 });
             }
 
@@ -69,14 +71,15 @@ namespace Superorganism.Core.SaveLoadSystem
                 {
                     Type = "AntEnemy",
                     Position = enemy.Position,
-                    //Health = enemy.Health,
+                    Health = (int)enemy.EntityStatus.HitPoints,  // Convert from float to int
                     CurrentStrategy = enemy.Strategy,
                     StrategyHistory = enemy.StrategyHistory.Select(sh => new StrategyHistoryEntry
                     {
                         Strategy = sh.Strategy,
                         StartTime = sh.StartTime,
                         LastActionTime = sh.LastActionTime
-                    }).ToList()
+                    }).ToList(),
+                    Status = SerializeEntityStatus(enemy.EntityStatus)
                 });
             }
 
@@ -87,7 +90,8 @@ namespace Superorganism.Core.SaveLoadSystem
                 {
                     Type = "Crop",
                     Position = crop.Position,
-                    //Health = crop.Health
+                    //Health = (int)crop.EntityStatus.HitPoints,  // Convert from float to int
+                    //Status = SerializeEntityStatus(crop.EntityStatus)
                 });
             }
 
@@ -98,15 +102,15 @@ namespace Superorganism.Core.SaveLoadSystem
                 {
                     Type = "Fly",
                     Position = fly.Position,
-                    //Health = fly.Health
+                    Health = (int)fly.EntityStatus.HitPoints,  // Convert from float to int
+                    Status = SerializeEntityStatus(fly.EntityStatus)
                 });
             }
 
             GameStateContent state = new()
             {
                 Entities = entityDataList,
-                //IsGameOver = !player?.IsAlive ?? true,
-                IsGameOver = !(player!.HitPoints  > 0),
+                IsGameOver = !(player!.EntityStatus.HitPoints > 0),  // Use the property accessor
                 IsGameWon = !gameState.Entities.OfType<Crop>().Any(),
                 GameProgressTime = gameState.GameProgressTime,
                 SaveFilename = saveFileName,
@@ -133,6 +137,44 @@ namespace Superorganism.Core.SaveLoadSystem
                 .Select(f => Path.GetFileNameWithoutExtension(f))
                 .Select(name => int.TryParse(name.Replace("Save", ""), out int num) ? num : 0)
                 .Max() + 1;
+        }
+
+        // Helper method to serialize EntityStatus
+        private static EntityStatusData SerializeEntityStatus(EntityStatus status)
+        {
+            if (status == null) return null;
+
+            return new EntityStatusData
+            {
+                // Core attributes
+                Strength = status.Strength,
+                Perception = status.Perception,
+                Endurance = status.Endurance,
+                Charisma = status.Charisma,
+                Intelligence = status.Intelligence,
+                Agility = status.Agility,
+                Luck = status.Luck,
+
+                // Resource tracking
+                HitPoints = status.HitPoints,
+                MaxHitPoints = status.MaxHitPoints,
+                Stamina = status.Stamina,
+                MaxStamina = status.MaxStamina,
+                Hunger = status.Hunger,
+                MaxHunger = status.MaxHunger,
+
+                // Resource management timing
+                StaminaRegenDelay = status.StaminaRegenDelay,
+                StaminaRegenRate = status.StaminaRegenRate,
+                StaminaSprintCost = status.StaminaSprintCost,
+                StaminaRegenTimer = status.StaminaRegenTimer,
+                IdleHungerDecreaseTime = status.IdleHungerDecreaseTime,
+                MovingHungerDecreaseTime = status.MovingHungerDecreaseTime,
+                SprintingHungerDecreaseTime = status.SprintingHungerDecreaseTime,
+                LowStaminaThreshold = status.LowStaminaThreshold,
+                LowStaminaSpeedMultiplier = status.LowStaminaSpeedMultiplier,
+                HungerTimer = status.HungerTimer
+            };
         }
     }
 }
