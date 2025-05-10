@@ -253,8 +253,8 @@ namespace Superorganism.Core.Managers
         }
 
         public Vector2 GetPlayerPosition() => _entityOraganizer.PlayerPosition;
-        public int GetPlayerHealth() => _entityOraganizer.PlayerHealth;
-        public int GetPlayerMaxHealth() => _entityOraganizer.PlayerMaxHealth;
+        public float GetPlayerHealth() => _entityOraganizer.PlayerHealth;
+        public float GetPlayerMaxHealth() => _entityOraganizer.PlayerMaxHealth;
         public int GetPlayerStamina() => _entityOraganizer.PlayerStamina;
         public int GetPlayerMaxStamina() => _entityOraganizer.PlayerMaxStamina;
         public int GetPlayerHunger() => _entityOraganizer.PlayerHunger;

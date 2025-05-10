@@ -10,26 +10,26 @@ namespace Superorganism.Entities
     /// </summary>
     public sealed class Ant : ControllableEntity
     {
-        // Timers for resource regeneration
-        private float _staminaRegenTimer = 0f;
-        private float _hungerTimer = 0f;
-        private const float StaminaRegenDelay = 3.0f; // Seconds before stamina starts regenerating
-        private const float StaminaRegenRate = 5.0f; // Amount regenerated per second when resting
+        //// Timers for resource regeneration
+        //private float _staminaRegenTimer = 0f;
+        //private float _hungerTimer = 0f;
+        //private const float StaminaRegenDelay = 3.0f; // Seconds before stamina starts regenerating
+        //private const float StaminaRegenRate = 5.0f; // Amount regenerated per second when resting
 
-        // Hunger decrease timers (in seconds)
-        private const float IdleHungerDecreaseTime = 180.0f;  // 3 minutes for 1 hunger point when idle
-        private const float MovingHungerDecreaseTime = 30.0f; // 30 seconds for 1 hunger point when moving
-        private const float SprintingHungerDecreaseTime = 10.0f; // 10 seconds for 1 hunger point when sprinting
+        //// Hunger decrease timers (in seconds)
+        //private const float IdleHungerDecreaseTime = 180.0f;  // 3 minutes for 1 hunger point when idle
+        //private const float MovingHungerDecreaseTime = 30.0f; // 30 seconds for 1 hunger point when moving
+        //private const float SprintingHungerDecreaseTime = 10.0f; // 10 seconds for 1 hunger point when sprinting
 
-        // Resource consumption rates
-        private const float StaminaSprintCost = 1.5f; // Stamina cost per second while sprinting
+        //// Resource consumption rates
+        //private const float StaminaSprintCost = 1.5f; // Stamina cost per second while sprinting
 
-        // Movement speed modifiers based on stamina
-        private const float LowStaminaThreshold = 15; // Below this stamina, movement is reduced
-        private const float LowStaminaSpeedMultiplier = 0.6f; // Speed multiplier when stamina is low
+        //// Movement speed modifiers based on stamina
+        //private const float LowStaminaThreshold = 15; // Below this stamina, movement is reduced
+        //private const float LowStaminaSpeedMultiplier = 0.6f; // Speed multiplier when stamina is low
 
-        private const float JumpStaminaThreshold = 10f; // Minimum stamina required to jump
-        private const float SprintStaminaThreshold = 0f; // Minimum stamina required to sprint (can sprint until 0)
+        //private const float JumpStaminaThreshold = 10f; // Minimum stamina required to jump
+        //private const float SprintStaminaThreshold = 0f; // Minimum stamina required to sprint (can sprint until 0)
 
 
         /// <summary>
@@ -94,34 +94,42 @@ namespace Superorganism.Entities
                               KeyboardState.IsKeyDown(Keys.RightShift);
 
             // Handle hunger decrease based on activity level
-            _hungerTimer += deltaTime;
+            //_hungerTimer += deltaTime;
+            EntityStatus.HungerTimer += deltaTime;
 
             float currentHungerDecreaseTime;
             if (isActivelyMoving && isSprinting)
             {
-                currentHungerDecreaseTime = SprintingHungerDecreaseTime;
+                currentHungerDecreaseTime = EntityStatus.SprintingHungerDecreaseTime;
             }
             else if (isActivelyMoving)
             {
-                currentHungerDecreaseTime = MovingHungerDecreaseTime;
+                currentHungerDecreaseTime = EntityStatus.MovingHungerDecreaseTime;
             }
             else
             {
-                currentHungerDecreaseTime = IdleHungerDecreaseTime;
+                currentHungerDecreaseTime = EntityStatus.IdleHungerDecreaseTime;
             }
 
             // Check if it's time to decrease hunger
-            if (_hungerTimer >= currentHungerDecreaseTime)
+            if (EntityStatus.HungerTimer >= currentHungerDecreaseTime)
+            {
+                EntityStatus.Hunger = Math.Max(0, Hunger - 1);
+                EntityStatus.HungerTimer = 0f; // Reset timer after decreasing hunger
+            }
+
+            // Check if it's time to decrease hunger
+            if (EntityStatus.HungerTimer >= currentHungerDecreaseTime)
             {
                 Hunger = Math.Max(0, Hunger - 1);
-                _hungerTimer = 0f; // Reset timer after decreasing hunger
+                EntityStatus.HungerTimer = 0f; // Reset timer after decreasing hunger
             }
 
 
             // Then in the Ant class Update method, modify the stamina handling section
             // First, check if enough stamina for actions
-            bool canSprint = EntityStatus.Stamina > SprintStaminaThreshold;
-            bool canJump = EntityStatus.Stamina > JumpStaminaThreshold;
+            bool canSprint = EntityStatus.Stamina > EntityStatus.SprintStaminaThreshold;
+            bool canJump = EntityStatus.Stamina > EntityStatus.JumpStaminaThreshold;
 
             // Then update the sprinting logic
             if (isActivelyMoving && isSprinting && canSprint)
@@ -145,12 +153,12 @@ namespace Superorganism.Entities
                 //}
                 if (EntityStatus.Stamina < EntityStatus.LowStaminaThreshold)
                 {
-                    MovementSpeed = EntityStatus.Agility * LowStaminaSpeedMultiplier;
+                    MovementSpeed = EntityStatus.Agility * EntityStatus.LowStaminaSpeedMultiplier;
                 }
 
                 // Update ability flags after stamina cost is applied
-                canSprint = EntityStatus.Stamina > SprintStaminaThreshold;
-                canJump = EntityStatus.Stamina > JumpStaminaThreshold;
+                canSprint = EntityStatus.Stamina > EntityStatus.SprintStaminaThreshold;
+                canJump = EntityStatus.Stamina > EntityStatus.JumpStaminaThreshold;
             }
             else
             {
@@ -188,8 +196,8 @@ namespace Superorganism.Entities
                     }
 
                     // Update ability flags after regeneration
-                    canSprint = EntityStatus.Stamina > SprintStaminaThreshold;
-                    canJump = EntityStatus.Stamina > JumpStaminaThreshold;
+                    canSprint = EntityStatus.Stamina > EntityStatus.SprintStaminaThreshold;
+                    canJump = EntityStatus.Stamina > EntityStatus.JumpStaminaThreshold;
                 }
             }
 
@@ -208,8 +216,8 @@ namespace Superorganism.Entities
             KeyboardState = Keyboard.GetState();
 
             // Check if we have enough stamina to sprint or jump
-            bool canSprint = EntityStatus.Stamina > SprintStaminaThreshold;
-            bool canJump = EntityStatus.Stamina > JumpStaminaThreshold;
+            bool canSprint = EntityStatus.Stamina > EntityStatus.SprintStaminaThreshold;
+            bool canJump = EntityStatus.Stamina > EntityStatus.JumpStaminaThreshold;
 
             // Check for jump before movement utilities to handle the sound
             bool wasJumping = _isJumping;

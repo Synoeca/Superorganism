@@ -168,7 +168,7 @@ namespace Superorganism.Core.Managers
         /// <param name="maxStamina">Maximum stamina value.</param>
         /// <param name="hunger">Current hunger value.</param>
         /// <param name="maxHunger">Maximum hunger value.</param>
-        public void DrawPlayerStatus(int hitPoints, int maxHitPoints, float stamina, float maxStamina, float hunger, float maxHunger)
+        public void DrawPlayerStatus(float hitPoints, float maxHitPoints, float stamina, float maxStamina, float hunger, float maxHunger)
         {
             const int barWidth = 200;
             const int barHeight = 30;
@@ -199,7 +199,7 @@ namespace Superorganism.Core.Managers
         /// <param name="yPosition">Y position of the bar.</param>
         /// <param name="fillTexture">Texture to use for filling the bar.</param>
         /// <param name="label">Label text to display.</param>
-        private void DrawStatusBar(int currentValue, int maxValue, int barWidth, int barHeight,
+        private void DrawStatusBar(float currentValue, float maxValue, int barWidth, int barHeight,
                                    int xPosition, int yPosition, Texture2D fillTexture, string label)
         {
             // Draw background (gray) bar

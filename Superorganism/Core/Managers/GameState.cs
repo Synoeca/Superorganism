@@ -32,7 +32,7 @@ namespace Superorganism.Core.Managers
             return _instance.GetPlayerPosition();
         }
 
-        public static int GetPlayerHealth()
+        public static float GetPlayerHealth()
         {
             if (_instance == null)
                 throw new InvalidOperationException("GameStateOrganizer not initialized. Call Initialize() first.");

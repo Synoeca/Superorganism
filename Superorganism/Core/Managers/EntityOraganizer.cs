@@ -44,10 +44,10 @@ public class EntityOraganizer
         set => _ant.Position = value;
     }
 
-    public int PlayerHealth
+    public float PlayerHealth
     {
-        get => _ant.HitPoints;
-        set => _ant.HitPoints = value;
+        get => _ant.EntityStatus.HitPoints;
+        set => _ant.EntityStatus.HitPoints = value;
     }
 
     public int PlayerStamina
@@ -60,13 +60,13 @@ public class EntityOraganizer
 
     public int PlayerHunger
     {
-        get => _ant.Hunger;
-        set => _ant.Hunger = value;
+        get => _ant.EntityStatus.Hunger;
+        set => _ant.EntityStatus.Hunger = value;
     }
 
-    public int PlayerMaxHealth => _ant.MaxHitPoint;
-    public int PlayerMaxStamina => _ant.MaxStamina;
-    public int PlayerMaxHunger => _ant.MaxHunger;
+    public float PlayerMaxHealth => _ant.EntityStatus.MaxHitPoints;
+    public int PlayerMaxStamina => _ant.EntityStatus.MaxStamina;
+    public int PlayerMaxHunger => _ant.EntityStatus.MaxHunger;
     public int CropsCount => _crops.Count;
     public bool IsPlayerInvincible { get; private set; }
     public Vector2[] GetEnemyPositions()
@@ -354,7 +354,7 @@ public class EntityOraganizer
     {
         if (IsPlayerInvincible) return;
 
-        _ant.HitPoints -= EnemyDamage;
+        _ant.EntityStatus.HitPoints -= EnemyDamage;
 
         // Add flash effect
         _ant.Color = Color.Red;  // Will be modified by invincibility immediately after
