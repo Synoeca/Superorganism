@@ -52,8 +52,10 @@ public class EntityOraganizer
 
     public int PlayerStamina
     {
-        get => _ant.Stamina;
-        set => _ant.Stamina = value;
+        //get => _ant.Stamina;
+        //set => _ant.Stamina = value;
+        get => _ant.EntityStatus.Stamina;
+        set => _ant.EntityStatus.Stamina = value;
     }
 
     public int PlayerHunger

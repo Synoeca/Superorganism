@@ -58,18 +58,11 @@
         /// </summary>
         public float MaxHitPoints { get; set; } = 100;
 
-        private int _stamina;
-
         // Resource management properties
         /// <summary>
         /// Current stamina level
         /// </summary>
-        //public int Stamina { get; set; } = 100;
-        public int Stamina
-        {
-            get => _stamina;
-            set => _stamina = value;
-        }
+        public int Stamina { get; set; } = 100;
 
         /// <summary>
         /// Maximum stamina capacity

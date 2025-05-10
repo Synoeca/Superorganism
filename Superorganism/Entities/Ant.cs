@@ -57,7 +57,7 @@ namespace Superorganism.Entities
         /// <summary>
         /// Gets or sets the current stamina of the ant
         /// </summary>
-        public int Stamina { get; set; } = 100;
+       // public int Stamina { get; set; } = 100;
 
         /// <summary>
         /// Gets or sets the maximum stamina the ant can have
@@ -120,51 +120,76 @@ namespace Superorganism.Entities
 
             // Then in the Ant class Update method, modify the stamina handling section
             // First, check if enough stamina for actions
-            bool canSprint = Stamina > SprintStaminaThreshold;
-            bool canJump = Stamina > JumpStaminaThreshold;
+            bool canSprint = EntityStatus.Stamina > SprintStaminaThreshold;
+            bool canJump = EntityStatus.Stamina > JumpStaminaThreshold;
 
             // Then update the sprinting logic
             if (isActivelyMoving && isSprinting && canSprint)
             {
                 // Reset stamina regeneration timer when sprinting
-                _staminaRegenTimer = 0f;
+                //_staminaRegenTimer = 0f;
+                EntityStatus.StaminaRegenTimer = 0f;
 
                 // Calculate stamina cost (only when sprinting)
-                float staminaCost = StaminaSprintCost * deltaTime;
+                //float staminaCost = StaminaSprintCost * deltaTime;
+                float staminaCost = EntityStatus.StaminaSprintCost * deltaTime;
 
                 // Apply stamina cost
-                Stamina = Math.Max(0, Stamina - (int)Math.Ceiling(staminaCost));
+                //EntityStatus.Stamina = Math.Max(0, Stamina - (int)Math.Ceiling(staminaCost));
+                EntityStatus.Stamina = Math.Max(0, EntityStatus.Stamina - (int)Math.Ceiling(staminaCost));
 
                 // Adjust movement speed based on stamina level
-                if (Stamina < LowStaminaThreshold)
+                //if (Stamina < LowStaminaThreshold)
+                //{
+                //    //MovementSpeed = EntityStatus.Agility * LowStaminaSpeedMultiplier;
+                //}
+                if (EntityStatus.Stamina < EntityStatus.LowStaminaThreshold)
                 {
                     MovementSpeed = EntityStatus.Agility * LowStaminaSpeedMultiplier;
                 }
 
                 // Update ability flags after stamina cost is applied
-                canSprint = Stamina > SprintStaminaThreshold;
-                canJump = Stamina > JumpStaminaThreshold;
+                canSprint = EntityStatus.Stamina > SprintStaminaThreshold;
+                canJump = EntityStatus.Stamina > JumpStaminaThreshold;
             }
             else
             {
                 // Handle stamina regeneration when not sprinting
-                _staminaRegenTimer += deltaTime;
+                //_staminaRegenTimer += deltaTime;
+                EntityStatus.StaminaRegenTimer += deltaTime;
 
-                if (_staminaRegenTimer >= StaminaRegenDelay)
+                //if (_staminaRegenTimer >= StaminaRegenDelay)
+                //{
+                //    // Regenerate stamina
+                //    float regenAmount = StaminaRegenRate * deltaTime;
+                //    Stamina = Math.Min(MaxStamina, Stamina + (int)Math.Ceiling(regenAmount));
+
+                //    // Reset movement speed to normal when rested
+                //    if (Stamina >= LowStaminaThreshold)
+                //    {
+                //        MovementSpeed = EntityStatus.Agility;
+                //    }
+
+                //    // Update ability flags after regeneration
+                //    canSprint = Stamina > SprintStaminaThreshold;
+                //    canJump = Stamina > JumpStaminaThreshold;
+                //}
+
+                if (EntityStatus.StaminaRegenTimer >= EntityStatus.StaminaRegenDelay)
                 {
                     // Regenerate stamina
-                    float regenAmount = StaminaRegenRate * deltaTime;
-                    Stamina = Math.Min(MaxStamina, Stamina + (int)Math.Ceiling(regenAmount));
+                    float regenAmount = EntityStatus.StaminaRegenRate * deltaTime;
+                    EntityStatus.Stamina = Math.Min(EntityStatus.MaxStamina, EntityStatus.Stamina + (int)Math.Ceiling(regenAmount));
 
                     // Reset movement speed to normal when rested
-                    if (Stamina >= LowStaminaThreshold)
+                    if (EntityStatus.Stamina >= EntityStatus.LowStaminaThreshold)
                     {
                         MovementSpeed = EntityStatus.Agility;
                     }
 
                     // Update ability flags after regeneration
-                    canSprint = Stamina > SprintStaminaThreshold;
-                    canJump = Stamina > JumpStaminaThreshold;
+                    canSprint = EntityStatus.Stamina > SprintStaminaThreshold;
+                    canJump = EntityStatus.Stamina > JumpStaminaThreshold;
                 }
             }
 
@@ -183,8 +208,8 @@ namespace Superorganism.Entities
             KeyboardState = Keyboard.GetState();
 
             // Check if we have enough stamina to sprint or jump
-            bool canSprint = Stamina > SprintStaminaThreshold;
-            bool canJump = Stamina > JumpStaminaThreshold;
+            bool canSprint = EntityStatus.Stamina > SprintStaminaThreshold;
+            bool canJump = EntityStatus.Stamina > JumpStaminaThreshold;
 
             // Check for jump before movement utilities to handle the sound
             bool wasJumping = _isJumping;
@@ -241,7 +266,7 @@ namespace Superorganism.Entities
         /// <param name="amount">The amount of stamina to restore</param>
         public void RestoreStamina(int amount)
         {
-            Stamina = Math.Min(MaxStamina, Stamina + amount);
+            EntityStatus.Stamina = Math.Min(MaxStamina, EntityStatus.Stamina + amount);
         }
     }
 }
