@@ -65,7 +65,7 @@ namespace Superorganism.Core.SaveLoadSystem
                     };
 
                 case "AntEnemy":
-                    AntEnemy enemy = new AntEnemy
+                    AntEnemy enemy = new()
                     {
                         Position = data.Position,
                         //Health = data.Health,

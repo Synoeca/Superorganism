@@ -371,7 +371,7 @@ public class EntityOraganizer
             {
                 fly.Destroyed = true;
                 //_explosions.PlaceExplosion(fly.Position);
-                _ant.HitPoints = Math.Max(0, _ant.HitPoints - FlyDamage);
+                _ant.EntityStatus.HitPoints = Math.Max(0, _ant.EntityStatus.HitPoints - FlyDamage);
 
                 // Add flash effect
                 _ant.Color = Color.Red * 0.8f;  // Will be modified by invincibility immediately after
