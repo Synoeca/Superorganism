@@ -10,28 +10,6 @@ namespace Superorganism.Entities
     /// </summary>
     public sealed class Ant : ControllableEntity
     {
-        //// Timers for resource regeneration
-        //private float _staminaRegenTimer = 0f;
-        //private float _hungerTimer = 0f;
-        //private const float StaminaRegenDelay = 3.0f; // Seconds before stamina starts regenerating
-        //private const float StaminaRegenRate = 5.0f; // Amount regenerated per second when resting
-
-        //// Hunger decrease timers (in seconds)
-        //private const float IdleHungerDecreaseTime = 180.0f;  // 3 minutes for 1 hunger point when idle
-        //private const float MovingHungerDecreaseTime = 30.0f; // 30 seconds for 1 hunger point when moving
-        //private const float SprintingHungerDecreaseTime = 10.0f; // 10 seconds for 1 hunger point when sprinting
-
-        //// Resource consumption rates
-        //private const float StaminaSprintCost = 1.5f; // Stamina cost per second while sprinting
-
-        //// Movement speed modifiers based on stamina
-        //private const float LowStaminaThreshold = 15; // Below this stamina, movement is reduced
-        //private const float LowStaminaSpeedMultiplier = 0.6f; // Speed multiplier when stamina is low
-
-        //private const float JumpStaminaThreshold = 10f; // Minimum stamina required to jump
-        //private const float SprintStaminaThreshold = 0f; // Minimum stamina required to sprint (can sprint until 0)
-
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Ant"/> class with default properties
         /// </summary>
@@ -165,23 +143,6 @@ namespace Superorganism.Entities
                 // Handle stamina regeneration when not sprinting
                 //_staminaRegenTimer += deltaTime;
                 EntityStatus.StaminaRegenTimer += deltaTime;
-
-                //if (_staminaRegenTimer >= StaminaRegenDelay)
-                //{
-                //    // Regenerate stamina
-                //    float regenAmount = StaminaRegenRate * deltaTime;
-                //    Stamina = Math.Min(MaxStamina, Stamina + (int)Math.Ceiling(regenAmount));
-
-                //    // Reset movement speed to normal when rested
-                //    if (Stamina >= LowStaminaThreshold)
-                //    {
-                //        MovementSpeed = EntityStatus.Agility;
-                //    }
-
-                //    // Update ability flags after regeneration
-                //    canSprint = Stamina > SprintStaminaThreshold;
-                //    canJump = Stamina > JumpStaminaThreshold;
-                //}
 
                 if (EntityStatus.StaminaRegenTimer >= EntityStatus.StaminaRegenDelay)
                 {
