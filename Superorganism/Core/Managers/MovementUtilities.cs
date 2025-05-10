@@ -489,7 +489,7 @@ public static class MovementUtilities
         float proposedXVelocity = chaseDirection.X * chaseSpeed;
 
         // Initialize movement if needed
-        if (velocity.X == 0)
+        if (velocity.X == 0 && proposedXVelocity == 0)
         {
             proposedXVelocity = chaseSpeed;
         }
