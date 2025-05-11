@@ -255,10 +255,10 @@ namespace Superorganism.Core.Managers
         public Vector2 GetPlayerPosition() => _entityOraganizer.PlayerPosition;
         public float GetPlayerHealth() => _entityOraganizer.PlayerHealth;
         public float GetPlayerMaxHealth() => _entityOraganizer.PlayerMaxHealth;
-        public int GetPlayerStamina() => _entityOraganizer.PlayerStamina;
-        public int GetPlayerMaxStamina() => _entityOraganizer.PlayerMaxStamina;
-        public int GetPlayerHunger() => _entityOraganizer.PlayerHunger;
-        public int GetPlayerMaxHunger() => _entityOraganizer.PlayerMaxHunger;
+        public float GetPlayerStamina() => _entityOraganizer.PlayerStamina;
+        public float GetPlayerMaxStamina() => _entityOraganizer.PlayerMaxStamina;
+        public float GetPlayerHunger() => _entityOraganizer.PlayerHunger;
+        public float GetPlayerMaxHunger() => _entityOraganizer.PlayerMaxHunger;
         public void ResumeMusic() => _audioManager.ResumeMusic();
 
         public void Unload()

@@ -46,10 +46,10 @@ namespace Superorganism.Core.SaveLoadSystem
         // Resource tracking - EntityStatus uses float for HitPoints
         public float HitPoints { get; set; }
         public float MaxHitPoints { get; set; }
-        public int Stamina { get; set; }
-        public int MaxStamina { get; set; }
-        public int Hunger { get; set; }
-        public int MaxHunger { get; set; }
+        public float Stamina { get; set; }
+        public float MaxStamina { get; set; }
+        public float Hunger { get; set; }
+        public float MaxHunger { get; set; }
 
         // Resource management timing
         public float StaminaRegenDelay { get; set; }

@@ -1332,7 +1332,7 @@ public static class MovementUtilities
                                 {
                                     if (tileRect.Right > brag.Left)
                                     {
-                                        if (tileRect.Right - 3 < brag.Left)
+                                        if (tileRect.Right - 5 < brag.Left)
                                         {
                                             yCollisionFromAbove = false;
                                         }
@@ -1342,11 +1342,16 @@ public static class MovementUtilities
                                 {
                                     if (tileRect.Left < brag.Right)
                                     {
-                                        if (tileRect.Left + 3 > brag.Right)
+                                        if (tileRect.Left + 5 > brag.Right)
                                         {
                                             yCollisionFromAbove = false;
                                         }
                                     }
+                                }
+
+                                if (velocityY < 0 && yCollisionFromAbove)
+                                {
+
                                 }
                             }
                         }

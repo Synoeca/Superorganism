@@ -372,18 +372,18 @@ namespace Superorganism.Tiles
                     br.Height
                 );
 
-                leftTile = (int)(currentBounds.Center.X / MapHelper.TileSize) - 1;
-                rightTile = (int)Math.Ceiling(currentBounds.Center.X / MapHelper.TileSize);
-                topTile = (int)(currentBounds.Center.Y / MapHelper.TileSize) - 1;
-                bottomTile = (int)Math.Ceiling(currentBounds.Center.Y / MapHelper.TileSize);
+                leftTile = (int)(currentBounds.Center.X / TileSize) - 1;
+                rightTile = (int)Math.Ceiling(currentBounds.Center.X / TileSize);
+                topTile = (int)(currentBounds.Center.Y / TileSize) - 1;
+                bottomTile = (int)Math.Ceiling(currentBounds.Center.Y / TileSize);
             }
             else if (collisionBounding is BoundingCircle bc)
             {
                 Vector2 currentCenter = new(position.X, position.Y);
-                leftTile = (int)((currentCenter.X - bc.Radius) / MapHelper.TileSize);
-                rightTile = (int)Math.Ceiling((currentCenter.X + bc.Radius) / MapHelper.TileSize);
-                topTile = (int)((currentCenter.Y - bc.Radius) / MapHelper.TileSize);
-                bottomTile = (int)Math.Ceiling((currentCenter.Y + bc.Radius) / MapHelper.TileSize);
+                leftTile = (int)((currentCenter.X - bc.Radius) / TileSize);
+                rightTile = (int)Math.Ceiling((currentCenter.X + bc.Radius) / TileSize);
+                topTile = (int)((currentCenter.Y - bc.Radius) / TileSize);
+                bottomTile = (int)Math.Ceiling((currentCenter.Y + bc.Radius) / TileSize);
             }
             else
             {
@@ -459,19 +459,19 @@ namespace Superorganism.Tiles
                     br2.Height
                 );
 
-                proposedLeftTile = (int)(proposedBounds.Center.X / MapHelper.TileSize) - 1;
-                proposedRightTile = (int)Math.Ceiling(proposedBounds.Center.X / MapHelper.TileSize);
-                proposedTopTile = (int)(proposedBounds.Center.Y / MapHelper.TileSize) - 1;
-                proposedBottomTile = (int)Math.Ceiling(proposedBounds.Center.Y / MapHelper.TileSize) - 1;
+                proposedLeftTile = (int)(proposedBounds.Center.X / TileSize) - 1;
+                proposedRightTile = (int)Math.Ceiling(proposedBounds.Center.X / TileSize);
+                proposedTopTile = (int)(proposedBounds.Center.Y / TileSize) - 1;
+                proposedBottomTile = (int)Math.Ceiling(proposedBounds.Center.Y / TileSize) - 1;
                 cb = proposedBounds;
             }
             else if (collisionBounding is BoundingCircle bc2)
             {
                 Vector2 proposedCenter = new(proposedPosition.X, proposedPosition.Y);
-                proposedLeftTile = (int)((proposedCenter.X - bc2.Radius) / MapHelper.TileSize);
-                proposedRightTile = (int)Math.Ceiling((proposedCenter.X + bc2.Radius) / MapHelper.TileSize);
-                proposedTopTile = (int)((proposedCenter.Y - bc2.Radius) / MapHelper.TileSize);
-                proposedBottomTile = (int)Math.Ceiling((proposedCenter.Y + bc2.Radius) / MapHelper.TileSize);
+                proposedLeftTile = (int)((proposedCenter.X - bc2.Radius) / TileSize);
+                proposedRightTile = (int)Math.Ceiling((proposedCenter.X + bc2.Radius) / TileSize);
+                proposedTopTile = (int)((proposedCenter.Y - bc2.Radius) / TileSize);
+                proposedBottomTile = (int)Math.Ceiling((proposedCenter.Y + bc2.Radius) / TileSize);
                 cb = bc2;
             }
             else

@@ -50,7 +50,7 @@ public class EntityOraganizer
         set => _ant.EntityStatus.HitPoints = value;
     }
 
-    public int PlayerStamina
+    public float PlayerStamina
     {
         //get => _ant.Stamina;
         //set => _ant.Stamina = value;
@@ -58,15 +58,15 @@ public class EntityOraganizer
         set => _ant.EntityStatus.Stamina = value;
     }
 
-    public int PlayerHunger
+    public float PlayerHunger
     {
         get => _ant.EntityStatus.Hunger;
         set => _ant.EntityStatus.Hunger = value;
     }
 
     public float PlayerMaxHealth => _ant.EntityStatus.MaxHitPoints;
-    public int PlayerMaxStamina => _ant.EntityStatus.MaxStamina;
-    public int PlayerMaxHunger => _ant.EntityStatus.MaxHunger;
+    public float PlayerMaxStamina => _ant.EntityStatus.MaxStamina;
+    public float PlayerMaxHunger => _ant.EntityStatus.MaxHunger;
     public int CropsCount => _crops.Count;
     public bool IsPlayerInvincible { get; private set; }
     public Vector2[] GetEnemyPositions()

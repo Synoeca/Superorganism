@@ -92,6 +92,11 @@ namespace Superorganism.Entities
         /// </summary>
         private const float ShiftMoveSoundInterval = 0.15f;
 
+        private bool _lastShiftState = false;
+        private bool _lastSpaceState = false;
+        private bool _canSprint = true;
+        private bool _canJump = true;
+
 
         /// <summary>
         /// Determines the time interval between movement sounds based on current movement speed
@@ -180,15 +185,55 @@ namespace Superorganism.Entities
             GamePadState = GamePad.GetState(0);
             KeyboardState = Keyboard.GetState();
 
-            // Check if we have enough stamina to sprint or jump (if EntityStatus is available)
-            bool canSprint = true;
-            bool canJump = true;
+            // Check current key states
+            bool isShiftPressed = KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift);
+            bool isSpacePressed = KeyboardState.IsKeyDown(Keys.Space);
 
+            // Check for fresh key presses (key was released and now pressed again)
+            bool isShiftFreshPress = isShiftPressed && !_lastShiftState;
+            bool isSpaceFreshPress = isSpacePressed && !_lastSpaceState;
+
+            // Declare local variables for current sprint/jump abilities
+            bool canSprint;
+            bool canJump;
+
+            // If stamina is zero, disable abilities until fresh key press
             if (EntityStatus != null)
             {
-                canSprint = EntityStatus.Stamina > EntityStatus.SprintStaminaThreshold;
-                canJump = EntityStatus.Stamina > EntityStatus.JumpStaminaThreshold;
+                if (EntityStatus.Stamina <= 0)
+                {
+                    _canSprint = false;
+                    _canJump = false;
+                }
+                else
+                {
+                    // Allow abilities only on fresh press when stamina is available
+                    if (isShiftFreshPress && EntityStatus.Stamina > EntityStatus.SprintStaminaThreshold)
+                        _canSprint = true;
+                    if (isSpaceFreshPress && EntityStatus.Stamina > EntityStatus.JumpStaminaThreshold)
+                        _canJump = true;
+                }
+
+                // Reset abilities when keys are released
+                if (!isShiftPressed)
+                    _canSprint = true;
+                if (!isSpacePressed)
+                    _canJump = true;
+
+                // Use the current ability states combined with stamina check
+                canSprint = _canSprint && EntityStatus.Stamina > EntityStatus.SprintStaminaThreshold;
+                canJump = _canJump && EntityStatus.Stamina > EntityStatus.JumpStaminaThreshold;
             }
+            else
+            {
+                // If no EntityStatus, allow all abilities
+                canSprint = true;
+                canJump = true;
+            }
+
+            // Update tracking variables
+            _lastShiftState = isShiftPressed;
+            _lastSpaceState = isSpacePressed;
 
             // Check for jump before movement utilities to handle the sound
             bool wasJumping = _isJumping;
@@ -219,8 +264,34 @@ namespace Superorganism.Entities
                     Gravity,
                     EntityStatus.JumpStrength,
                     PlayMoveSound,
-                    canSprint,
-                    canJump,
+                    canSprint,    // Use the local canSprint variable
+                    canJump,      // Use the local canJump variable
+                    gameTime);
+            }
+            else
+            {
+                // Use regular movement if no EntityStatus
+                MovementUtilities.HandlePlayerInput(
+                    ref _position,
+                    ref _velocity,
+                    ref _isOnGround,
+                    ref _isJumping,
+                    ref _jumpDiagonalPosY,
+                    ref _isCenterOnDiagonal,
+                    ref _soundTimer,
+                    ref _movementSpeed,
+                    ref _animationSpeed,
+                    KeyboardState,
+                    PreviousKeyboardState,
+                    GameState.CurrentMap,
+                    CollisionBounding,
+                    TextureInfo,
+                    EntityStatus,
+                    ref Flipped,
+                    Friction,
+                    Gravity,
+                    EntityStatus.JumpStrength,
+                    PlayMoveSound,
                     gameTime);
             }
 
@@ -264,6 +335,9 @@ namespace Superorganism.Entities
                 CollisionBounding = br;
             }
 
+            // Track if we just started jumping this frame
+            bool wasJumping = _isJumping;
+
             // Process resource management if EntityStatus is available
             if (EntityStatus != null)
             {
@@ -271,18 +345,34 @@ namespace Superorganism.Entities
 
                 // Check for active movement input (not just velocity)
                 bool isActivelyMoving = KeyboardState.IsKeyDown(Keys.Left) ||
-                                        KeyboardState.IsKeyDown(Keys.Right) ||
-                                        KeyboardState.IsKeyDown(Keys.A) ||
-                                        KeyboardState.IsKeyDown(Keys.D);
+                                      KeyboardState.IsKeyDown(Keys.Right) ||
+                                      KeyboardState.IsKeyDown(Keys.A) ||
+                                      KeyboardState.IsKeyDown(Keys.D);
 
-                bool isSprinting = KeyboardState.IsKeyDown(Keys.LeftShift) ||
-                                   KeyboardState.IsKeyDown(Keys.RightShift);
+                // Check if shift is pressed
+                bool isShiftPressed = KeyboardState.IsKeyDown(Keys.LeftShift) ||
+                                     KeyboardState.IsKeyDown(Keys.RightShift);
 
-                // Update resources and get the new movement speed
-                MovementSpeed = EntityStatus.UpdateResourceManagement(deltaTime, isActivelyMoving, isSprinting);
+                // Only consider it actual sprinting if we can sprint and have stamina
+                bool isSprinting = isShiftPressed && _canSprint &&
+                                  EntityStatus.Stamina > EntityStatus.SprintStaminaThreshold;
+
+                // Update resources first to get new state
+                MovementSpeed = EntityStatus.UpdateResourceManagement(deltaTime, isActivelyMoving, isSprinting, false);
+
+                // Handle input which might trigger jumping
+                HandleInput(KeyboardState, GamePadState, gameTime);
+
+                // If we just started jumping this frame, consume stamina
+                if (!wasJumping && _isJumping)
+                {
+                    EntityStatus.UpdateResourceManagement(0, false, false, true);
+                }
             }
-
-            HandleInput(KeyboardState, GamePadState, gameTime);
+            else
+            {
+                HandleInput(KeyboardState, GamePadState, gameTime);
+            }
         }
     }
 }
