@@ -265,5 +265,10 @@ namespace Superorganism.Core.Managers
         {
             _entityOraganizer.Unload();
         }
+
+        public ContentManager GetContentManager()
+        {
+            return _content;
+        }
     }
 }

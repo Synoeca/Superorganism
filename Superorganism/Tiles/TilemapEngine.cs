@@ -71,6 +71,7 @@ using System.Linq;
 using System.Xml;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Superorganism.Core.SaveLoadSystem;
 using Color = Microsoft.Xna.Framework.Color;
 using CompressionMode = System.IO.Compression.CompressionMode;
 using GZipStream = System.IO.Compression.GZipStream;
@@ -1324,6 +1325,11 @@ namespace Superorganism.Tiles
         public int TileHeight { get; set; }
 
         /// <summary>
+        /// The file path from which this map was loaded, used for reference when saving modified maps
+        /// </summary>
+        public string SourcePath { get; set; }
+
+        /// <summary>
         /// The tileset's first global id
         /// </summary>
         public Dictionary<string, int> TilesetFirstGid { get; set; } = new();
@@ -1341,6 +1347,35 @@ namespace Superorganism.Tiles
         /// <returns>The loaded map</returns>
         public TiledMap Load(string filename, ContentManager content)
         {
+            // Check if this is a saved map (contains datetime pattern)
+            string mapFileName = Path.GetFileName(filename);
+            if (SaveFileNaming.IsValidSaveFileName(mapFileName) || mapFileName.Contains("_20"))  // Check for datetime pattern
+            {
+                // This is a saved map, look in the SavedMaps directory
+                string savedMapsPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Superorganism", "SavedMaps");
+
+                string savedMapPath = Path.Combine(savedMapsPath, mapFileName);
+
+                // Add .tmx extension if missing
+                if (!savedMapPath.EndsWith(".tmx", StringComparison.OrdinalIgnoreCase))
+                {
+                    savedMapPath += ".tmx";
+                }
+
+                // If the saved map exists, use that path
+                if (File.Exists(savedMapPath))
+                {
+                    filename = savedMapPath;
+                }
+                else
+                {
+                    // Fall back to original behavior if saved map doesn't exist
+                    Console.WriteLine($"Warning: Saved map not found at {savedMapPath}, falling back to content directory");
+                }
+            }
+
             TiledMap result = new();
             XmlReaderSettings settings = new()
             {
@@ -1458,6 +1493,10 @@ namespace Superorganism.Tiles
                     }
                 }
             }
+
+            // Store the source path for later use
+            result.SourcePath = filename;
+
             MapHelper.AnalyzeMapGround(result);
             return result;
         }

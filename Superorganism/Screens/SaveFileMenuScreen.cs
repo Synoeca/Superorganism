@@ -508,6 +508,18 @@ namespace Superorganism.Screens
             GameplayScreen gameplayScreen = GetGameplayScreen();
             if (gameplayScreen?.GameStateOrganizer == null) return;
 
+            // Get the ContentManager from GameStateOrganizer
+            var contentManager = gameplayScreen.GameStateOrganizer.GetContentManager();
+
+            // If we can't get ContentManager, we might need to handle this differently
+            if (contentManager == null)
+            {
+                const string errorMessage = "Cannot save: ContentManager not available.";
+                MessageBoxScreen errorBox = new(errorMessage);
+                ScreenManager.AddScreen(errorBox, ControllingPlayer);
+                return;
+            }
+
             GameStateSaver.SaveGameState(
                 new GameStateInfo
                 {
@@ -515,7 +527,8 @@ namespace Superorganism.Screens
                     GameProgressTime = gameplayScreen.GameStateOrganizer.GameTime.TotalGameTime
                 },
                 GameState.CurrentMapName,
-                fileName
+                contentManager,  // Pass the ContentManager here
+                fileName         // And fileName here
             );
 
             const string message = "Game saved successfully!";
