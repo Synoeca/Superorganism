@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using Superorganism.Common;
 using Superorganism.Core.Managers;
+using Superorganism.Core.Timing;  // Add this import
 using Superorganism.Entities;
 
 namespace Superorganism.Core.SaveLoadSystem
@@ -114,7 +115,8 @@ namespace Superorganism.Core.SaveLoadSystem
                 IsGameWon = !gameState.Entities.OfType<Crop>().Any(),
                 GameProgressTime = gameState.GameProgressTime,
                 SaveFilename = saveFileName,
-                MapFileName = newMapFileName
+                MapFileName = newMapFileName,
+                GameplayTime = GameTimer.TotalGameplayTime  // Save the GameTimer value
             };
 
             string savePath = Path.Combine(BaseContentPath, saveFileName);

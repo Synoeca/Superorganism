@@ -6,6 +6,7 @@ using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Superorganism.Entities;
 using Superorganism.Common;
+using Superorganism.Core.Timing;
 
 namespace Superorganism.Core.SaveLoadSystem
 {
@@ -26,10 +27,16 @@ namespace Superorganism.Core.SaveLoadSystem
             {
                 string jsonContent = File.ReadAllText(savePath);
                 GameStateContent savedState = JsonSerializer.Deserialize<GameStateContent>(jsonContent, SerializerOptions);
+
+                // Restore the GameTimer
+                GameTimer.Load(savedState.GameplayTime);
+
                 return (RestoreGameState(savedState), savedState.MapFileName);
             }
             catch (Exception)
             {
+                // Reset the timer for a new game
+                GameTimer.Reset();
                 return (CreateNewGameState(), "Tileset/Maps/TestMapRev5");
             }
         }
@@ -124,6 +131,9 @@ namespace Superorganism.Core.SaveLoadSystem
 
         private static GameStateInfo CreateNewGameState()
         {
+            // Reset the timer for a new game
+            GameTimer.Reset();
+
             Ant newAnt = new()
             {
                 Position = new Vector2(100, 100),

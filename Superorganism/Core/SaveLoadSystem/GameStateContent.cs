@@ -13,6 +13,9 @@ namespace Superorganism.Core.SaveLoadSystem
         public TimeSpan GameProgressTime { get; set; }
         public string SaveFilename { get; set; }
         public string MapFileName { get; set; }
+
+        // Add this property for the GameTimer
+        public double GameplayTime { get; set; }  // Total gameplay time from GameTimer
     }
 
     public class EntityData

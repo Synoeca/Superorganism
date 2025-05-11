@@ -69,6 +69,17 @@ namespace Superorganism.Core.Timing
         }
 
         /// <summary>
+        /// Loads the gameplay timer from a saved value.
+        /// Call this when loading a saved game to restore the timer state.
+        /// </summary>
+        /// <param name="gameplayTime">The saved gameplay time in seconds.</param>
+        public static void Load(double gameplayTime)
+        {
+            _totalGameplayTime = gameplayTime;
+            _isActive = true;  // Assume active when loading
+        }
+
+        /// <summary>
         /// Gets the elapsed gameplay time since the last frame.
         /// This only includes time when the game was actively running.
         /// </summary>
