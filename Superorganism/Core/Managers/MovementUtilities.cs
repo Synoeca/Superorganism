@@ -1075,23 +1075,23 @@ public static class MovementUtilities
         {
             if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 64)
             {
-                newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                newGroundY = rightGroundY - (textureInfo.ScaledHeight);
             }
             else
             {
                 if (leftGroundY < position.Y)
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                 }
                 else
                 {
                     if (leftGroundY < rightGroundY)
                     {
-                        newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                     }
                     else
                     {
-                        newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                     }
                 }
             }
@@ -1104,19 +1104,19 @@ public static class MovementUtilities
                 {
                     if (leftGroundY > position.Y)
                     {
-                        newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                     }
                     else
                     {
-                        newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                     }
                 }
                 else
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                     if (newGroundY - position.Y > 64)
                     {
-                        newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                     }
                 }
             }
@@ -1124,12 +1124,16 @@ public static class MovementUtilities
             {
                 if (xMovementBlocked)
                 {
-                    position.X -= movementSpeed;
-                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    //position.X -= movementSpeed;
+                    newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                 }
                 else
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
+                    if (position.Y - newGroundY > 15)
+                    {
+                        newGroundY = leftGroundY - (textureInfo.ScaledHeight);
+                    }
                 }
             }
         }
