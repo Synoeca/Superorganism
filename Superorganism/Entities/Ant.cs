@@ -19,8 +19,7 @@ namespace Superorganism.Entities
             IsSpriteAtlas = true;
             HasDirection = false;
             Color = Color.White;
-            EntityStatus = new EntityStatus()
-                { Agility = 2};
+            EntityStatus = new EntityStatus { Agility = 2};
         }
     }
 }

@@ -926,7 +926,7 @@ public static class MovementUtilities
             }
             else
             {
-                if (position.Y -  newGroundY > 20)
+                if (position.Y -  newGroundY > 16)
                 {
 
                 }
@@ -1015,20 +1015,19 @@ public static class MovementUtilities
                 if (xMovementBlocked)
                 {
                     //position.X += movementSpeed;
-                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                 }
                 if (newGroundY - position.Y > 64)
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                 }
                 else
                 {
-                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                }
-
-                if (newGroundY < 920f)
-                {
-
+                    newGroundY = leftGroundY - (textureInfo.ScaledHeight);
+                    if (position.Y - newGroundY > 15)
+                    {
+                        newGroundY = rightGroundY - (textureInfo.ScaledHeight);
+                    }
                 }
             }
         }
@@ -1038,22 +1037,22 @@ public static class MovementUtilities
             {
                 if (rightGroundY - leftGroundY < 2)
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                 }
                 else
                 {
-                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                 }
             }
             else
             {
                 if (leftGroundY - rightGroundY < 64)
                 {
-                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                 }
                 else
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                 }
             }
         }
