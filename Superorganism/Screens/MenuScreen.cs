@@ -169,6 +169,12 @@ namespace Superorganism.Screens
 
         public override void Draw(GameTime gameTime)
         {
+            if (ScreenState == ScreenState.Hidden)
+            {
+                return; // Don't draw anything when hidden
+            }
+
+
             UpdateMenuEntryLocations();
 
             GraphicsDevice graphics = ScreenManager.GraphicsDevice;

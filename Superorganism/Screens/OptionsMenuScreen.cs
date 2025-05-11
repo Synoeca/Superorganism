@@ -3,11 +3,14 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
 using System;
 using Superorganism.Core.Managers;
+using Superorganism.ScreenManagement;
 
 namespace Superorganism.Screens
 {
     public class OptionsMenuScreen : MenuScreen
     {
+        public bool ShouldPauseGame { get; } = true;
+
         private readonly MenuEntry _backgroundMusicVolumeEntry;
         private readonly MenuEntry _soundEffectVolumeEntry;
         private readonly MenuEntry _fullscreenEntry;
@@ -18,6 +21,8 @@ namespace Superorganism.Screens
 
         public static float BackgroundMusicVolume { get; private set; } = 0.05f;
         public static float SoundEffectVolume { get; private set; } = 0.5f;
+        public PauseMenuScreen SourcePauseMenu { get; set; }
+        public MainMenuScreen SourceMainMenu { get; set; }
 
         // Available resolutions
         private readonly Point[] _availableResolutions =
@@ -30,6 +35,8 @@ namespace Superorganism.Screens
 
         public OptionsMenuScreen() : base("Option")
         {
+            IsPopup = true;
+
             _backgroundMusicVolumeEntry = new MenuEntry(string.Empty);
             _soundEffectVolumeEntry = new MenuEntry(string.Empty);
             _fullscreenEntry = new MenuEntry(string.Empty);
@@ -111,6 +118,22 @@ namespace Superorganism.Screens
                 // Treat selection as a positive adjustment and apply changes
                 OnAdjustValue(entryIndex, 1, playerIndex);
             }
+        }
+
+        // Override OnCancel to restore the pause menu when exiting
+        protected override void OnCancel(PlayerIndex playerIndex)
+        {
+            // Check which source menu we came from and restore it
+            if (SourcePauseMenu != null)
+            {
+                SourcePauseMenu.ScreenState = ScreenState.TransitionOn;
+            }
+            else if (SourceMainMenu != null)
+            {
+                SourceMainMenu.ScreenState = ScreenState.TransitionOn;
+            }
+
+            base.OnCancel(playerIndex);
         }
 
         public override void Activate()
@@ -232,6 +255,19 @@ namespace Superorganism.Screens
             };
             SoundEffect.MasterVolume = SoundEffectVolume;
             SetMenuEntryText();
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            // If we came from the pause menu, maintain the same darkening level
+            if (SourcePauseMenu != null)
+            {
+                // Use the same alpha value as the pause menu would
+                ScreenManager.FadeBackBufferToBlack(0.6f);
+            }
+
+            // Continue with the base Draw method
+            base.Draw(gameTime);
         }
     }
 }

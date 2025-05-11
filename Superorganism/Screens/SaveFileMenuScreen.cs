@@ -17,6 +17,11 @@ namespace Superorganism.Screens
 {
     public class SaveFileMenuScreen : GameScreen
     {
+        public bool ShouldPauseGame { get; } = true;
+        public PauseMenuScreen SourcePauseMenu { get; set; }
+        public MainMenuScreen SourceMainMenu { get; set; }
+        public GameScreen ExitFrom { get; set; }
+
         private const int EntriesPerPage = 6;
         private readonly bool _isLoadingMode;
         private readonly string _savePath;
@@ -47,6 +52,8 @@ namespace Superorganism.Screens
 
         public SaveFileMenuScreen(bool isLoadingMode)
         {
+            IsPopup = true;
+
             _isLoadingMode = isLoadingMode;
             _menuTitle = _isLoadingMode ? "LOAD GAME" : "SAVE GAME";
 
@@ -474,6 +481,11 @@ namespace Superorganism.Screens
 
             if (_menuCancel.Occurred(input, ControllingPlayer, out _))
             {
+                // When exiting, show the pause menu again if it exists
+                if (SourcePauseMenu != null)
+                {
+                    SourcePauseMenu.ScreenState = ScreenState.Active;
+                }
                 ExitScreen();
             }
         }
@@ -491,6 +503,17 @@ namespace Superorganism.Screens
 
             if (selectedEntry.Text == "Back")
             {
+                // When exiting, show the pause menu again if it exists
+                if (SourcePauseMenu != null)
+                {
+                    SourcePauseMenu.ScreenState = ScreenState.Active;
+                }
+
+                else if (SourceMainMenu != null)
+                {
+                    SourceMainMenu.ScreenState = ScreenState.TransitionOn;
+                }
+
                 ExitScreen();
                 return;
             }
@@ -591,6 +614,10 @@ namespace Superorganism.Screens
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
             Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
 
+            if (SourcePauseMenu != null)
+            {
+                ScreenManager.FadeBackBufferToBlack(0.6f);
+            }
 
             // Draw the 3D title first if it exists
             if (_titleRenderer != null && !string.IsNullOrEmpty(_menuTitle) && !IsExiting)
@@ -724,6 +751,18 @@ namespace Superorganism.Screens
                 _pageIndicatorPosition,
                 Color.White * TransitionAlpha,
                 0, Vector2.Zero, 0.8f, SpriteEffects.None, 0);
+        }
+
+        private void HandleExitingScreen()
+        {
+            // If we came from a pause menu, restore it to active state when we exit
+            if (SourcePauseMenu != null)
+            {
+                // Don't just set to Active - let the screen transition naturally
+                SourcePauseMenu.ScreenState = ScreenState.TransitionOn;
+            }
+
+            ExitScreen();
         }
     }
 }

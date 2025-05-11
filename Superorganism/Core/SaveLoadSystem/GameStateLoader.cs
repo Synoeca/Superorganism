@@ -99,7 +99,7 @@ namespace Superorganism.Core.SaveLoadSystem
                     return enemy;
 
                 case "Crop":
-                    Crop crop = new Crop
+                    Crop crop = new()
                     {
                         Position = data.Position
                     };
@@ -113,7 +113,7 @@ namespace Superorganism.Core.SaveLoadSystem
                     return crop;
 
                 case "Fly":
-                    Fly fly = new Fly
+                    Fly fly = new()
                     {
                         Position = data.Position
                     };

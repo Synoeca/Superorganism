@@ -67,6 +67,11 @@ namespace Superorganism.Screens
         private float _pauseAlpha;
 
         /// <summary>
+        /// A flag to track if we're transitioning from pause back to gameplay
+        /// </summary>
+        private bool _returningFromPause = false;
+
+        /// <summary>
         /// Gets or sets the path to a save file that should be loaded when the screen starts.
         /// If null, a new game will be started instead.
         /// </summary>
@@ -164,11 +169,18 @@ namespace Superorganism.Screens
         /// <param name="input">The input state containing keyboard, mouse, and gamepad data.</param>
         public override void HandleInput(GameTime gameTime, InputState input)
         {
-            if (GameStateOrganizer.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
+            // Handle inventory toggle first
+            if (input.IsNewKeyPress(Keys.I, ControllingPlayer, out PlayerIndex playerIndex))
+            {
+                ScreenManager.AddScreen(new InventoryScreen(), playerIndex);
+                return;
+            }
+
+            // Then handle pause menu
+            if (GameStateOrganizer.HandlePauseInput(input, ControllingPlayer, out playerIndex))
             {
                 // Pause the gameplay timer when entering pause menu
                 GameTimer.Pause();
-                //GameStateOrganizer.PauseMusic();
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
             }
@@ -202,25 +214,72 @@ namespace Superorganism.Screens
         /// <param name="coveredByOtherScreen">Whether this screen is covered by another screen.</param>
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
-            base.Update(gameTime, otherScreenHasFocus, false);
+            // Call the base update method
+            base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
 
-            if (!IsActive)
+            // Check if we're covered by a screen that should pause the game
+            bool shouldPause = false;
+            bool wasPreviouslyPaused = _pauseAlpha > 0.1f; // Check if we were paused before
+
+            if (coveredByOtherScreen || otherScreenHasFocus)
             {
-                // If the screen is not active (e.g., pause menu is open), pause the timer
-                GameTimer.Pause();
-                return;
+                GameScreen[] screens = ScreenManager.GetScreens();
+
+                foreach (GameScreen screen in screens)
+                {
+                    // Skip inactive screens
+                    if (screen.ScreenState == ScreenState.Hidden)
+                        continue;
+
+                    // Check if the screen is a type that should pause the game
+                    if (screen != this && (screen is PauseMenuScreen ||
+                                           screen is SaveFileMenuScreen ||
+                                           screen is OptionsMenuScreen))
+                    {
+                        shouldPause = true;
+                        break;
+                    }
+
+                    // Check if screen has the ShouldPauseGame property
+                    if (screen != this && screen.GetType().GetProperty("ShouldPauseGame")?.GetValue(screen) is bool pauseValue && pauseValue)
+                    {
+                        shouldPause = true;
+                        break;
+                    }
+                }
             }
 
-            // Resume the timer when the screen becomes active
-            GameTimer.Resume();
+            // Check if we were paused but aren't anymore - this means we're transitioning back to gameplay
+            if (wasPreviouslyPaused && !shouldPause)
+            {
+                _returningFromPause = true;
+            }
 
-            // Update the gameplay timer
-            GameTimer.Update(gameTime);
+            // If we should pause, pause the timer and return
+            if (shouldPause)
+            {
+                GameTimer.Pause();
+                _returningFromPause = false; // Reset the transition flag
+            }
+            else
+            {
+                // Continue with normal gameplay updates
+                GameTimer.Resume();
+                GameTimer.Update(gameTime);
+                GameStateOrganizer.Update(gameTime);
+                _camera.Update(GameStateOrganizer.GetPlayerPosition(), gameTime);
+            }
 
-            GameStateOrganizer.Update(gameTime);
-            _camera.Update(GameStateOrganizer.GetPlayerPosition(), gameTime);
-            UpdatePauseAlpha(coveredByOtherScreen);
+            // Always update the pause alpha, whether we're pausing or unpausing
+            UpdatePauseAlpha(shouldPause);
+
+            // If we've fully transitioned back, reset the flag
+            if (_returningFromPause && _pauseAlpha <= 0)
+            {
+                _returningFromPause = false;
+            }
         }
+
 
         /// <summary>
         /// Renders the game world, UI elements, and transition effects to the screen.
@@ -286,20 +345,36 @@ namespace Superorganism.Screens
 
             spriteBatch.End();
 
-            if (!(TransitionPosition > 0) && !(_pauseAlpha > 0)) return;
-            float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
-            ScreenManager.FadeBackBufferToBlack(alpha);
+            if (TransitionPosition > 0 || _pauseAlpha > 0)
+            {
+                float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
+                ScreenManager.FadeBackBufferToBlack(alpha);
+            }
         }
 
         /// <summary>
-        /// Updates the pause fade effect based on whether the screen is covered by another screen.
-        /// Creates a smooth transition when the pause menu appears or disappears.
+        /// Updates the pause fade effect alpha value based on the game's pause state.
+        /// Creates smooth transitions between gameplay and paused states with different
+        /// fade speeds for a more natural visual effect.
         /// </summary>
-        /// <param name="coveredByOtherScreen">Whether this screen is currently covered by another screen (e.g., pause menu).</param>
-        private void UpdatePauseAlpha(bool coveredByOtherScreen)
+        /// <param name="isPaused">Whether the game is currently paused or transitioning to paused</param>
+        private void UpdatePauseAlpha(bool isPaused)
         {
-            _pauseAlpha = coveredByOtherScreen ?
-                Math.Min(_pauseAlpha + 0.05f, 1.0f) : Math.Max(_pauseAlpha - 0.05f, 0f);
+            // Adjust the speed for fading in and out
+            float fadeInSpeed = 0.05f;  // Speed when going from gameplay to pause
+            float fadeOutSpeed = 0.03f;  // Slower speed when returning from pause to gameplay
+
+            if (isPaused)
+            {
+                // Fade to dark when pausing
+                _pauseAlpha = Math.Min(_pauseAlpha + fadeInSpeed, 1.0f);
+            }
+            else
+            {
+                // Fade to transparent when unpausing - use slower speed if we're returning from pause
+                float speed = _returningFromPause ? fadeOutSpeed : fadeInSpeed;
+                _pauseAlpha = Math.Max(_pauseAlpha - speed, 0f);
+            }
         }
 
         /// <summary>

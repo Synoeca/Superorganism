@@ -76,7 +76,7 @@ namespace Superorganism.AI
         private static bool CheckCollisionExcludingDiagonalTiles(Vector2 proposedPosition, TextureInfo textureInfo)
         {
             // Create a slightly smaller hitbox for better feeling collisions
-            Vector2 collisionSize = new Vector2(
+            Vector2 collisionSize = new(
                 textureInfo.UnitTextureWidth * textureInfo.SizeScale * 0.8f,
                 textureInfo.UnitTextureHeight * textureInfo.SizeScale * 0.9f
             );
