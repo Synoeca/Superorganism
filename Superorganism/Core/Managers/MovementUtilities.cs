@@ -332,6 +332,10 @@ public static class MovementUtilities
         // Handle jumping and physics movement - only allow jumping if enough stamina
         bool isAttemptingToJump = isOnGround && keyboardState.IsKeyDown(Keys.Space);
         bool startingJump = isAttemptingToJump && canJump;
+        if (proposedXVelocity > 0)
+        {
+
+        }
 
         HandleMovementPhysics(
             ref position,
@@ -607,7 +611,8 @@ public static class MovementUtilities
             // Check if there's ground below us
             bool diagonal = false;
             bool isCenterOnDiagonal = false;
-            bool hasGroundBelow = CheckCollisionAtPosition(position, currentMap, collisionBounding, ref diagonal, ref isCenterOnDiagonal);
+            bool yCollisionFromAbove = false;
+            bool hasGroundBelow = CheckCollisionAtPosition(position, currentMap, collisionBounding, velocity.Y, ref diagonal, ref isCenterOnDiagonal, ref yCollisionFromAbove);
 
             if (!hasGroundBelow || diagonal)
             {
@@ -625,7 +630,8 @@ public static class MovementUtilities
         Vector2 proposedXPosition = position + new Vector2(proposedXVelocity, 0);
         bool diagonalX = false;
         bool isCenterOnDiagonalTile = false;
-        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, currentMap, collisionBounding, ref diagonalX, ref isCenterOnDiagonalTile);
+        bool isYCollisionFromAbove = false;
+        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, currentMap, collisionBounding, velocity.Y, ref diagonalX, ref isCenterOnDiagonalTile, ref isYCollisionFromAbove);
         bool xMovementBlocked = false;
 
         // Apply X movement if no collision
@@ -681,6 +687,8 @@ public static class MovementUtilities
         {
             bool isDiagonal = false;
             bool isCenterOnDiagonal = false;
+            bool yCollisionFromAbove = false;
+
             Vector2 proposedYPosition = position + new Vector2(0, velocity.Y);
             if (xMovementBlocked)
             {
@@ -694,7 +702,11 @@ public static class MovementUtilities
                 }
             }
 
-            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, currentMap, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal);
+            if (isJumping)
+            {
+
+            }
+            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, currentMap, collisionBounding, velocity.Y, ref isDiagonal, ref isCenterOnDiagonal, ref yCollisionFromAbove);
 
             if (!hasYCollision && !isDiagonal)
             {
@@ -708,7 +720,7 @@ public static class MovementUtilities
                     if (velocity.Y < 0 && !isDiagonal) // Moving upward
                     {
                         // Hit ceiling, stop upward movement
-                        if (!xMovementBlocked)
+                        if (!xMovementBlocked && yCollisionFromAbove)
                         {
                             velocity.Y = 0;
                             isJumping = false;
@@ -872,16 +884,6 @@ public static class MovementUtilities
                 }
                 else if (leftHitsDiagonal)
                 {
-                    if (newGroundY < 920f)
-                    {
-
-                    }
-
-                    float prevNewGy = newGroundY;
-                    if (prevNewGy > 963f)
-                    {
-
-                    }
                     HandleLeftDiagonalSlope(
                         ref position,
                         ref newGroundY,
@@ -891,10 +893,6 @@ public static class MovementUtilities
                         xMovementBlocked,
                         movementSpeed,
                         textureInfo);
-                    if (newGroundY < 920f)
-                    {
-
-                    }
                 }
                 else if (rightHitsDiagonal)
                 {
@@ -1141,12 +1139,13 @@ public static class MovementUtilities
     /// <summary>
     /// Checks for collision at a position
     /// </summary>
-    public static bool CheckCollisionAtPosition(
-        Vector2 position,
+    public static bool CheckCollisionAtPosition(Vector2 position,
         TiledMap map,
         ICollisionBounding collisionBounding,
+        float velocityY,
         ref bool isDiagonal,
-        ref bool isCenterOnDiagonal)
+        ref bool isCenterOnDiagonal,
+        ref bool yCollisionFromAbove)
     {
         int leftTile = 0;
         int rightTile = 0;
@@ -1180,7 +1179,7 @@ public static class MovementUtilities
         // Check collision with map layers
         foreach (Layer layer in map.Layers.Values)
         {
-            if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal))
+            if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, velocityY, ref isDiagonal, ref isCenterOnDiagonal, ref yCollisionFromAbove))
                 return true;
         }
 
@@ -1189,7 +1188,7 @@ public static class MovementUtilities
         {
             foreach (Layer layer in group.Layers.Values)
             {
-                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal))
+                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, velocityY, ref isDiagonal, ref isCenterOnDiagonal, ref yCollisionFromAbove))
                     return true;
             }
         }
@@ -1200,16 +1199,17 @@ public static class MovementUtilities
     /// <summary>
     /// Checks for collision with a specific layer
     /// </summary>
-    private static bool CheckLayerCollision(
-        Layer layer,
+    private static bool CheckLayerCollision(Layer layer,
         int leftTile,
         int rightTile,
         int topTile,
         int bottomTile,
         Vector2 position,
         ICollisionBounding collisionBounding,
+        float velocityY,
         ref bool isThisDiagonalTile,
-        ref bool isCenterOnDiagonal)
+        ref bool isCenterOnDiagonal, 
+        ref bool yCollisionFromAbove)
     {
         int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
         int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
@@ -1270,9 +1270,10 @@ public static class MovementUtilities
                                     slopeY = (tileBottom - slopeRight) + (slope * (MapHelper.TileSize - Math.Abs(distanceFromLeft)));
                                 }
 
-                                if (position.Y < slopeY)
+                                if (position.Y < slopeY && velocityY < 0)
                                 {
                                     isDiagonalTile = true;
+                                    yCollisionFromAbove = true;
                                 }
                             }
                             else if (collisionBounding is BoundingCircle)
@@ -1306,6 +1307,10 @@ public static class MovementUtilities
 
                     if (collisionBounding.CollidesWith(tileRect))
                     {
+                        if (x == 102 && y == 13)
+                        {
+
+                        }
                         if (collisionBounding.Center.X <= tileRect.Right && collisionBounding.Center.X >= tileRect.Left)
                         {
                             if (isDiagonalTile)
@@ -1316,6 +1321,34 @@ public static class MovementUtilities
                         else
                         {
                             isCenterOnDiagonal = false;
+                        }
+
+                        if (velocityY < 0)
+                        {
+                            yCollisionFromAbove = true;
+                            if (collisionBounding is BoundingRectangle brag)
+                            {
+                                if (tileRect.Left < brag.Left)
+                                {
+                                    if (tileRect.Right > brag.Left)
+                                    {
+                                        if (tileRect.Right - 3 < brag.Left)
+                                        {
+                                            yCollisionFromAbove = false;
+                                        }
+                                    }
+                                }
+                                if (tileRect.Right > brag.Right)
+                                {
+                                    if (tileRect.Left < brag.Right)
+                                    {
+                                        if (tileRect.Left + 3 > brag.Right)
+                                        {
+                                            yCollisionFromAbove = false;
+                                        }
+                                    }
+                                }
+                            }
                         }
                         return true;
                     }

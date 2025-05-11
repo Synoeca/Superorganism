@@ -423,7 +423,7 @@ namespace Superorganism.Tiles
                     {
                         foreach (Layer layer in group.Layers.Values)
                         {
-                            if (x == 94 && y == 17)
+                            if (x == 100 && y == 14)
                             {
 
                             }
@@ -506,7 +506,7 @@ namespace Superorganism.Tiles
                     {
                         foreach (Layer layer in group.Layers.Values)
                         {
-                            if (x == 118 && y == 15)
+                            if (x == 99 && y == 13)
                             {
 
                             }
@@ -585,8 +585,7 @@ namespace Superorganism.Tiles
                                     {
                                         if (tileRec.Right - br.Left <= 64)
                                         {
-                                            //return !(br.Bottom >= tileRec.Bottom - slopeRight);
-                                            if (tileRec.Right - br.Left > 2)
+                                            if (tileRec.Right - br.Left > 5)
                                             {
                                                  return !(br.Bottom - (tileRec.Bottom - slopeRight) < 20);
                                             }
