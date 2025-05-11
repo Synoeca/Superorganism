@@ -354,6 +354,25 @@ namespace Superorganism.Screens
                     // Delete the map file if it exists
                     if (!string.IsNullOrEmpty(saveState.MapFileName))
                     {
+                        // Check in the SavedMaps directory first (NEW!)
+                        string savedMapsPath = Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                            "Superorganism", "SavedMaps");
+
+                        // Ensure the map filename has .tmx extension
+                        string mapFileName = Path.HasExtension(saveState.MapFileName)
+                            ? saveState.MapFileName
+                            : $"{saveState.MapFileName}.tmx";
+
+                        // Check in the SavedMaps directory (NEW!)
+                        string savedMapPath = Path.Combine(savedMapsPath, mapFileName);
+                        if (File.Exists(savedMapPath))
+                        {
+                            Console.WriteLine($"Deleting saved map: {savedMapPath}");
+                            File.Delete(savedMapPath);
+                        }
+
+                        // Also check the old locations for backward compatibility
                         string mapContentPath = Path.Combine(
                             Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory)!.Parent!.Parent!.Parent!.FullName,
                             "Content", "Tileset", "Maps");
@@ -361,32 +380,33 @@ namespace Superorganism.Screens
                             AppDomain.CurrentDomain.BaseDirectory,
                             "Content", "Tileset", "Maps");
 
-                        // Ensure the map filename has .tmx extension
-                        string mapFileName = Path.HasExtension(saveState.MapFileName)
-                            ? saveState.MapFileName
-                            : $"{saveState.MapFileName}.tmx";
-
                         string contentMapPath = Path.Combine(mapContentPath, mapFileName);
                         string runtimeMapPath = Path.Combine(mapRuntimePath, mapFileName);
 
-                        // Delete map files if they exist
+                        // Delete map files if they exist in old locations
                         if (File.Exists(contentMapPath))
                         {
+                            Console.WriteLine($"Deleting content map: {contentMapPath}");
                             File.Delete(contentMapPath);
                         }
                         if (File.Exists(runtimeMapPath))
                         {
+                            Console.WriteLine($"Deleting runtime map: {runtimeMapPath}");
                             File.Delete(runtimeMapPath);
                         }
                     }
 
                     // Delete the save file
+                    Console.WriteLine($"Deleting save file: {savePath}");
                     File.Delete(savePath);
                     PopulateEntries();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error deleting save file: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
                 const string message = "Failed to delete save file and associated map file.";
                 MessageBoxScreen errorBox = new(message);
                 ScreenManager.AddScreen(errorBox, ControllingPlayer);
