@@ -1,4 +1,6 @@
 ﻿using System.Linq;
+using Microsoft.Xna.Framework;
+using Superorganism.Core.Timing;
 
 namespace Superorganism.Screens
 {
@@ -11,18 +13,42 @@ namespace Superorganism.Screens
             MenuEntry saveMenuEntry = new("Save Game");
             MenuEntry loadMenuEntry = new("Load Game");
             MenuEntry quitGameMenuEntry = new("Quit Game");
-
             resumeGameMenuEntry.Selected += OnCancel;
             optionGameMenuEntry.Selected += OptionsMenuEntrySelected;
             saveMenuEntry.Selected += SaveMenuEntrySelected;
             loadMenuEntry.Selected += LoadMenuEntrySelected;
             quitGameMenuEntry.Selected += QuitGameMenuEntrySelected;
-
             MenuEntries.Add(resumeGameMenuEntry);
             MenuEntries.Add(saveMenuEntry);
             MenuEntries.Add(loadMenuEntry);
             MenuEntries.Add(optionGameMenuEntry);
             MenuEntries.Add(quitGameMenuEntry);
+        }
+
+        /// <summary>
+        /// Overrides OnCancel to resume the gameplay timer when unpausing the game.
+        /// </summary>
+        protected override void OnCancel(PlayerIndex playerIndex)
+        {
+            // Resume the gameplay timer when canceling/resuming from pause
+            GameTimer.Resume();
+            base.OnCancel(playerIndex);
+        }
+
+        /// <summary>
+        /// Override Update to handle timer states based on screen transitions.
+        /// When the screen is transitioning off, we'll resume the timer.
+        /// </summary>
+        public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
+        {
+            base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
+
+            // If we're in the middle of transitioning off (removing the pause screen),
+            // resume the timer
+            if (ScreenState == ScreenManagement.ScreenState.TransitionOff && !IsExiting)
+            {
+                GameTimer.Resume();
+            }
         }
 
         private void SaveMenuEntrySelected(object sender, PlayerIndexEventArgs e)
@@ -33,24 +59,6 @@ namespace Superorganism.Screens
         private void LoadMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
             ScreenManager.AddScreen(new SaveFileMenuScreen(true), e.PlayerIndex);
-        }
-
-        private void ConfirmLoadMessageBoxAccepted(object sender, PlayerIndexEventArgs e)
-        {
-            // Get the current GameplayScreen
-            GameplayScreen gameplayScreen = GetGameplayScreen();
-            if (gameplayScreen == null) return;
-
-            // Create a new GameplayScreen (this will load the latest save)
-            GameplayScreen newGameplayScreen = new();
-
-            // Load the new screen
-            LoadingScreen.Load(ScreenManager, true, e.PlayerIndex, newGameplayScreen);
-        }
-
-        private GameplayScreen GetGameplayScreen()
-        {
-            return ScreenManager.GetScreens().OfType<GameplayScreen>().FirstOrDefault();
         }
 
         private void OptionsMenuEntrySelected(object sender, PlayerIndexEventArgs e)
@@ -68,6 +76,8 @@ namespace Superorganism.Screens
 
         private void ConfirmQuitMessageBoxAccepted(object sender, PlayerIndexEventArgs e)
         {
+            // Reset the timer when quitting the game
+            GameTimer.Reset();
             LoadingScreen.Load(ScreenManager, false, null, new BackgroundScreen(), new MainMenuScreen());
         }
     }

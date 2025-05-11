@@ -7,6 +7,7 @@ using Superorganism.Collisions;
 using Superorganism.Common;
 using Superorganism.Entities;
 using Superorganism.Tiles;
+using Superorganism.Core.Timing;
 
 namespace Superorganism.Core.Managers;
 
@@ -18,7 +19,7 @@ namespace Superorganism.Core.Managers;
 public static class MovementUtilities
 {
     /// <summary>
-    /// Random number generator used for AI movement patterns and decision making.
+    /// Random number generator used for AI movement patterns and decision-making.
     /// </summary>
     private static readonly Random Rand = new();
 
@@ -485,7 +486,8 @@ public static class MovementUtilities
         {
             proposedXVelocity = -proposedXVelocity; // Reverse direction
             (Strategy Strategy, double StartTime, double LastActionTime) current = strategyHistory[^1];
-            strategyHistory[^1] = (current.Strategy, current.StartTime, gameTime.TotalGameTime.TotalSeconds);
+            // Use GameTimer instead of gameTime.TotalGameTime.TotalSeconds
+            strategyHistory[^1] = (current.Strategy, current.StartTime, GameTimer.TotalGameplayTime);
         }
 
         // Handle ground friction
@@ -1155,7 +1157,8 @@ public static class MovementUtilities
         GameTime gameTime)
     {
         currentStrategy = newStrategy;
-        double currentTime = gameTime.TotalGameTime.TotalSeconds;
+        // Use GameTimer instead of gameTime.TotalGameTime.TotalSeconds
+        double currentTime = GameTimer.TotalGameplayTime;
         strategyHistory.Add((newStrategy, currentTime, currentTime));
     }
 

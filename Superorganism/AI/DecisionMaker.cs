@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Superorganism.Collisions;
 using Superorganism.Common;
 using Superorganism.Core.Managers;
+using Superorganism.Core.Timing;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Tiles;
@@ -61,7 +62,8 @@ namespace Superorganism.AI
         {
             if (!strategyHistory.Any()) return 0;
             (Strategy Strategy, double StartTime, double LastActionTime) lastEntry = strategyHistory[^1];
-            return gameTime.TotalGameTime.TotalSeconds - lastEntry.LastActionTime;
+            // Use GameTimer instead of gameTime.TotalGameTime.TotalSeconds
+            return GameTimer.TotalGameplayTime - lastEntry.LastActionTime;
         }
 
         /// <summary>
@@ -160,8 +162,9 @@ namespace Superorganism.AI
             {
                 case Strategy.RandomFlyingMovement:
                 {
-                    directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
-                    if (directionTimer > directionInterval)
+                    // Use GameTimer.GetElapsedGameplayTime to ensure proper timing during active gameplay
+                    directionTimer += GameTimer.GetElapsedGameplayTime(gameTime);
+                        if (directionTimer > directionInterval)
                     {
                         direction = direction switch
                         {
@@ -186,7 +189,7 @@ namespace Superorganism.AI
                     };
 
                     // Update position using velocity and elapsed time
-                    position += velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    position += velocity * (float)GameTimer.GetElapsedGameplayTime(gameTime);
                     break;
                 }
                 case Strategy.Random360FlyingMovement:
@@ -199,7 +202,8 @@ namespace Superorganism.AI
                             directionInterval = GetNewDirectionInterval();
                         }
 
-                        directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                        // Use GameTimer.GetElapsedGameplayTime
+                        directionTimer += GameTimer.GetElapsedGameplayTime(gameTime);
                         if (directionTimer > directionInterval)
                         {
                             double angle = Rand.NextDouble() * Math.PI * 2;
@@ -221,14 +225,14 @@ namespace Superorganism.AI
                             direction = velocity.Y > 0 ? Direction.Down : Direction.Up;
                         }
 
-                        Vector2 proposedXPosition = position + new Vector2(velocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds, 0);
+                        Vector2 proposedXPosition = position + new Vector2(velocity.X * (float)GameTimer.GetElapsedGameplayTime(gameTime), 0);
                         if (CheckCollisionExcludingDiagonalTiles(proposedXPosition, textureInfo))
                         {
                             velocity.X = -velocity.X; // Bounce off walls
                         }
 
-                        // Update position
-                        Vector2 newPosition = position + velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                        // Update position using elapsed gameplay time
+                        Vector2 newPosition = position + velocity * (float)GameTimer.GetElapsedGameplayTime(gameTime);
 
                         bool hitsDiagonal = false;
                         float slope = 0;

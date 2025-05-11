@@ -11,6 +11,7 @@ using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
 using Superorganism.Core.SaveLoadSystem;
+using Superorganism.Core.Timing;
 
 #pragma warning disable CA1416
 
@@ -165,6 +166,8 @@ namespace Superorganism.Screens
         {
             if (GameStateOrganizer.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
             {
+                // Pause the gameplay timer when entering pause menu
+                GameTimer.Pause();
                 //GameStateOrganizer.PauseMusic();
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
@@ -184,6 +187,8 @@ namespace Superorganism.Screens
                 input.IsNewKeyPress(Keys.R, ControllingPlayer, out playerIndex))
             {
                 GameStateOrganizer.Reset();
+                // Reset the timer when restarting the game
+                GameTimer.Reset();
                 ScreenManager.ResetScreen(this);
             }
         }
@@ -199,11 +204,22 @@ namespace Superorganism.Screens
         {
             base.Update(gameTime, otherScreenHasFocus, false);
 
-            if (!IsActive) return;
+            if (!IsActive)
+            {
+                // If the screen is not active (e.g., pause menu is open), pause the timer
+                GameTimer.Pause();
+                return;
+            }
+
+            // Resume the timer when the screen becomes active
+            GameTimer.Resume();
+
+            // Update the gameplay timer
+            GameTimer.Update(gameTime);
 
             GameStateOrganizer.Update(gameTime);
             _camera.Update(GameStateOrganizer.GetPlayerPosition(), gameTime);
-            UpdatePauseAlpha(coveredByOtherScreen); // Pass coveredByOtherScreen
+            UpdatePauseAlpha(coveredByOtherScreen);
         }
 
         /// <summary>
@@ -292,6 +308,9 @@ namespace Superorganism.Screens
         /// </summary>
         public override void Unload()
         {
+            // Reset the timer when the screen is unloaded
+            GameTimer.Reset();
+
             _uiRenderer?.Dispose();
             _parallaxBackground?.Unload();
             GameStateOrganizer?.Unload();
