@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.Xna.Framework;
 using Superorganism.Collisions;
 using Superorganism.Common;
@@ -17,37 +16,47 @@ namespace Superorganism.AI
 	/// </summary>
 	public static class DecisionMaker
 	{
+        /// <summary>
+        /// Random number generator used for making stochastic decisions in AI behavior.
+        /// Thread-safe instance used across all entity decision-making.
+        /// </summary>
 		public static readonly Random Rand = new();
-        private static Vector2 _lastKnownTargetPosition;
-        public static Strategy _targetStrategy;
-        private const float TransitionDuration = 1.0f; // 1 second pause
-        public static TimeSpan GameProgressTime { get; set; }
-		public static List<Entity> Entities { get; set; } = [];
-		public static Strategy Strategy { get; set; }
-		public static int GroundY { get; set; }
-        public static DateTime GameStartTime { get; set; }
-        public static GameTime GameTime { get; set; }
 
-		private static double GetNewDirectionInterval()
+        /// <summary>
+        /// Stores the last known position of a target entity during chase sequences.
+        /// Used for predictive pathing when the target is temporarily out of sight.
+        /// </summary>
+        private static Vector2 _lastKnownTargetPosition;
+
+        /// <summary>
+        /// The target strategy that entities are transitioning towards.
+        /// Used during strategy transition phases to determine the final behavior.
+        /// </summary>
+        public static Strategy TargetStrategy;
+
+        /// <summary>
+        /// The target strategy that entities are transitioning towards.
+        /// Used during strategy transition phases to determine the final behavior.
+        /// </summary>
+        public static List<Entity> Entities { get; set; } = [];
+
+        /// <summary>
+        /// Generates a random duration for how long an entity should move in a specific direction.
+        /// Used by flying movement strategies to create natural, unpredictable movement patterns.
+        /// </summary>
+        /// <returns>A double value between 3 and 23 seconds representing the direction change interval.</returns>
+        private static double GetNewDirectionInterval()
 		{
 			return Rand.NextDouble() * 3.0 + Rand.Next(3, 21);
 		}
 
-        private static void AddStrategyToHistory(
-            ref Strategy strategy,
-            Strategy newStrategy,
-            ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
-            GameTime gameTime)
-        {
-            if (strategy != newStrategy)
-            {
-                strategy = newStrategy;
-                //double currentTime = (DateTime.Now - GameStartTime).TotalSeconds;
-                double currentTime = gameTime.TotalGameTime.TotalSeconds;
-                strategyHistory.Add((newStrategy, currentTime, currentTime));
-            }
-        }
-
+        /// <summary>
+        /// Calculates how long the current strategy has been active.
+        /// Used to determine when to transition between different AI behaviors.
+        /// </summary>
+        /// <param name="strategyHistory">List of strategies with their start and last action times.</param>
+        /// <param name="gameTime">Current game timing information.</param>
+        /// <returns>Duration in seconds that the current strategy has been active.</returns>
         private static double GetStrategyDuration(List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, GameTime gameTime)
         {
             if (!strategyHistory.Any()) return 0;
@@ -55,6 +64,13 @@ namespace Superorganism.AI
             return gameTime.TotalGameTime.TotalSeconds - lastEntry.LastActionTime;
         }
 
+        /// <summary>
+        /// Checks if a proposed position would result in collision with the game world,
+        /// excluding diagonal tiles that entities can pass through.
+        /// </summary>
+        /// <param name="proposedPosition">The position to check for collisions.</param>
+        /// <param name="textureInfo">Information about the entity's texture and size.</param>
+        /// <returns>True if collision would occur, false if position is valid.</returns>
         private static bool CheckCollisionExcludingDiagonalTiles(Vector2 proposedPosition, TextureInfo textureInfo)
         {
             // Create a slightly smaller hitbox for better feeling collisions
@@ -85,12 +101,52 @@ namespace Superorganism.AI
             return false;
         }
 
+        /// <summary>
+        /// Simplified Action method for flying entities that don't need ground collision detection.
+        /// Used primarily for airborne entities like flying creatures.
+        /// </summary>
+        /// <param name="strategy">Current AI strategy being executed.</param>
+        /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+        /// <param name="gameTime">Game timing information.</param>
+        /// <param name="direction">Current movement direction.</param>
+        /// <param name="position">Current position of the entity.</param>
+        /// <param name="directionTimer">Timer for tracking direction changes.</param>
+        /// <param name="directionInterval">Interval between direction changes.</param>
+        /// <param name="velocity">Current movement velocity.</param>
+        /// <param name="screenWidth">Width of the game screen.</param>
+        /// <param name="groundHeight">Height of the ground level.</param>
+        /// <param name="textureInfo">Information about the entity's texture and size.</param>
+        /// <param name="entityStatus">Current stats and status of the entity.</param>
         public static void Action(ref Strategy strategy,
             ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory, 
             GameTime gameTime, ref Direction direction,ref Vector2 position, ref double directionTimer, 
             ref double directionInterval, ref Vector2 velocity, int screenWidth, int groundHeight,
             TextureInfo textureInfo, EntityStatus entityStatus) {}
 
+        /// <summary>
+        /// Comprehensive Action method that executes AI behavior for all entity types.
+        /// Handles ground-based movement, collision detection, jumping, and all strategy implementations.
+        /// </summary>
+        /// <param name="strategy">Current AI strategy being executed.</param>
+        /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+        /// <param name="gameTime">Game timing information.</param>
+        /// <param name="direction">Current movement direction.</param>
+        /// <param name="position">Current position of the entity.</param>
+        /// <param name="directionTimer">Timer for tracking direction changes.</param>
+        /// <param name="directionInterval">Interval between direction changes.</param>
+        /// <param name="collisionBounding">Collision boundary for the entity.</param>
+        /// <param name="velocity">Current movement velocity.</param>
+        /// <param name="screenWidth">Width of the game screen.</param>
+        /// <param name="groundHeight">Height of the ground level.</param>
+        /// <param name="textureInfo">Information about the entity's texture and size.</param>
+        /// <param name="entityStatus">Current stats and status of the entity.</param>
+        /// <param name="isOnGround">Whether the entity is currently on the ground.</param>
+        /// <param name="isJumping">Whether the entity is currently jumping.</param>
+        /// <param name="friction">Ground friction affecting movement.</param>
+        /// <param name="isCenterOnDiagonalSlope">Whether the entity is centered on a diagonal slope.</param>
+        /// <param name="jumpDiagonalPosY">Y position used for diagonal slope jumping calculations.</param>
+        /// <param name="flipped">Whether the entity sprite is horizontally flipped.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when an unsupported strategy is provided.</exception>
         public static void Action(ref Strategy strategy, ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
         GameTime gameTime, ref Direction direction, ref Vector2 position,
         ref double directionTimer, ref double directionInterval, ref ICollisionBounding collisionBounding,
@@ -271,7 +327,7 @@ namespace Superorganism.AI
                         ref flipped,
                         ref strategy,
                         ref strategyHistory,
-                        ref _targetStrategy,
+                        ref TargetStrategy,
                         currentStrategyDuration,
                         gameTime);
 

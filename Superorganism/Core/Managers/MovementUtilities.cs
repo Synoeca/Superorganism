@@ -11,15 +11,42 @@ using Superorganism.Tiles;
 namespace Superorganism.Core.Managers;
 
 /// <summary>
-/// 
+/// Static utility class that provides comprehensive movement and physics functionality
+/// for both player and AI entities. Handles player input, physics calculations,
+/// collision detection, and various AI movement strategies.
 /// </summary>
 public static class MovementUtilities
 {
+    /// <summary>
+    /// Random number generator used for AI movement patterns and decision making.
+    /// </summary>
     private static readonly Random Rand = new();
 
     /// <summary>
-    /// Handles player input for movement
+    /// Handles player input for movement including walking, running, and jumping.
+    /// Processes keyboard input and applies appropriate movement physics.
     /// </summary>
+    /// <param name="position">Current position of the player entity.</param>
+    /// <param name="velocity">Current velocity of the player entity.</param>
+    /// <param name="isOnGround">Whether the player is currently on the ground.</param>
+    /// <param name="isJumping">Whether the player is currently in a jumping state.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal slope jumping calculations.</param>
+    /// <param name="isCenterOnDiagonal">Whether the player is centered on a diagonal slope.</param>
+    /// <param name="soundTimer">Timer for controlling movement sound playback.</param>
+    /// <param name="movementSpeed">Current movement speed of the player.</param>
+    /// <param name="animationSpeed">Speed of the walking animation.</param>
+    /// <param name="keyboardState">Current frame's keyboard state.</param>
+    /// <param name="previousKeyboardState">Previous frame's keyboard state for edge detection.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the player entity.</param>
+    /// <param name="textureInfo">Information about the player's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the player entity.</param>
+    /// <param name="flipped">Whether the player sprite is horizontally flipped.</param>
+    /// <param name="friction">Ground friction coefficient affecting movement.</param>
+    /// <param name="gravity">Gravity acceleration applied to the player.</param>
+    /// <param name="jumpStrength">Strength/force of the player's jump.</param>
+    /// <param name="playMoveSound">Action callback for playing movement sounds.</param>
+    /// <param name="gameTime">Game timing information.</param>
     public static void HandlePlayerInput(
         ref Vector2 position,
         ref Vector2 velocity,
@@ -108,8 +135,14 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles F key map modification
+    /// Handles map modification based on F key input and directional keys.
+    /// Allows players to remove or place tiles in the game world.
     /// </summary>
+    /// <param name="position">Current position of the player.</param>
+    /// <param name="proposedXVelocity">The intended horizontal velocity.</param>
+    /// <param name="keyboardState">Current keyboard state for directional inputs.</param>
+    /// <param name="currentMap">The map to modify.</param>
+    /// <param name="textureInfo">Player texture information for calculating modification position.</param>
     private static void HandleMapModification(
         Vector2 position,
         float proposedXVelocity,
@@ -168,8 +201,28 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles AI movement
+    /// Handles AI movement based on the current strategy. Routes to specific strategy handlers
+    /// and manages overall AI behavior patterns.
     /// </summary>
+    /// <param name="position">Current position of the AI entity.</param>
+    /// <param name="velocity">Current velocity of the AI entity.</param>
+    /// <param name="isOnGround">Whether the AI is currently on the ground.</param>
+    /// <param name="isJumping">Whether the AI is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="isCenterOnDiagonalSlope">Whether the AI is centered on a diagonal slope.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the AI entity.</param>
+    /// <param name="textureInfo">Information about the AI's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the AI entity.</param>
+    /// <param name="flipped">Whether the AI sprite is horizontally flipped.</param>
+    /// <param name="strategy">Current AI strategy being executed.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="lastKnownTargetPosition">Last known position of the target for chase strategies.</param>
+    /// <param name="entities">List of all active entities for proximity checks.</param>
+    /// <param name="targetStrategy">Target strategy during transitions.</param>
+    /// <param name="currentStrategyDuration">How long the current strategy has been active.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    /// <param name="canJump">Whether the AI is allowed to jump (default: false).</param>
     public static void HandleAIMovement(
         ref Vector2 position,
         ref Vector2 velocity,
@@ -258,8 +311,33 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles player input for movement with stamina restrictions
+    /// Handles player input with stamina restrictions on sprinting and jumping.
+    /// Similar to HandlePlayerInput but includes stamina checks before allowing
+    /// energy-intensive actions.
     /// </summary>
+    /// <param name="position">Current position of the player entity.</param>
+    /// <param name="velocity">Current velocity of the player entity.</param>
+    /// <param name="isOnGround">Whether the player is currently on the ground.</param>
+    /// <param name="isJumping">Whether the player is currently in a jumping state.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal slope jumping calculations.</param>
+    /// <param name="isCenterOnDiagonal">Whether the player is centered on a diagonal slope.</param>
+    /// <param name="soundTimer">Timer for controlling movement sound playback.</param>
+    /// <param name="movementSpeed">Current movement speed of the player.</param>
+    /// <param name="animationSpeed">Speed of the walking animation.</param>
+    /// <param name="keyboardState">Current frame's keyboard state.</param>
+    /// <param name="previousKeyboardState">Previous frame's keyboard state for edge detection.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the player entity.</param>
+    /// <param name="textureInfo">Information about the player's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the player entity.</param>
+    /// <param name="flipped">Whether the player sprite is horizontally flipped.</param>
+    /// <param name="friction">Ground friction coefficient affecting movement.</param>
+    /// <param name="gravity">Gravity acceleration applied to the player.</param>
+    /// <param name="jumpStrength">Strength/force of the player's jump.</param>
+    /// <param name="playMoveSound">Action callback for playing movement sounds.</param>
+    /// <param name="canSprint">Whether the player has enough stamina to sprint.</param>
+    /// <param name="canJump">Whether the player has enough stamina to jump.</param>
+    /// <param name="gameTime">Game timing information.</param>
     public static void HandlePlayerInputWithStaminaRestrictions(
         ref Vector2 position,
         ref Vector2 velocity,
@@ -332,10 +410,6 @@ public static class MovementUtilities
         // Handle jumping and physics movement - only allow jumping if enough stamina
         bool isAttemptingToJump = isOnGround && keyboardState.IsKeyDown(Keys.Space);
         bool startingJump = isAttemptingToJump && canJump;
-        if (proposedXVelocity > 0)
-        {
-
-        }
 
         HandleMovementPhysics(
             ref position,
@@ -358,8 +432,26 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles AI patrol strategy movement
+    /// Handles the AI patrol strategy where entities move in a pattern,
+    /// typically back and forth, until they detect a target to chase.
     /// </summary>
+    /// <param name="position">Current position of the AI entity.</param>
+    /// <param name="velocity">Current velocity of the AI entity.</param>
+    /// <param name="isOnGround">Whether the AI is currently on the ground.</param>
+    /// <param name="isJumping">Whether the AI is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="isCenterOnDiagonalSlope">Whether the AI is centered on a diagonal slope.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the AI entity.</param>
+    /// <param name="textureInfo">Information about the AI's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the AI entity.</param>
+    /// <param name="flipped">Whether the AI sprite is horizontally flipped.</param>
+    /// <param name="strategy">Current AI strategy reference.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="entities">List of all active entities for proximity checks.</param>
+    /// <param name="currentStrategyDuration">How long the current strategy has been active.</param>
+    /// <param name="lastKnownTargetPosition">Last known position of any target (for persistence).</param>
+    /// <param name="gameTime">Game timing information.</param>
     public static void HandlePatrolStrategy(ref Vector2 position,
         ref Vector2 velocity,
         ref bool isOnGround,
@@ -435,8 +527,26 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles AI chase strategy movement
+    /// Handles the AI chase strategy where entities pursue a target aggressively.
+    /// Entities will use their last known target position if the target goes out of range.
     /// </summary>
+    /// <param name="position">Current position of the AI entity.</param>
+    /// <param name="velocity">Current velocity of the AI entity.</param>
+    /// <param name="isOnGround">Whether the AI is currently on the ground.</param>
+    /// <param name="isJumping">Whether the AI is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="isCenterOnDiagonalSlope">Whether the AI is centered on a diagonal slope.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the AI entity.</param>
+    /// <param name="textureInfo">Information about the AI's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the AI entity.</param>
+    /// <param name="flipped">Whether the AI sprite is horizontally flipped.</param>
+    /// <param name="strategy">Current AI strategy reference.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="entities">List of all active entities for finding targets.</param>
+    /// <param name="currentStrategyDuration">How long the current strategy has been active.</param>
+    /// <param name="lastKnownTargetPosition">Last known position of the target.</param>
+    /// <param name="gameTime">Game timing information.</param>
     public static void HandleChaseStrategy(ref Vector2 position,
         ref Vector2 velocity,
         ref bool isOnGround,
@@ -519,8 +629,25 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles AI transition strategy movement
+    /// Handles the AI transition strategy which creates a pause between strategy changes.
+    /// Entities remain stationary during transitions to create more natural behavior changes.
     /// </summary>
+    /// <param name="position">Current position of the AI entity.</param>
+    /// <param name="velocity">Current velocity of the AI entity.</param>
+    /// <param name="isOnGround">Whether the AI is currently on the ground.</param>
+    /// <param name="isJumping">Whether the AI is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="isCenterOnDiagonalSlope">Whether the AI is centered on a diagonal slope.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the AI entity.</param>
+    /// <param name="textureInfo">Information about the AI's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the AI entity.</param>
+    /// <param name="flipped">Whether the AI sprite is horizontally flipped.</param>
+    /// <param name="strategy">Current AI strategy reference.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="targetStrategy">The strategy to transition to after the transition completes.</param>
+    /// <param name="currentStrategyDuration">How long the current strategy has been active.</param>
+    /// <param name="gameTime">Game timing information.</param>
     public static void HandleTransitionStrategy(ref Vector2 position,
         ref Vector2 velocity,
         ref bool isOnGround,
@@ -577,8 +704,26 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles the physics movement for an entity
+    /// Handles the core physics movement for any entity including collision detection,
+    /// jumping, gravity, and diagonal slope interactions.
     /// </summary>
+    /// <param name="position">Current position of the entity.</param>
+    /// <param name="velocity">Current velocity of the entity.</param>
+    /// <param name="isOnGround">Whether the entity is currently on the ground.</param>
+    /// <param name="isJumping">Whether the entity is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="isCenterOnDiagonalSlope">Whether the entity is centered on a diagonal slope.</param>
+    /// <param name="proposedXVelocity">The intended horizontal velocity for this frame.</param>
+    /// <param name="gravity">Gravity acceleration to apply.</param>
+    /// <param name="startingJump">Whether a jump is being initiated this frame.</param>
+    /// <param name="jumpStrength">Strength/force of the jump (typically negative).</param>
+    /// <param name="textureInfo">Information about the entity's texture and size.</param>
+    /// <param name="collisionBounding">Collision boundary for the entity.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="flipped">Whether the entity sprite is horizontally flipped.</param>
+    /// <param name="movementSpeed">Base movement speed for the entity.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    /// <param name="playMoveSound">Optional callback for playing movement sounds.</param>
     public static void HandleMovementPhysics(
         ref Vector2 position,
         ref Vector2 velocity,
@@ -775,8 +920,11 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles ground friction for movement
+    /// Handles ground friction for movement, reducing velocity when the entity is on the ground
+    /// and not actively moving. Prevents sliding on surfaces.
     /// </summary>
+    /// <param name="proposedXVelocity">Current proposed horizontal velocity.</param>
+    /// <param name="isOnGround">Whether the entity is currently on the ground.</param>
     private static void HandleGroundFriction(ref float proposedXVelocity, bool isOnGround)
     {
         if (isOnGround && Math.Abs(proposedXVelocity) < 0.1f)
@@ -787,8 +935,22 @@ public static class MovementUtilities
 
 
     /// <summary>
-    /// Handles ground collision and diagonal slope movement
+    /// Handles ground collision detection and adjusts the entity's position when landing on surfaces,
+    /// including special handling for diagonal slopes and mixed terrain types.
     /// </summary>
+    /// <param name="position">Current position of the entity.</param>
+    /// <param name="velocity">Current velocity of the entity.</param>
+    /// <param name="isOnGround">Whether the entity is currently on the ground.</param>
+    /// <param name="isJumping">Whether the entity is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="proposedYPosition">The intended Y position after movement.</param>
+    /// <param name="xMovementBlocked">Whether horizontal movement was blocked by collision.</param>
+    /// <param name="movementSpeed">Base movement speed for position adjustments.</param>
+    /// <param name="textureInfo">Information about the entity's texture and size.</param>
+    /// <param name="collisionBounding">Collision boundary for the entity.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="isCenterOnDiagonal">Whether the entity is centered on a diagonal slope.</param>
+    /// <param name="flipped">Whether the entity sprite is horizontally flipped.</param>
     private static void HandleGroundCollision(
         ref Vector2 position,
         ref Vector2 velocity,
@@ -940,16 +1102,18 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles left diagonal slope collision
+    /// Duration in seconds for strategy transitions. Provides a pause between
+    /// different AI behaviors for more natural transitions.
     /// </summary>
-    /// <summary>
-    /// Helper constant for strategy transitions
-    /// </summary>
-    private const float TransitionDuration = 1.0f; // Duration in seconds
+    private const float TransitionDuration = 1.0f;
 
     /// <summary>
-    /// Gets the last known target position from strategy history
+    /// Gets the last known target position from the strategy history.
+    /// Used when an AI loses sight of its target during a chase.
     /// </summary>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    /// <returns>The last known target position, or null if no target has been tracked.</returns>
     private static Vector2? GetLastTargetPosition(
         List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
         GameTime gameTime)
@@ -960,8 +1124,13 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Transitions to a new strategy
+    /// Initiates a transition to a new strategy. First switches to a transition state
+    /// before switching to the target strategy.
     /// </summary>
+    /// <param name="currentStrategy">Current AI strategy reference.</param>
+    /// <param name="targetStrategy">Strategy to transition to.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="gameTime">Game timing information.</param>
     private static void TransitionToStrategy(
         ref Strategy currentStrategy,
         Strategy targetStrategy,
@@ -969,12 +1138,16 @@ public static class MovementUtilities
         GameTime gameTime)
     {
         AddStrategyToHistory(ref currentStrategy, Strategy.Transition, ref strategyHistory, gameTime);
-        DecisionMaker._targetStrategy = targetStrategy;
+        DecisionMaker.TargetStrategy = targetStrategy;
     }
 
     /// <summary>
-    /// Adds a strategy to history
+    /// Adds a new strategy to the AI's strategy history and updates the current strategy.
     /// </summary>
+    /// <param name="currentStrategy">Current AI strategy reference.</param>
+    /// <param name="newStrategy">New strategy to add to history and set as current.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="gameTime">Game timing information.</param>
     private static void AddStrategyToHistory(
         ref Strategy currentStrategy,
         Strategy newStrategy,
@@ -987,8 +1160,17 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles left diagonal slope collision
+    /// Handles specific collision behavior for left diagonal slopes.
+    /// Adjusts entity position based on slope direction and collision context.
     /// </summary>
+    /// <param name="position">Current position of the entity.</param>
+    /// <param name="newGroundY">The calculated ground Y position to be adjusted.</param>
+    /// <param name="leftGroundY">Ground Y position on the left side of the entity.</param>
+    /// <param name="rightGroundY">Ground Y position on the right side of the entity.</param>
+    /// <param name="leftSlope">Slope value of the left diagonal tile.</param>
+    /// <param name="xMovementBlocked">Whether horizontal movement was blocked.</param>
+    /// <param name="movementSpeed">Base movement speed for position adjustments.</param>
+    /// <param name="textureInfo">Information about the entity's texture and size.</param>
     private static void HandleLeftDiagonalSlope(
         ref Vector2 position,
         ref float newGroundY,
@@ -1059,8 +1241,17 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles right diagonal slope collision
+    /// Handles specific collision behavior for right diagonal slopes.
+    /// Adjusts entity position based on slope direction and collision context.
     /// </summary>
+    /// <param name="position">Current position of the entity.</param>
+    /// <param name="newGroundY">The calculated ground Y position to be adjusted.</param>
+    /// <param name="leftGroundY">Ground Y position on the left side of the entity.</param>
+    /// <param name="rightGroundY">Ground Y position on the right side of the entity.</param>
+    /// <param name="rightSlope">Slope value of the right diagonal tile.</param>
+    /// <param name="xMovementBlocked">Whether horizontal movement was blocked.</param>
+    /// <param name="movementSpeed">Base movement speed for position adjustments.</param>
+    /// <param name="textureInfo">Information about the entity's texture and size.</param>
     private static void HandleRightDiagonalSlope(
         ref Vector2 position,
         ref float newGroundY,
@@ -1140,8 +1331,18 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Checks for collision at a position
+    /// Checks for collision at a specific position by testing against all map layers.
+    /// Returns collision information including diagonal status for specialized handling.
     /// </summary>
+    /// <param name="position">Position to check for collision.</param>
+    /// <param name="map">The tiled map to check against.</param>
+    /// <param name="collisionBounding">Collision boundary for the entity.</param>
+    /// <param name="velocityY">Vertical velocity for detecting fall-through conditions.</param>
+    /// <param name="isDiagonal">Outputs whether collision is with a diagonal tile.</param>
+    /// <param name="isCenterOnDiagonal">Outputs whether the entity center is on a diagonal.</param>
+    /// <param name="yCollisionFromAbove">Outputs whether collision is from above (ceiling hit).</param>
+    /// <returns>True if collision is detected, false otherwise.</returns>
+    /// <returns></returns>
     public static bool CheckCollisionAtPosition(Vector2 position,
         TiledMap map,
         ICollisionBounding collisionBounding,
@@ -1200,8 +1401,22 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Checks for collision with a specific layer
+    /// Checks for collision with a specific layer within the given tile bounds.
+    /// Handles both regular and diagonal tile collisions.
     /// </summary>
+    /// <param name="layer">Map layer to check.</param>
+    /// <param name="leftTile">Left boundary tile index.</param>
+    /// <param name="rightTile">Right boundary tile index.</param>
+    /// <param name="topTile">Top boundary tile index.</param>
+    /// <param name="bottomTile">Bottom boundary tile index.</param>
+    /// <param name="position">Entity position to check.</param>
+    /// <param name="collisionBounding">Collision boundary for the entity.</param>
+    /// <param name="velocityY">Vertical velocity for detecting movement direction.</param>
+    /// <param name="isThisDiagonalTile">Outputs whether a diagonal tile was hit.</param>
+    /// <param name="isCenterOnDiagonal">Outputs whether entity center is on a diagonal.</param>
+    /// <param name="yCollisionFromAbove">Outputs whether collision is from above.</param>
+    /// <returns>True if collision is detected, false otherwise.</returns>
+    /// <returns></returns>
     private static bool CheckLayerCollision(Layer layer,
         int leftTile,
         int rightTile,
