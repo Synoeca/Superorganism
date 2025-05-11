@@ -43,7 +43,7 @@ namespace Superorganism.Core.SaveLoadSystem
 
         public static GameStateInfo RestoreGameState(GameStateContent savedState)
         {
-            GameStateInfo gameState = new GameStateInfo
+            GameStateInfo gameState = new()
             {
                 GameProgressTime = TimeSpan.FromSeconds(savedState.GameProgressTime.TotalSeconds),
                 Entities = []
@@ -66,9 +66,10 @@ namespace Superorganism.Core.SaveLoadSystem
             switch (data.Type)
             {
                 case "Ant":
-                    Ant ant = new Ant
+                    Ant ant = new()
                     {
-                        Position = data.Position
+                        Position = data.Position,
+                        IsControlled = data.IsControlled
                     };
                     // Apply EntityStatus first
                     if (data.Status != null)
@@ -83,9 +84,10 @@ namespace Superorganism.Core.SaveLoadSystem
                     AntEnemy enemy = new()
                     {
                         Position = data.Position,
+                        LastKnownTargetPosition = data.LastKnownTargetPosition,
                         Strategy = data.CurrentStrategy,
                         StrategyHistory = data.StrategyHistory?.Select(sh =>
-                            (sh.Strategy, sh.StartTime, sh.LastActionTime)).ToList() ?? new()
+                            (sh.Strategy, sh.StartTime, sh.LastActionTime)).ToList() ?? []
                     };
                     // Apply EntityStatus first
                     if (data.Status != null)

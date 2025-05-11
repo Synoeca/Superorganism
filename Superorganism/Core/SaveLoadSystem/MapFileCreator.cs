@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using Microsoft.Xna.Framework.Content;
+using Superorganism.Tiles;
 
 namespace Superorganism.Core.SaveLoadSystem
 {
@@ -29,7 +30,7 @@ namespace Superorganism.Core.SaveLoadSystem
                 Directory.CreateDirectory(Path.GetDirectoryName(newMapPath) ?? throw new InvalidOperationException());
 
                 // Get the current map from GameState
-                var currentMap = GameState.CurrentMap;
+                TiledMap currentMap = GameState.CurrentMap;
 
                 // Construct the original map path
                 string originalMapPath = null;

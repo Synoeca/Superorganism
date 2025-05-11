@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.Xna.Framework.Content;
 using Superorganism.Graphics;
 
 namespace Superorganism.Screens
@@ -529,7 +530,7 @@ namespace Superorganism.Screens
             if (gameplayScreen?.GameStateOrganizer == null) return;
 
             // Get the ContentManager from GameStateOrganizer
-            var contentManager = gameplayScreen.GameStateOrganizer.GetContentManager();
+            ContentManager contentManager = gameplayScreen.GameStateOrganizer.GetContentManager();
 
             // If we can't get ContentManager, we might need to handle this differently
             if (contentManager == null)

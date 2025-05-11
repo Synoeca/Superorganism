@@ -80,6 +80,7 @@ namespace Superorganism.Core.SaveLoadSystem
                     {
                         Type = "Ant",
                         Position = player.Position,
+                        IsControlled = player.IsControlled,
                         Health = player.EntityStatus.HitPoints,
                         Status = SerializeEntityStatus(player.EntityStatus)
                     });
@@ -93,7 +94,8 @@ namespace Superorganism.Core.SaveLoadSystem
                     {
                         Type = "AntEnemy",
                         Position = enemy.Position,
-                        Health = (int)enemy.EntityStatus.HitPoints,
+                        Health = enemy.EntityStatus.HitPoints,
+                        LastKnownTargetPosition = enemy.LastKnownTargetPosition,
                         CurrentStrategy = enemy.Strategy,
                         StrategyHistory = enemy.StrategyHistory.Select(sh => new StrategyHistoryEntry
                         {

@@ -27,7 +27,7 @@ namespace Superorganism.AI
         /// Stores the last known position of a target entity during chase sequences.
         /// Used for predictive pathing when the target is temporarily out of sight.
         /// </summary>
-        private static Vector2 _lastKnownTargetPosition;
+        //private static Vector2 _lastKnownTargetPosition;
 
         /// <summary>
         /// The target strategy that entities are transitioning towards.
@@ -137,6 +137,7 @@ namespace Superorganism.AI
         /// <param name="directionTimer">Timer for tracking direction changes.</param>
         /// <param name="directionInterval">Interval between direction changes.</param>
         /// <param name="collisionBounding">Collision boundary for the entity.</param>
+        /// <param name="lastKnownTargetPosition"></param>
         /// <param name="velocity">Current movement velocity.</param>
         /// <param name="screenWidth">Width of the game screen.</param>
         /// <param name="groundHeight">Height of the ground level.</param>
@@ -149,11 +150,14 @@ namespace Superorganism.AI
         /// <param name="jumpDiagonalPosY">Y position used for diagonal slope jumping calculations.</param>
         /// <param name="flipped">Whether the entity sprite is horizontally flipped.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when an unsupported strategy is provided.</exception>
-        public static void Action(ref Strategy strategy, ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
-        GameTime gameTime, ref Direction direction, ref Vector2 position,
-        ref double directionTimer, ref double directionInterval, ref ICollisionBounding collisionBounding,
-        ref Vector2 velocity, int screenWidth, int groundHeight, TextureInfo textureInfo, EntityStatus entityStatus, 
-        ref bool isOnGround, ref bool isJumping, ref float friction , ref bool isCenterOnDiagonalSlope, ref float jumpDiagonalPosY, ref bool flipped)
+        public static void Action(ref Strategy strategy,
+            ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
+            GameTime gameTime, ref Direction direction, ref Vector2 position,
+            ref double directionTimer, ref double directionInterval, ref ICollisionBounding collisionBounding,
+            ref Vector2 lastKnownTargetPosition,
+            ref Vector2 velocity, int screenWidth, int groundHeight, TextureInfo textureInfo, EntityStatus entityStatus,
+            ref bool isOnGround, ref bool isJumping, ref float friction, ref bool isCenterOnDiagonalSlope,
+            ref float jumpDiagonalPosY, ref bool flipped)
         {
             double currentStrategyDuration = GetStrategyDuration(strategyHistory, gameTime);
             Rectangle mapBounds = MapHelper.GetMapWorldBounds();
@@ -286,7 +290,7 @@ namespace Superorganism.AI
                         ref strategyHistory,
                         Entities,
                         currentStrategyDuration,
-                        ref _lastKnownTargetPosition,
+                        ref lastKnownTargetPosition,
                         gameTime);
 
                     break;
@@ -310,7 +314,7 @@ namespace Superorganism.AI
                         strategyHistory,
                         Entities,
                         currentStrategyDuration,
-                        ref _lastKnownTargetPosition,
+                        ref lastKnownTargetPosition,
                         gameTime);
 
                     break;

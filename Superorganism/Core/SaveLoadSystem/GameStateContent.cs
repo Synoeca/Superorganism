@@ -22,6 +22,8 @@ namespace Superorganism.Core.SaveLoadSystem
     {
         public string Type { get; set; }  // "Ant", "AntEnemy", "Crop", "Fly"
         public Vector2 Position { get; set; }
+        public bool IsControlled { get; set; }
+        public Vector2 LastKnownTargetPosition { get; set; }
         public float Health { get; set; }  // Keep as int for backward compatibility
         public Strategy CurrentStrategy { get; set; }  // For AntEnemy
         public List<StrategyHistoryEntry> StrategyHistory { get; set; }  // For AntEnemy
