@@ -158,15 +158,13 @@ namespace Superorganism.Screens
             // Use the smaller scale to ensure UI fits on screen
             _uiScale = Math.Min(widthScale, heightScale);
 
-            // Scale font based on resolution
-            _fontScale = MathHelper.Clamp(_uiScale, 0.8f, 1.5f);
+            // Scale font based on resolution, but use smaller values for fonts only
+            // Reduce font scale by about 40% compared to UI scale
+            _fontScale = MathHelper.Clamp(_uiScale * 0.6f, 0.5f, 0.9f); // Smaller font scale range
 
-            // Scale the slot size and padding based on resolution
+            // Keep original slot size and padding (no change here)
             _slotSize = (int)(48 * _uiScale);
             _slotPadding = (int)(4 * _uiScale);
-
-            // Call the internal scale calculation to adjust elements based on inventory size
-            CalculateInternalScale();
         }
 
         /// <summary>
@@ -463,75 +461,57 @@ namespace Superorganism.Screens
 
             return sanitized.ToString();
         }
-        /// <summary>
-        /// Calculates the internal UI scale based on current inventory panel dimensions
-        /// </summary>
+
         /// <summary>
         /// Calculates the internal UI scale based on current inventory panel dimensions
         /// </summary>
         private void CalculateInternalScale()
         {
             // Calculate text scale based on window dimensions
-            // Smaller windows should have smaller text, larger windows should have larger text
             // Base scale would be for a 800x600 inventory window
-            float basePanelWidth = 1280f * _uiScale;
-            float basePanelHeight = 720f * _uiScale;
+            float basePanelWidth = 800f * _uiScale;
+            float basePanelHeight = 600f * _uiScale;
 
             float widthScale = _inventoryRect.Width / basePanelWidth;
             float heightScale = _inventoryRect.Height / basePanelHeight;
 
             // Use the smaller scale to ensure text fits
-            float calculatedFontScale = Math.Min(widthScale, heightScale) * _uiScale;
+            float calculatedScale = Math.Min(widthScale, heightScale) * _uiScale;
 
-            // Apply smoothing to font scale changes - only change by a small percentage of the difference
-            // This makes changes more gradual rather than dramatic
-            float targetFontScale = MathHelper.Clamp(
-                calculatedFontScale,
-                0.3f, // Min font scale
-                1.5f  // Max font scale
-            );
+            // Apply the smaller font scale factor (0.6) to maintain consistency
+            float targetFontScale = MathHelper.Clamp(calculatedScale * 0.6f, 0.5f, 0.9f);
 
-            // Apply smoothing - only change by at most 15% of the difference
-            // This will make the scale change more gradually during resizing
+            // Apply smoothing for gradual changes
             if (_fontScale != 0)
             {
-                float changeAmount = (targetFontScale - _fontScale) * 0.15f;
+                float changeAmount = (targetFontScale - _fontScale) * 0.3f;
                 _fontScale += changeAmount;
-                _fontScale *= 0.5f;
             }
             else
             {
-                _fontScale = targetFontScale; // First initialization
+                _fontScale = targetFontScale;
             }
 
-            // Scale slot size based on inventory dimensions and grid configuration
-            // Calculate based on available width in grid section
-            int gridContentWidth = _gridRect.Width - (int)(40 * _uiScale); // Account for margins
-            int gridContentHeight = _gridRect.Height - (int)(60 * _uiScale); // Account for margins and title
+            // Keep original slot size calculation logic
+            int gridContentWidth = _gridRect.Width - (int)(40 * _uiScale);
+            int gridContentHeight = _gridRect.Height - (int)(60 * _uiScale);
 
-            // Calculate max slot size that fits in the grid
             int maxSlotWidth = (gridContentWidth / GridColumns) - _slotPadding;
             int maxSlotHeight = (gridContentHeight / GridRows) - _slotPadding;
 
-            // Use smaller dimension to keep slots square
             int targetSlotSize = Math.Min(maxSlotWidth, maxSlotHeight);
-
-            // Ensure minimum slot size
             targetSlotSize = Math.Max(targetSlotSize, (int)(24 * _uiScale));
 
-            // Similarly apply smoothing to slot size changes
             if (_slotSize != 0)
             {
                 int slotSizeDifference = targetSlotSize - _slotSize;
-                // Apply at most 20% of the slot size difference
-                _slotSize += (int)(slotSizeDifference * 0.2f);
+                _slotSize += (int)(slotSizeDifference * 0.3f);
             }
             else
             {
-                _slotSize = targetSlotSize; // First initialization
+                _slotSize = targetSlotSize;
             }
 
-            // Adjust padding based on slot size
             _slotPadding = Math.Max((int)(4 * _uiScale), _slotSize / 12);
         }
 
@@ -940,13 +920,18 @@ namespace Superorganism.Screens
                 Color.White * TransitionAlpha,
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
 
+            // Calculate space needed for help text at bottom
+            string helpText = "WASD/Arrows: Navigate  E: Use Item  Esc/I: Close";
+            Vector2 helpSize = _font.MeasureString(helpText) * _fontScale;
+            int bottomPadding = (int)(helpSize.Y + 25 * _uiScale); // Add extra padding for safety
+
             // Draw character silhouette or model
-            // For now we'll just draw a placeholder rectangle
+            // Now with adjusted height to prevent overlap with help text
             Rectangle characterImageRect = new(
                 _characterRect.X + (int)(20 * _uiScale),
                 _characterRect.Y + (int)(40 * _uiScale),
                 _characterRect.Width - (int)(40 * _uiScale),
-                _characterRect.Height - (int)(80 * _uiScale));
+                _characterRect.Height - bottomPadding - (int)(60 * _uiScale)); // Reduced height to make room
 
             Color characterBg = new Color(50, 50, 80, 150) * TransitionAlpha;
             spriteBatch.Draw(_backgroundTexture, characterImageRect, characterBg);
@@ -955,7 +940,7 @@ namespace Superorganism.Screens
             DrawRectangleBorder(spriteBatch, characterImageRect,
                 new Color(100, 100, 150, 200) * TransitionAlpha, (int)(2 * _uiScale));
 
-            // Draw character type text
+            // Draw character type text with more space from bottom of window
             string charType = "Ant Worker";
             Vector2 typeSize = _font.MeasureString(charType) * _fontScale;
             spriteBatch.DrawString(_font, charType,
@@ -965,9 +950,6 @@ namespace Superorganism.Screens
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
         }
 
-        /// <summary>
-        /// Draws the stats panel in the right section
-        /// </summary>
         /// <summary>
         /// Draws the stats panel in the right section
         /// </summary>
@@ -983,20 +965,20 @@ namespace Superorganism.Screens
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
 
             // Starting position for stats - increased vertical padding
-            Vector2 statPos = new(_statsRect.X + (int)(15 * _uiScale), _statsRect.Y + (int)(40 * _uiScale));
+            Vector2 statPos = new(_statsRect.X + (int)(15 * _uiScale), _statsRect.Y + (int)(35 * _uiScale)); // Reduced from 40
 
             // Calculate a better line height with more spacing
-            float lineHeight = _font.LineSpacing * _fontScale * 1.4f; // Increased from 1.2f for better spacing
+            float lineHeight = _font.LineSpacing * _fontScale * 1.5f; // Reduced from 1.4f for tighter spacing
 
             // Create category headers with distinct styling
-            float headerFontScale = _fontScale * 1.1f; // Slightly larger for headers
-            Color headerColor = new Color(200, 200, 255) * TransitionAlpha; // Light blue for headers
+            float headerFontScale = _fontScale * 1.1f;
+            Color headerColor = new Color(200, 200, 255) * TransitionAlpha;
 
             // --- VITAL STATISTICS SECTION ---
             spriteBatch.DrawString(_font, "Vital Statistics",
                 statPos, headerColor,
                 0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
-            statPos.Y += lineHeight * 1.2f; // Add extra padding after header
+            statPos.Y += lineHeight; // Reduced from 1.2f for tighter spacing
 
             // Draw Health
             DrawStatBar(spriteBatch, statPos, "Health",
@@ -1014,46 +996,46 @@ namespace Superorganism.Screens
             DrawStatBar(spriteBatch, statPos, "Hunger",
                 _playerStatus.Hunger, _playerStatus.MaxHunger,
                 Color.Yellow);
-            statPos.Y += lineHeight * 1.5f; // Add extra space between sections
+            statPos.Y += lineHeight; // Reduced from 1.5f for tighter spacing
 
             // --- ATTRIBUTES SECTION ---
             spriteBatch.DrawString(_font, "Attributes",
                 statPos, headerColor,
                 0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
-            statPos.Y += lineHeight * 1.2f; // Add extra padding after header
+            statPos.Y += lineHeight; // Reduced from 1.2f for tighter spacing
 
             // Organize attributes in two columns if space permits
             float columnWidth = _statsRect.Width / 2 - (int)(20 * _uiScale);
             Vector2 rightColPos = new Vector2(statPos.X + columnWidth, statPos.Y);
 
-            // Left column attributes
-            spriteBatch.DrawString(_font, $"Strength: {_playerStatus.Strength}",
-                statPos, Color.White * TransitionAlpha,
-                0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-            statPos.Y += lineHeight;
-
-            spriteBatch.DrawString(_font, $"Endurance: {_playerStatus.Endurance}",
-                statPos, Color.White * TransitionAlpha,
-                0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-            statPos.Y += lineHeight;
-
-            spriteBatch.DrawString(_font, $"Intelligence: {_playerStatus.Intelligence}",
-                statPos, Color.White * TransitionAlpha,
-                0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-            statPos.Y += lineHeight;
-
-            // Right column attributes (if width allows)
-            if (columnWidth >= 80) // Only show second column if enough width
+            // Use a more compact arrangement for attributes - three per column if possible
+            if (columnWidth >= 80) // Only show two columns if enough width
             {
+                // Left column attributes - 3 attributes
+                spriteBatch.DrawString(_font, $"Strength: {_playerStatus.Strength}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight * 0.9f; // Tighter spacing between attributes
+
+                spriteBatch.DrawString(_font, $"Endurance: {_playerStatus.Endurance}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight * 0.9f;
+
+                spriteBatch.DrawString(_font, $"Intelligence: {_playerStatus.Intelligence}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+
+                // Right column attributes - 3 attributes
                 spriteBatch.DrawString(_font, $"Agility: {_playerStatus.Agility}",
                     rightColPos, Color.White * TransitionAlpha,
                     0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-                rightColPos.Y += lineHeight;
+                rightColPos.Y += lineHeight * 0.9f;
 
                 spriteBatch.DrawString(_font, $"Perception: {_playerStatus.Perception}",
                     rightColPos, Color.White * TransitionAlpha,
                     0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-                rightColPos.Y += lineHeight;
+                rightColPos.Y += lineHeight * 0.9f;
 
                 spriteBatch.DrawString(_font, $"Luck: {_playerStatus.Luck}",
                     rightColPos, Color.White * TransitionAlpha,
@@ -1061,56 +1043,67 @@ namespace Superorganism.Screens
             }
             else // Single column layout if width is constrained
             {
-                spriteBatch.DrawString(_font, $"Agility: {_playerStatus.Agility}",
+                // Compact single column layout
+                spriteBatch.DrawString(_font, $"Str: {_playerStatus.Strength}  Agi: {_playerStatus.Agility}",
                     statPos, Color.White * TransitionAlpha,
                     0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-                statPos.Y += lineHeight;
+                statPos.Y += lineHeight * 0.9f;
 
-                spriteBatch.DrawString(_font, $"Perception: {_playerStatus.Perception}",
+                spriteBatch.DrawString(_font, $"End: {_playerStatus.Endurance}  Per: {_playerStatus.Perception}",
                     statPos, Color.White * TransitionAlpha,
                     0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-                statPos.Y += lineHeight;
+                statPos.Y += lineHeight * 0.9f;
 
-                spriteBatch.DrawString(_font, $"Luck: {_playerStatus.Luck}",
+                spriteBatch.DrawString(_font, $"Int: {_playerStatus.Intelligence}  Lck: {_playerStatus.Luck}",
                     statPos, Color.White * TransitionAlpha,
                     0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
             }
 
             // Use the maximum Y position from either column
-            statPos.Y = Math.Max(statPos.Y, rightColPos.Y);
-            statPos.Y += lineHeight * 1.5f; // Add extra space between sections
+            statPos.Y = Math.Max(statPos.Y, rightColPos.Y) + lineHeight * 0.9f; // Reduced for tighter spacing
 
             // --- RECOVERY RATES SECTION ---
-            // Only show if there's enough vertical space left
-            float remainingHeight = _statsRect.Bottom - statPos.Y;
-            if (remainingHeight > lineHeight * 4) // Check if we have at least 4 lines of space
+            // Start recovery rates higher up to avoid item details overlap
+            spriteBatch.DrawString(_font, "Recovery Rates",
+                statPos, headerColor,
+                0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
+            statPos.Y += lineHeight;
+
+            // Format recovery rates nicely
+            string staminaRegen = $"Stamina: {_playerStatus.StaminaRegenRate:F1}/sec";
+            if (_playerStatus.StaminaRegenDelay > 0)
+                staminaRegen += $" (after {_playerStatus.StaminaRegenDelay:F1}s)";
+
+            spriteBatch.DrawString(_font, staminaRegen,
+                statPos, Color.White * TransitionAlpha,
+                0f, Vector2.Zero, _fontScale * 0.9f, SpriteEffects.None, 0f);
+            statPos.Y += lineHeight * 0.9f;
+
+            // Show hunger consumption rates with compact formatting
+            string hungerText = "Hunger rates: ";
+            float hungerFontScale = _fontScale * 0.85f; // Slightly smaller for better fitting
+
+            spriteBatch.DrawString(_font, hungerText,
+                statPos, Color.White * TransitionAlpha,
+                0f, Vector2.Zero, hungerFontScale, SpriteEffects.None, 0f);
+            statPos.Y += lineHeight * 0.8f;
+
+            // Split hunger rates into separate lines for better visibility
+            if (_playerStatus.IdleHungerRate > 0)
             {
-                spriteBatch.DrawString(_font, "Recovery Rates",
-                    statPos, headerColor,
-                    0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
-                statPos.Y += lineHeight * 1.2f;
+                spriteBatch.DrawString(_font, $"  Idle: {_playerStatus.IdleHungerRate * 60:F2}/min",
+                    new Vector2(statPos.X, statPos.Y),
+                    Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, hungerFontScale, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight * 0.8f;
+            }
 
-                // Format recovery rates nicely
-                string staminaRegen = $"Stamina: {_playerStatus.StaminaRegenRate:F1}/sec";
-                if (_playerStatus.StaminaRegenDelay > 0)
-                    staminaRegen += $" (after {_playerStatus.StaminaRegenDelay:F1}s)";
-
-                spriteBatch.DrawString(_font, staminaRegen,
-                    statPos, Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, _fontScale * 0.9f, SpriteEffects.None, 0f);
-                statPos.Y += lineHeight;
-
-                // Show hunger consumption rates if enough space
-                if (remainingHeight > lineHeight * 6)
-                {
-                    string hungerText = "Hunger loss: ";
-                    if (_playerStatus.IdleHungerRate > 0)
-                        hungerText += $"{_playerStatus.IdleHungerRate * 60:F1}/min (idle)";
-
-                    spriteBatch.DrawString(_font, hungerText,
-                        statPos, Color.White * TransitionAlpha,
-                        0f, Vector2.Zero, _fontScale * 0.9f, SpriteEffects.None, 0f);
-                }
+            if (_playerStatus.MovingHungerRate > 0)
+            {
+                spriteBatch.DrawString(_font, $"  Moving: {_playerStatus.MovingHungerRate * 60:F2}/min",
+                    new Vector2(statPos.X, statPos.Y),
+                    Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, hungerFontScale, SpriteEffects.None, 0f);
             }
         }
 
@@ -1176,7 +1169,7 @@ namespace Superorganism.Screens
         }
 
         /// <summary>
-        /// Draws details of the selected item in the stats panel
+        /// Draws details of the selected item in a panel below the inventory grid
         /// </summary>
         private void DrawSelectedItemDetails(SpriteBatch spriteBatch)
         {
@@ -1186,12 +1179,37 @@ namespace Superorganism.Screens
 
             InventoryItem item = _inventoryItems[_selectedItemIndex];
 
-            // Draw in a panel at the bottom of the stats section
+            // Get the total grid height to ensure details don't overlap with grid
+            int totalSlotSize = _slotSize + _slotPadding;
+            int gridWidth = totalSlotSize * GridColumns + _slotPadding;
+            int gridHeight = totalSlotSize * GridRows + _slotPadding;
+
+            // Get grid start position
+            int gridStartX = _gridRect.X + (_gridRect.Width - gridWidth) / 2;
+            int gridStartY = _gridRect.Y + (int)(10 * _uiScale);
+
+            // Calculate grid bottom position
+            int gridBottom = gridStartY + gridHeight + (int)(20 * _uiScale); // Add padding
+
+            // Calculate details panel dimensions
+            int detailsHeight = (int)(120 * _uiScale);
+            int detailsWidth = gridWidth - (int)(20 * _uiScale);
+
+            // Calculate available space between grid bottom and window bottom
+            int availableSpace = _gridRect.Bottom - gridBottom - (int)(20 * _uiScale);
+
+            // Adjust details height if not enough space
+            if (availableSpace < detailsHeight)
+            {
+                detailsHeight = Math.Max(availableSpace, (int)(70 * _uiScale)); // Minimum height
+            }
+
+            // Position the details panel below the grid
             Rectangle detailsRect = new(
-                _statsRect.X + (int)(10 * _uiScale),
-                _statsRect.Bottom - (int)(140 * _uiScale),
-                _statsRect.Width - (int)(20 * _uiScale),
-                (int)(130 * _uiScale));
+                gridStartX + (int)(10 * _uiScale), // Align with grid
+                gridBottom, // Position just below grid
+                detailsWidth,
+                detailsHeight);
 
             // Draw panel background
             Color detailsBg = new Color(50, 50, 80, 180) * TransitionAlpha;
@@ -1202,8 +1220,8 @@ namespace Superorganism.Screens
                 new Color(100, 100, 150, 200) * TransitionAlpha, 1);
 
             // Draw item details
-            Vector2 textPos = new(detailsRect.X + (int)(10 * _uiScale), detailsRect.Y + (int)(10 * _uiScale));
-            float detailsFontScale = _fontScale * 0.9f; // Slightly smaller for details
+            Vector2 textPos = new(detailsRect.X + (int)(10 * _uiScale), detailsRect.Y + (int)(8 * _uiScale));
+            float detailsFontScale = _fontScale * 0.9f;
 
             // Draw item name
             spriteBatch.DrawString(_font, item.Name, textPos,
@@ -1217,14 +1235,20 @@ namespace Superorganism.Screens
                 0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
             textPos.Y += _font.LineSpacing * detailsFontScale;
 
-            // Draw description - we'll need to wrap text for longer descriptions
+            // Calculate available space for description
+            float availableDescriptionSpace = detailsRect.Bottom - textPos.Y - (int)(8 * _uiScale);
+            int maxLines = (int)(availableDescriptionSpace / (_font.LineSpacing * detailsFontScale));
+
+            // Draw description with line limiting
             string description = item.Description;
             float maxWidth = detailsRect.Width - (int)(20 * _uiScale);
 
             List<string> lines = WrapText(description, _font, maxWidth / detailsFontScale);
-            foreach (string line in lines)
+
+            // Show only what fits
+            for (int i = 0; i < Math.Min(lines.Count, maxLines); i++)
             {
-                spriteBatch.DrawString(_font, line, textPos,
+                spriteBatch.DrawString(_font, lines[i], textPos,
                     Color.White * TransitionAlpha,
                     0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
                 textPos.Y += _font.LineSpacing * detailsFontScale;
