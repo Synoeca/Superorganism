@@ -86,12 +86,12 @@ public static class MovementUtilities
         float proposedXVelocity = 0;
 
         // Calculate proposed horizontal movement
-        if (keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A))
+        if (keyboardState.IsKeyDown(Keys.A))
         {
             proposedXVelocity = -movementSpeed;
             flipped = true;
         }
-        else if (keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D))
+        else if (keyboardState.IsKeyDown(Keys.D))
         {
              proposedXVelocity = movementSpeed;
             flipped = false;
@@ -382,12 +382,12 @@ public static class MovementUtilities
         float proposedXVelocity = 0;
 
         // Calculate proposed horizontal movement
-        if (keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A))
+        if (keyboardState.IsKeyDown(Keys.A))
         {
             proposedXVelocity = -movementSpeed;
             flipped = true;
         }
-        else if (keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D))
+        else if (keyboardState.IsKeyDown(Keys.D))
         {
             proposedXVelocity = movementSpeed;
             flipped = false;
