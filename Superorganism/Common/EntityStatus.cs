@@ -289,17 +289,13 @@ namespace Superorganism.Common
                     // Low stamina sprint speed
                     return LowStaminaSpeedMultiplier;
                 }
-                else
-                {
-                    // Normal sprint speed
-                    return 2.0f; // Default sprint multiplier
-                }
+
+                // Normal sprint speed
+                return 2.0f;
             }
-            else
-            {
-                // Normal walk speed
-                return 1.0f;
-            }
+
+            // Normal walk speed
+            return 1.0f;
         }
     }
 }

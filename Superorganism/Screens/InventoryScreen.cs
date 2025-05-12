@@ -4,7 +4,6 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MonoGame.Extended.Timers;
 using Superorganism.Common;
 using Superorganism.Core.Inventory;
 using Superorganism.Core.Timing;
@@ -31,12 +30,21 @@ namespace Superorganism.Screens
 
         // UI elements and regions
         private Texture2D _backgroundTexture;
+        private Rectangle _defaultWindowRect;
         private Rectangle _inventoryRect;
         private Rectangle _gridRect;
         private Rectangle _characterRect;
         private Rectangle _statsRect;
         private Rectangle _titleBarRect;
         private Rectangle _resizeHandleRect;
+
+        // Window control buttons
+        private Rectangle _closeButtonRect;
+        private Rectangle _maximizeButtonRect;
+        private Rectangle _minimizeButtonRect;
+        private bool _isMinimized = false;
+        private bool _isMaximized = false;
+        private Rectangle _savedWindowRect; // Stores original size/position when maximized
 
         // Font and text rendering
         private SpriteFont _font;
@@ -151,8 +159,8 @@ namespace Superorganism.Screens
             Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
 
             // Base scale on a reference resolution of 1280x720
-            float baseWidth = 1280f;
-            float baseHeight = 720f;
+            const float baseWidth = 1280f;
+            const float baseHeight = 720f;
 
             // Calculate scale factors for width and height
             float widthScale = viewport.Width / baseWidth;
@@ -191,6 +199,9 @@ namespace Superorganism.Screens
                 (viewport.Height - height) / 2,
                 width, height);
 
+            // Store the default window state when first created
+            _defaultWindowRect = _inventoryRect;
+
             // Create the title bar at the top
             int titleBarHeight = (int)(30 * _uiScale); // Scale title bar height
             _titleBarRect = new Rectangle(
@@ -198,6 +209,31 @@ namespace Superorganism.Screens
                 _inventoryRect.Y,
                 _inventoryRect.Width,
                 titleBarHeight);
+
+            // Create window control buttons
+            int buttonSize = (int)(24 * _uiScale);
+            int buttonPadding = (int)(4 * _uiScale);
+
+            // Close button (X) at the far right
+            _closeButtonRect = new Rectangle(
+                _titleBarRect.Right - buttonSize - buttonPadding,
+                _titleBarRect.Y + ((_titleBarRect.Height - buttonSize) / 2),
+                buttonSize,
+                buttonSize);
+
+            // Maximize button to the left of close button
+            _maximizeButtonRect = new Rectangle(
+                _closeButtonRect.X - buttonSize - buttonPadding,
+                _closeButtonRect.Y,
+                buttonSize,
+                buttonSize);
+
+            // Minimize button to the left of maximize button
+            _minimizeButtonRect = new Rectangle(
+                _maximizeButtonRect.X - buttonSize - buttonPadding,
+                _closeButtonRect.Y,
+                buttonSize,
+                buttonSize);
 
             // Create resize handle in bottom-right corner
             int handleSize = (int)(20 * _uiScale);
@@ -231,6 +267,7 @@ namespace Superorganism.Screens
                 sectionWidth,
                 _inventoryRect.Height - _titleBarRect.Height);
         }
+
 
         /// <summary>
         /// Tries to get the player entity status from the current GameplayScreen
@@ -294,6 +331,78 @@ namespace Superorganism.Screens
             // Handle mouse dragging and resizing
             HandleMouseDragAndResize(currentMouse, prevMouse);
 
+            // Handle window control buttons (X, maximize, minimize)
+            if (input.IsNewMouseButtonPress(MouseButtons.Left))
+            {
+                Point mousePos = currentMouse.Position;
+
+                // Check if close button clicked
+                if (_closeButtonRect.Contains(mousePos))
+                {
+                    GameTimer.Resume();
+                    ExitScreen();
+                    return;
+                }
+
+                // Check if maximize button clicked
+                if (_maximizeButtonRect.Contains(mousePos))
+                {
+                    if (_isMinimized)
+                    {
+                        // If minimized, restore to default first, then maximize
+                        _isMinimized = false;
+                        _inventoryRect = _defaultWindowRect;
+                        ToggleMaximize();
+                    }
+                    else if (_isMaximized)
+                    {
+                        // If already maximized, go back to default state
+                        _isMaximized = false;
+                        _inventoryRect = _defaultWindowRect;
+                    }
+                    else
+                    {
+                        // If in normal state, save current state and maximize
+                        _savedWindowRect = _inventoryRect;
+                        ToggleMaximize();
+                    }
+
+                    // Recalculate layout after state change
+                    CalculateInternalScale();
+                    RecreateLayout();
+                    return;
+                }
+
+                // Check if minimize button clicked
+                if (_minimizeButtonRect.Contains(mousePos))
+                {
+                    if (_isMaximized)
+                    {
+                        // If maximized, restore to default first, then minimize
+                        _isMaximized = false;
+                        _inventoryRect = _defaultWindowRect;
+                        MinimizeWindow();
+                    }
+                    else if (_isMinimized)
+                    {
+                        // If already minimized, go back to default state
+                        _isMinimized = false;
+                        _inventoryRect = _defaultWindowRect;
+                    }
+                    else
+                    {
+                        // If in normal state, save current state and minimize
+                        _savedWindowRect = _inventoryRect;
+                        MinimizeWindow();
+                    }
+
+                    // Recalculate layout after state change
+                    CalculateInternalScale();
+                    RecreateLayout();
+                    return;
+                }
+            }
+
             // Handle cancel (close inventory)
             if (_menuCancel.Occurred(input, ControllingPlayer, out PlayerIndex playerIndex))
             {
@@ -330,6 +439,86 @@ namespace Superorganism.Screens
         }
 
         /// <summary>
+        /// Toggles between maximized and regular window state
+        /// </summary>
+        private void ToggleMaximize()
+        {
+            if (_isMaximized)
+            {
+                // Restore to saved dimensions (the state before maximizing)
+                _inventoryRect = _savedWindowRect;
+                _isMaximized = false;
+            }
+            else
+            {
+                // Save current dimensions if not already saved
+                if (!_isMinimized)
+                {
+                    _savedWindowRect = _inventoryRect;
+                }
+
+                // Maximize to fill most of the screen
+                Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
+                _inventoryRect = new Rectangle(
+                    (int)(viewport.Width * 0.05f),  // 5% margin
+                    (int)(viewport.Height * 0.05f), // 5% margin
+                    (int)(viewport.Width * 0.9f),   // 90% of screen width
+                    (int)(viewport.Height * 0.9f)); // 90% of screen height
+
+                _isMaximized = true;
+                _isMinimized = false;
+            }
+
+            // Recalculate UI scale for the new size
+            CalculateInternalScale();
+
+            // Recreate the layout with new dimensions
+            RecreateLayout();
+        }
+
+        /// <summary>
+        /// Minimizes the window to just show the title bar
+        /// </summary>
+        private void MinimizeWindow()
+        {
+            if (_isMinimized)
+            {
+                // Restore to saved dimensions
+                _inventoryRect = _savedWindowRect;
+                _isMinimized = false;
+            }
+            else
+            {
+                // Save current dimensions if not already saved
+                if (!_isMaximized)
+                {
+                    _savedWindowRect = _inventoryRect;
+                }
+
+                // Shrink to a minimal size (just the title bar + small margin)
+                int minWidth = Math.Max((int)(300 * _uiScale), _titleBarRect.Width);
+                int oldX = _inventoryRect.X;
+                int oldY = _inventoryRect.Y;
+
+                _inventoryRect.Width = minWidth;
+                _inventoryRect.Height = (int)(40 * _uiScale); // Title bar + small margin
+
+                // Keep the same position
+                _inventoryRect.X = oldX;
+                _inventoryRect.Y = oldY;
+
+                _isMinimized = true;
+                _isMaximized = false;
+            }
+
+            // Recalculate UI scale for the new size
+            CalculateInternalScale();
+
+            // Recreate the layout with new dimensions
+            RecreateLayout();
+        }
+
+        /// <summary>
         /// Handles mouse dragging of the inventory panel and resizing
         /// </summary>
         private void HandleMouseDragAndResize(MouseState currentMouse, MouseState prevMouse)
@@ -340,10 +529,33 @@ namespace Superorganism.Screens
             if (currentMouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton == ButtonState.Released)
             {
                 // Check if clicking in title bar (for dragging)
-                if (_titleBarRect.Contains(mousePos))
+                if (_titleBarRect.Contains(mousePos) &&
+                    !_closeButtonRect.Contains(mousePos) &&
+                    !_maximizeButtonRect.Contains(mousePos) &&
+                    !_minimizeButtonRect.Contains(mousePos))
                 {
                     _isDragging = true;
                     _dragStartPos = new Point(mousePos.X - _inventoryRect.X, mousePos.Y - _inventoryRect.Y);
+
+                    if (_isMaximized)
+                    {
+                        _isMaximized = false;
+                        // Set a reasonable restored size
+                        int width = _savedWindowRect.Width;
+                        int height = _savedWindowRect.Height;
+
+                        // Position under the mouse cursor
+                        int newX = mousePos.X - (width / 2);
+                        int newY = mousePos.Y - (int)(15 * _uiScale); // Half of title bar height
+
+                        _inventoryRect.Width = width;
+                        _inventoryRect.Height = height;
+                        _inventoryRect.X = newX;
+                        _inventoryRect.Y = newY;
+
+                        // Recalculate layout
+                        RecreateLayout();
+                    }
                 }
                 // Check if clicking in resize handle
                 else if (_resizeHandleRect.Contains(mousePos))
@@ -351,6 +563,11 @@ namespace Superorganism.Screens
                     _isResizing = true;
                     _dragStartPos = mousePos;
                     _lastMousePos = mousePos; // Set initial position for resize
+
+                    if (_isMaximized)
+                    {
+                        _isMaximized = false;
+                    }
                 }
             }
 
@@ -384,6 +601,12 @@ namespace Superorganism.Screens
                 _statsRect.Y += deltaY;
                 _resizeHandleRect.X += deltaX;
                 _resizeHandleRect.Y += deltaY;
+                _closeButtonRect.X += deltaX;
+                _closeButtonRect.Y += deltaY;
+                _maximizeButtonRect.X += deltaX;
+                _maximizeButtonRect.Y += deltaY;
+                _minimizeButtonRect.X += deltaX;
+                _minimizeButtonRect.Y += deltaY;
             }
 
             // Handle ongoing resize - only if mouse has actually moved
@@ -521,9 +744,6 @@ namespace Superorganism.Screens
         /// <summary>
         /// Recreates the internal layout after a resize operation
         /// </summary>
-        /// <summary>
-        /// Recreates the internal layout after a resize operation
-        /// </summary>
         private void RecreateLayout()
         {
             // Create the title bar at the top with proper scaling
@@ -533,6 +753,31 @@ namespace Superorganism.Screens
                 _inventoryRect.Y,
                 _inventoryRect.Width,
                 titleBarHeight);
+
+            // Update window control buttons
+            int buttonSize = (int)(24 * _uiScale);
+            int buttonPadding = (int)(4 * _uiScale);
+
+            // Close button (X) at the far right
+            _closeButtonRect = new Rectangle(
+                _titleBarRect.Right - buttonSize - buttonPadding,
+                _titleBarRect.Y + ((_titleBarRect.Height - buttonSize) / 2),
+                buttonSize,
+                buttonSize);
+
+            // Maximize button to the left of close button
+            _maximizeButtonRect = new Rectangle(
+                _closeButtonRect.X - buttonSize - buttonPadding,
+                _closeButtonRect.Y,
+                buttonSize,
+                buttonSize);
+
+            // Minimize button to the left of maximize button
+            _minimizeButtonRect = new Rectangle(
+                _maximizeButtonRect.X - buttonSize - buttonPadding,
+                _closeButtonRect.Y,
+                buttonSize,
+                buttonSize);
 
             // Create resize handle in bottom-right corner with proper scaling
             int handleSize = (int)(20 * _uiScale);
@@ -645,15 +890,15 @@ namespace Superorganism.Screens
                 if (_selectedItemIndex % GridColumns < GridColumns - 1 && _selectedItemIndex < itemCount - 1)
                 {
                     _selectedItemIndex++;
-                    selectionChanged = true;
                 }
                 else
                 {
                     // Wrap to start of row
                     int row = _selectedItemIndex / GridColumns;
                     _selectedItemIndex = row * GridColumns;
-                    selectionChanged = true;
                 }
+
+                selectionChanged = true;
             }
 
             // Ensure selection is within bounds
@@ -668,13 +913,6 @@ namespace Superorganism.Screens
         /// </summary>
         private void HandleInventoryClick(Point mousePosition)
         {
-            // Check for click outside inventory
-            if (!_inventoryRect.Contains(mousePosition))
-            {
-                ExitScreen();
-                return;
-            }
-
             // Check for click in grid area
             if (_gridRect.Contains(mousePosition))
             {
@@ -769,6 +1007,9 @@ namespace Superorganism.Screens
             // Draw title bar
             spriteBatch.Draw(_backgroundTexture, _titleBarRect, titleBarColor);
 
+            // Draw window control buttons
+            DrawWindowControlButtons(spriteBatch);
+
             // Draw title - sanitize text to prevent font errors
             string title = SanitizeText("Inventory");
             Vector2 titleSize = _titleFont.MeasureString(title) * _fontScale;
@@ -780,9 +1021,6 @@ namespace Superorganism.Screens
 
             // Draw the resize handle
             spriteBatch.Draw(_backgroundTexture, _resizeHandleRect, borderColor);
-
-            // Draw section dividers
-            // (code unchanged)
 
             // Draw inventory grid slots
             DrawInventoryGrid(spriteBatch);
@@ -807,6 +1045,186 @@ namespace Superorganism.Screens
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
 
             spriteBatch.End();
+        }
+
+        /// <summary>
+        /// Draws the window control buttons (minimize, maximize, close)
+        /// </summary>
+        /// <summary>
+        /// Draws the window control buttons (minimize, maximize, close)
+        /// </summary>
+        private void DrawWindowControlButtons(SpriteBatch spriteBatch)
+        {
+            // Colors for buttons
+            Color buttonBgColor = new Color(80, 80, 120, 200) * TransitionAlpha;
+            Color buttonHoverColor = new Color(100, 100, 150, 220) * TransitionAlpha;
+            Color iconColor = Color.White * TransitionAlpha;
+            int iconThickness = Math.Max(1, (int)(2 * _uiScale));
+
+            // Get mouse position to check for hover states
+            MouseState mouse = Mouse.GetState();
+            Point mousePos = new Point(mouse.X, mouse.Y);
+
+            // --- Draw Close Button (X) ---
+            bool closeHover = _closeButtonRect.Contains(mousePos);
+            spriteBatch.Draw(_backgroundTexture, _closeButtonRect,
+                closeHover ? buttonHoverColor : buttonBgColor);
+
+            // Draw X icon
+            int iconPadding = (int)(6 * _uiScale);
+
+            // Draw X (diagonal lines)
+            // Top-left to bottom-right diagonal
+            Rectangle closeX1 = new Rectangle(
+                _closeButtonRect.X + iconPadding,
+                _closeButtonRect.Y + iconPadding,
+                _closeButtonRect.Width - (iconPadding * 2),
+                iconThickness);
+
+            // Need to draw a rotated rectangle, so create a diagonal line
+            for (int i = 0; i < _closeButtonRect.Height - (iconPadding * 2); i++)
+            {
+                Rectangle diagPiece = new Rectangle(
+                    _closeButtonRect.X + iconPadding + i,
+                    _closeButtonRect.Y + iconPadding + i,
+                    iconThickness,
+                    iconThickness);
+                spriteBatch.Draw(_backgroundTexture, diagPiece, iconColor);
+            }
+
+            // Bottom-left to top-right diagonal
+            for (int i = 0; i < _closeButtonRect.Height - (iconPadding * 2); i++)
+            {
+                Rectangle diagPiece = new Rectangle(
+                    _closeButtonRect.X + iconPadding + i,
+                    _closeButtonRect.Y + _closeButtonRect.Height - iconPadding - i,
+                    iconThickness,
+                    iconThickness);
+                spriteBatch.Draw(_backgroundTexture, diagPiece, iconColor);
+            }
+
+            // --- Draw Maximize Button (square or restore icon) ---
+            bool maxHover = _maximizeButtonRect.Contains(mousePos);
+            spriteBatch.Draw(_backgroundTexture, _maximizeButtonRect,
+                maxHover ? buttonHoverColor : buttonBgColor);
+
+            // Draw appropriate icon based on window state
+            Rectangle maxIconRect = new Rectangle(
+                _maximizeButtonRect.X + iconPadding,
+                _maximizeButtonRect.Y + iconPadding,
+                _maximizeButtonRect.Width - (iconPadding * 2),
+                _maximizeButtonRect.Height - (iconPadding * 2));
+
+            if (_isMaximized)
+            {
+                // Draw "restore down" icon (two overlapping squares)
+                // Draw back square (top-left)
+                Rectangle backSquare = new Rectangle(
+                    maxIconRect.X,
+                    maxIconRect.Y,
+                    (int)(maxIconRect.Width * 0.7f),
+                    (int)(maxIconRect.Height * 0.7f));
+
+                // Draw front square (bottom-right)
+                Rectangle frontSquare = new Rectangle(
+                    maxIconRect.X + (int)(maxIconRect.Width * 0.3f),
+                    maxIconRect.Y + (int)(maxIconRect.Height * 0.3f),
+                    (int)(maxIconRect.Width * 0.7f),
+                    (int)(maxIconRect.Height * 0.7f));
+
+                // Draw square outlines
+                DrawRectangleBorder(spriteBatch, backSquare, iconColor, iconThickness);
+                DrawRectangleBorder(spriteBatch, frontSquare, iconColor, iconThickness);
+            }
+            else if (_isMinimized)
+            {
+                // When minimized, show maximize icon (arrow pointing outward)
+                // Draw square outline
+                DrawRectangleBorder(spriteBatch, maxIconRect, iconColor, iconThickness);
+
+                // Draw diagonal arrow inside (from bottom-left to top-right)
+                Point arrowStart = new Point(
+                    maxIconRect.X + (int)(maxIconRect.Width * 0.3f),
+                    maxIconRect.Y + (int)(maxIconRect.Height * 0.7f));
+
+                Point arrowEnd = new Point(
+                    maxIconRect.X + (int)(maxIconRect.Width * 0.7f),
+                    maxIconRect.Y + (int)(maxIconRect.Height * 0.3f));
+
+                // Draw arrow line
+                for (int i = 0; i < iconThickness; i++)
+                {
+                    DrawLine(spriteBatch, arrowStart.X, arrowStart.Y + i,
+                        arrowEnd.X, arrowEnd.Y + i, iconColor);
+                }
+
+                // Draw arrowhead
+                int arrowHeadSize = (int)(4 * _uiScale);
+
+                // Top part of arrowhead
+                DrawLine(spriteBatch, arrowEnd.X, arrowEnd.Y,
+                    arrowEnd.X - arrowHeadSize, arrowEnd.Y + arrowHeadSize, iconColor);
+
+                // Right part of arrowhead
+                DrawLine(spriteBatch, arrowEnd.X, arrowEnd.Y,
+                    arrowEnd.X - arrowHeadSize, arrowEnd.Y - arrowHeadSize, iconColor);
+            }
+            else
+            {
+                // Draw "maximize" icon (simple square)
+                DrawRectangleBorder(spriteBatch, maxIconRect, iconColor, iconThickness);
+            }
+
+            // --- Draw Minimize Button (horizontal line) ---
+            bool minHover = _minimizeButtonRect.Contains(mousePos);
+            spriteBatch.Draw(_backgroundTexture, _minimizeButtonRect,
+                minHover ? buttonHoverColor : buttonBgColor);
+
+            // Draw horizontal line for minimize
+            int lineY = _minimizeButtonRect.Y + _minimizeButtonRect.Height - iconPadding - iconThickness;
+            Rectangle minLine = new Rectangle(
+                _minimizeButtonRect.X + iconPadding,
+                lineY,
+                _minimizeButtonRect.Width - (iconPadding * 2),
+                iconThickness);
+
+            spriteBatch.Draw(_backgroundTexture, minLine, iconColor);
+
+            // Draw borders around all buttons
+            Color buttonBorderColor = new Color(120, 120, 180, 200) * TransitionAlpha;
+            DrawRectangleBorder(spriteBatch, _closeButtonRect, buttonBorderColor, 1);
+            DrawRectangleBorder(spriteBatch, _maximizeButtonRect, buttonBorderColor, 1);
+            DrawRectangleBorder(spriteBatch, _minimizeButtonRect, buttonBorderColor, 1);
+        }
+
+        /// <summary>
+        /// Draws a line from (x1,y1) to (x2,y2)
+        /// </summary>
+        private void DrawLine(SpriteBatch spriteBatch, int x1, int y1, int x2, int y2, Color color)
+        {
+            // Calculate slope
+            float dx = x2 - x1;
+            float dy = y2 - y1;
+            float steps = Math.Max(Math.Abs(dx), Math.Abs(dy));
+
+            // Calculate increment
+            float xInc = dx / steps;
+            float yInc = dy / steps;
+
+            // Start point
+            float x = x1;
+            float y = y1;
+
+            // Draw each pixel along the line
+            for (int i = 0; i <= steps; i++)
+            {
+                Rectangle pixelRect = new Rectangle(
+                    (int)x, (int)y, 1, 1);
+                spriteBatch.Draw(_backgroundTexture, pixelRect, color);
+
+                x += xInc;
+                y += yInc;
+            }
         }
 
         /// <summary>
@@ -961,7 +1379,7 @@ namespace Superorganism.Screens
             if (playerAnt != null && playerAnt.Texture != null)
             {
                 // Calculate center of character panel
-                Vector2 centerPosition = new Vector2(
+                Vector2 centerPosition = new(
                     characterImageRect.X + characterImageRect.Width / 2,
                     characterImageRect.Y + characterImageRect.Height / 2);
 
@@ -975,7 +1393,7 @@ namespace Superorganism.Screens
                 if (!playerAnt.HasDirection)
                 {
                     // For sprites without direction (like the ant with 3 frames in 1 row)
-                    Rectangle source = new Rectangle(
+                    Rectangle source = new(
                         frameToShow * frameWidth,
                         0, // y is always 0 for single row
                         frameWidth,
@@ -987,7 +1405,7 @@ namespace Superorganism.Screens
                         characterImageRect.Height / (float)frameHeight) * 0.8f; // 80% of max size for some padding
 
                     // Calculate draw position (center the frame)
-                    Vector2 drawPosition = new Vector2(
+                    Vector2 drawPosition = new(
                         centerPosition.X - (frameWidth * scale / 2),
                         centerPosition.Y - (frameHeight * scale / 2));
 
@@ -1008,7 +1426,7 @@ namespace Superorganism.Screens
                     // For directional sprites
                     int directionIndex = 0; // Default direction (usually down)
 
-                    Rectangle source = new Rectangle(
+                    Rectangle source = new(
                         frameToShow * frameWidth,
                         directionIndex * (frameHeight / playerAnt.TextureInfo.NumOfSpriteRows),
                         frameWidth,
@@ -1020,7 +1438,7 @@ namespace Superorganism.Screens
                         characterImageRect.Height / (float)source.Height) * 0.8f;
 
                     // Calculate draw position (center the frame)
-                    Vector2 drawPosition = new Vector2(
+                    Vector2 drawPosition = new(
                         centerPosition.X - (source.Width * scale / 2),
                         centerPosition.Y - (source.Height * scale / 2));
 
@@ -1063,7 +1481,7 @@ namespace Superorganism.Screens
             // Ant body (oval)
             int bodyWidth = (int)(rect.Width * 0.6f);
             int bodyHeight = (int)(rect.Height * 0.4f);
-            Rectangle bodyRect = new Rectangle(
+            Rectangle bodyRect = new(
                 rect.X + (rect.Width - bodyWidth) / 2,
                 rect.Y + (rect.Height - bodyHeight) / 2,
                 bodyWidth,
@@ -1074,7 +1492,7 @@ namespace Superorganism.Screens
 
             // Ant head (circle)
             int headSize = (int)(bodyHeight * 0.8f);
-            Rectangle headRect = new Rectangle(
+            Rectangle headRect = new(
                 bodyRect.X - headSize / 3,
                 bodyRect.Y + (bodyHeight - headSize) / 2,
                 headSize,
@@ -1093,7 +1511,7 @@ namespace Superorganism.Screens
                 float position = 0.2f + (i * 0.3f);
 
                 // Left leg
-                Rectangle leftLeg = new Rectangle(
+                Rectangle leftLeg = new(
                     bodyRect.X + (int)(bodyWidth * position),
                     bodyRect.Y + bodyHeight / 2,
                     legThickness,
@@ -1101,7 +1519,7 @@ namespace Superorganism.Screens
                 spriteBatch.Draw(_backgroundTexture, leftLeg, antColor);
 
                 // Right leg
-                Rectangle rightLeg = new Rectangle(
+                Rectangle rightLeg = new(
                     bodyRect.X + (int)(bodyWidth * position),
                     bodyRect.Y + bodyHeight / 2,
                     legThickness,
@@ -1113,13 +1531,13 @@ namespace Superorganism.Screens
             int antennaLength = (int)(headSize * 0.8f);
             int antennaThickness = (int)(2 * _uiScale);
 
-            Rectangle leftAntenna = new Rectangle(
+            Rectangle leftAntenna = new(
                 headRect.X + headSize / 4,
                 headRect.Y - antennaLength + antennaThickness,
                 antennaThickness,
                 antennaLength);
 
-            Rectangle rightAntenna = new Rectangle(
+            Rectangle rightAntenna = new(
                 headRect.X + headSize * 3 / 4,
                 headRect.Y - antennaLength + antennaThickness,
                 antennaThickness,
@@ -1186,7 +1604,7 @@ namespace Superorganism.Screens
             // Determine if we have enough space for two columns or need a compact format
             float attributeFontScale = _fontScale * 0.9f; // Slightly smaller for attributes
             float columnWidth = _statsRect.Width / 2 - (int)(25 * _uiScale);
-            Vector2 rightColPos = new Vector2(statPos.X + columnWidth, statPos.Y);
+            Vector2 rightColPos = new(statPos.X + columnWidth, statPos.Y);
 
             // Check available width
             Vector2 sampleTextSize = _font.MeasureString("Strength: 10") * attributeFontScale;
@@ -1308,9 +1726,6 @@ namespace Superorganism.Screens
             }
         }
 
-        /// <summary>
-        /// Draws a stat bar with label, current value, and colored fill bar
-        /// </summary>
         /// <summary>
         /// Draws a stat bar with label, current value, and colored fill bar
         /// </summary>
