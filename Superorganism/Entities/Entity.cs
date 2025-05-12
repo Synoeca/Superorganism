@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.Collisions;
 using Superorganism.Common;
+using Superorganism.Core.Inventory;
 using Superorganism.Interfaces;
 namespace Superorganism.Entities
 {
@@ -25,6 +26,11 @@ namespace Superorganism.Entities
         /// Represents the current status of the entity (active, inactive, etc.)
         /// </summary>
         public abstract EntityStatus EntityStatus { get; set; }
+
+        /// <summary>
+        /// The entity's inventory containing items
+        /// </summary>
+        public Inventory Inventory { get; set; } = [];
 
         /// <summary>
         /// The position of the entity in the game world

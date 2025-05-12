@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Input;
 using System;
 using Superorganism.Common;
+using Superorganism.Core.Inventory;
 using Superorganism.Core.Managers;
 
 namespace Superorganism.Entities

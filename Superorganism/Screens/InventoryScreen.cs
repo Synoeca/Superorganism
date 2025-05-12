@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -53,6 +54,7 @@ namespace Superorganism.Screens
 
         // Inventory data
         private readonly List<InventoryItem> _inventoryItems = [];
+        private Inventory _playerInventory;
         private int _selectedItemIndex = -1;
 
         // Status display
@@ -276,17 +278,41 @@ namespace Superorganism.Screens
         {
             if (ScreenManager == null) return;
 
-            // Find the GameplayScreen
             foreach (GameScreen screen in ScreenManager.GetScreens())
             {
                 if (screen is GameplayScreen gameplayScreen && gameplayScreen.GameStateOrganizer != null)
                 {
-                    // This assumes GameStateOrganizer has a way to get player status
-                    // You'll need to adjust this based on your actual implementation
+                    // Get player entity status
                     _playerStatus = gameplayScreen.GameStateOrganizer.GetPlayerEntityStatus;
+
+                    // Get player entity and its inventory
+                    Ant playerEntity = gameplayScreen.GameStateOrganizer.GetPlayerAnt();
+                    if (playerEntity != null)
+                    {
+                        // Unsubscribe from previous inventory if any
+                        if (_playerInventory != null)
+                        {
+                            _playerInventory.CollectionChanged -= OnInventoryChanged;
+                        }
+
+                        // Store reference to player's inventory and subscribe to changes
+                        _playerInventory = playerEntity.Inventory;
+                        _playerInventory.CollectionChanged += OnInventoryChanged;
+
+                        // Initialize inventory items from player inventory
+                        LoadInventoryItems();
+                    }
+
                     break;
                 }
             }
+        }
+
+        // Handle inventory changes
+        private void OnInventoryChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            // Reload inventory items to reflect changes
+            LoadInventoryItems();
         }
 
         /// <summary>
@@ -294,19 +320,22 @@ namespace Superorganism.Screens
         /// </summary>
         private void LoadInventoryItems()
         {
-            // Clear existing items
             _inventoryItems.Clear();
 
-            // Add sample items - in a real implementation, get these from game state
-            _inventoryItems.Add(new InventoryItem("Seeds", 5, "Plant these to grow crops"));
-            _inventoryItems.Add(new InventoryItem("Water Flask", 1, "Contains fresh water for plants"));
-            _inventoryItems.Add(new InventoryItem("Fertilizer", 3, "Speeds up plant growth"));
-            _inventoryItems.Add(new InventoryItem("Mushroom Spores", 2, "Exotic fungal growth"));
-            _inventoryItems.Add(new InventoryItem("Insect Repellent", 1, "Keeps pests away"));
-            _inventoryItems.Add(new InventoryItem("Fungicide", 2, "Prevents fungal diseases"));
-            _inventoryItems.Add(new InventoryItem("Growth Hormone", 1, "Accelerates plant development"));
-            _inventoryItems.Add(new InventoryItem("Compost", 4, "Enriches soil for better yields"));
-            _inventoryItems.Add(new InventoryItem("Ant Pheromones", 2, "Attract friendly ants"));
+            if (_playerInventory != null)
+            {
+                // Add items from player's inventory
+                foreach (InventoryItem item in _playerInventory)
+                {
+                    _inventoryItems.Add(item);
+                }
+            }
+            else
+            {
+                // Fallback to sample items if no player inventory available
+                _inventoryItems.Add(new InventoryItem("Seeds", 5, "Plant these to grow crops"));
+                _inventoryItems.Add(new InventoryItem("Water Flask", 1, "Contains fresh water for plants"));
+            }
         }
 
         /// <summary>
@@ -953,8 +982,20 @@ namespace Superorganism.Screens
         /// </summary>
         private void SelectItem(int itemIndex, PlayerIndex playerIndex)
         {
-            // Just update selection - details are shown in the stats panel
-            _selectedItemIndex = itemIndex;
+            // Only update selection if it's a valid index
+            if (itemIndex >= 0 && itemIndex < _inventoryItems.Count)
+            {
+                _selectedItemIndex = itemIndex;
+
+                // Optionally, you could trigger a UI update here to refresh the details panel
+                // This isn't strictly necessary if your Draw method already uses _selectedItemIndex
+                // to determine what to display
+            }
+            else
+            {
+                // Invalid selection, reset it
+                _selectedItemIndex = -1;
+            }
         }
 
         /// <summary>
@@ -967,18 +1008,27 @@ namespace Superorganism.Screens
 
             InventoryItem item = _inventoryItems[itemIndex];
 
-            if (item.Quantity > 0)
+            if (_playerInventory != null)
             {
-                // Apply effect (connect to your game systems)
+                // Use the item in the player's inventory
+                _playerInventory.UseItem(item);
 
-                // Reduce quantity
-                item.Quantity--;
-
-                // Remove if depleted
-                if (item.Quantity <= 0)
+                // We don't need to update _inventoryItems or _selectedItemIndex
+                // because the OnInventoryChanged handler will be called due to the
+                // UseItem method triggering a CollectionChanged event
+            }
+            else
+            {
+                // Fallback behavior for when no player inventory is available
+                if (item.Quantity > 0)
                 {
-                    _inventoryItems.RemoveAt(itemIndex);
-                    _selectedItemIndex = Math.Min(_selectedItemIndex, _inventoryItems.Count - 1);
+                    item.Quantity--;
+
+                    if (item.Quantity <= 0)
+                    {
+                        _inventoryItems.RemoveAt(itemIndex);
+                        _selectedItemIndex = Math.Min(_selectedItemIndex, _inventoryItems.Count - 1);
+                    }
                 }
             }
         }
@@ -1282,35 +1332,81 @@ namespace Superorganism.Screens
                     if (index < _inventoryItems.Count)
                     {
                         InventoryItem item = _inventoryItems[index];
-
-                        // Calculate scaled font size and position for names
                         float itemFontScale = _fontScale * 0.8f; // Slightly smaller for items
 
-                        // Sanitize item name
-                        string itemName = SanitizeText(item.Name);
-
-                        // Draw item name (or could be an icon in a real implementation)
-                        Vector2 textSize = _font.MeasureString(itemName) * itemFontScale;
-                        if (textSize.X > _slotSize - 4)
+                        // Draw item texture if available
+                        if (item.Texture != null)
                         {
-                            // Shorten name if too long
-                            string shortName = SanitizeText(itemName.Length > 3 ?
-                                itemName.Substring(0, 3) + ".." : itemName);
-                            textSize = _font.MeasureString(shortName) * itemFontScale;
+                            // Determine texture properties
+                            Rectangle sourceRect;
+                            float textureWidth, textureHeight;
 
-                            spriteBatch.DrawString(_font, shortName,
-                                new Vector2(slotRect.X + (_slotSize - textSize.X) / 2,
-                                    slotRect.Y + 5),
+                            if (item.IsSpriteAtlas && item.SourceRectangle != Rectangle.Empty)
+                            {
+                                sourceRect = item.SourceRectangle;
+                                textureWidth = sourceRect.Width;
+                                textureHeight = sourceRect.Height;
+                            }
+                            else
+                            {
+                                sourceRect = new Rectangle(0, 0, item.Texture.Width, item.Texture.Height);
+                                textureWidth = item.Texture.Width;
+                                textureHeight = item.Texture.Height;
+                            }
+
+                            // Calculate scale to fit slot (with small padding)
+                            float maxSize = _slotSize - 6;
+                            float scale = Math.Min(
+                                maxSize / textureWidth,
+                                maxSize / textureHeight
+                            ) * item.Scale;
+
+                            // Center texture in slot
+                            Vector2 position = new(
+                                slotRect.X + (_slotSize - textureWidth * scale) / 2,
+                                slotRect.Y + (_slotSize - textureHeight * scale) / 2
+                            );
+
+                            // Draw the texture
+                            spriteBatch.Draw(
+                                item.Texture,
+                                position,
+                                sourceRect,
                                 Color.White * TransitionAlpha,
-                                0f, Vector2.Zero, itemFontScale, SpriteEffects.None, 0f);
+                                0f,
+                                Vector2.Zero,
+                                scale,
+                                SpriteEffects.None,
+                                0f
+                            );
                         }
                         else
                         {
-                            spriteBatch.DrawString(_font, itemName,
-                                new Vector2(slotRect.X + (_slotSize - textSize.X) / 2,
-                                    slotRect.Y + 5),
-                                Color.White * TransitionAlpha,
-                                0f, Vector2.Zero, itemFontScale, SpriteEffects.None, 0f);
+                            // Fallback to text if no texture is available
+                            string itemName = SanitizeText(item.Name);
+                            Vector2 textSize = _font.MeasureString(itemName) * itemFontScale;
+
+                            if (textSize.X > _slotSize - 4)
+                            {
+                                // Shorten name if too long
+                                string shortName = SanitizeText(itemName.Length > 3 ?
+                                    itemName.Substring(0, 3) + ".." : itemName);
+                                textSize = _font.MeasureString(shortName) * itemFontScale;
+
+                                spriteBatch.DrawString(_font, shortName,
+                                    new Vector2(slotRect.X + (_slotSize - textSize.X) / 2,
+                                        slotRect.Y + 5),
+                                    Color.White * TransitionAlpha,
+                                    0f, Vector2.Zero, itemFontScale, SpriteEffects.None, 0f);
+                            }
+                            else
+                            {
+                                spriteBatch.DrawString(_font, itemName,
+                                    new Vector2(slotRect.X + (_slotSize - textSize.X) / 2,
+                                        slotRect.Y + 5),
+                                    Color.White * TransitionAlpha,
+                                    0f, Vector2.Zero, itemFontScale, SpriteEffects.None, 0f);
+                            }
                         }
 
                         // Draw quantity - sanitize quantity text
@@ -1849,35 +1945,140 @@ namespace Superorganism.Screens
             Vector2 textPos = new(detailsRect.X + (int)(10 * _uiScale), detailsRect.Y + (int)(8 * _uiScale));
             float detailsFontScale = _fontScale * 0.9f;
 
-            // Draw item name
-            spriteBatch.DrawString(_font, item.Name, textPos,
-                Color.Yellow * TransitionAlpha,
-                0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
-            textPos.Y += _font.LineSpacing * detailsFontScale;
-
-            // Draw quantity
-            spriteBatch.DrawString(_font, $"Quantity: {item.Quantity}", textPos,
-                Color.White * TransitionAlpha,
-                0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
-            textPos.Y += _font.LineSpacing * detailsFontScale;
-
-            // Calculate available space for description
-            float availableDescriptionSpace = detailsRect.Bottom - textPos.Y - (int)(8 * _uiScale);
-            int maxLines = (int)(availableDescriptionSpace / (_font.LineSpacing * detailsFontScale));
-
-            // Draw description with line limiting
-            string description = item.Description;
-            float maxWidth = detailsRect.Width - (int)(20 * _uiScale);
-
-            List<string> lines = WrapText(description, _font, maxWidth / detailsFontScale);
-
-            // Show only what fits
-            for (int i = 0; i < Math.Min(lines.Count, maxLines); i++)
+            // If texture exists, show larger preview on left and details on right
+            if (item.Texture != null)
             {
-                spriteBatch.DrawString(_font, lines[i], textPos,
+                // Calculate image area on left side of panel (1/3 width)
+                int previewSize = Math.Min(
+                    (int)(detailsRect.Width * 0.25f), // 25% of panel width 
+                    (int)(detailsHeight - 16)        // Almost full height with padding
+                );
+
+                Rectangle imageArea = new(
+                    detailsRect.X + (int)(10 * _uiScale),
+                    detailsRect.Y + (int)(8 * _uiScale),
+                    previewSize,
+                    previewSize
+                );
+
+                // Get source rectangle
+                Rectangle sourceRect;
+                float textureWidth, textureHeight;
+
+                if (item.IsSpriteAtlas && item.SourceRectangle != Rectangle.Empty)
+                {
+                    sourceRect = item.SourceRectangle;
+                    textureWidth = sourceRect.Width;
+                    textureHeight = sourceRect.Height;
+                }
+                else
+                {
+                    sourceRect = new Rectangle(0, 0, item.Texture.Width, item.Texture.Height);
+                    textureWidth = item.Texture.Width;
+                    textureHeight = item.Texture.Height;
+                }
+
+                // Calculate scale to fit preview area
+                float scale = Math.Min(
+                    imageArea.Width / textureWidth,
+                    imageArea.Height / textureHeight
+                ) * item.Scale;
+
+                // Center texture in preview area
+                Vector2 imagePos = new(
+                    imageArea.X + (imageArea.Width - textureWidth * scale) / 2,
+                    imageArea.Y + (imageArea.Height - textureHeight * scale) / 2
+                );
+
+                // Draw texture
+                spriteBatch.Draw(
+                    item.Texture,
+                    imagePos,
+                    sourceRect,
+                    Color.White * TransitionAlpha,
+                    0f,
+                    Vector2.Zero,
+                    scale,
+                    SpriteEffects.None,
+                    0f
+                );
+
+                // Start text position to the right of image
+                textPos = new Vector2(
+                    imageArea.Right + (int)(15 * _uiScale),
+                    imageArea.Y
+                );
+
+                // Draw item name
+                spriteBatch.DrawString(_font, item.Name, textPos,
+                    Color.Yellow * TransitionAlpha,
+                    0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
+                textPos.Y += _font.LineSpacing * detailsFontScale;
+
+                // Draw quantity
+                spriteBatch.DrawString(_font, $"Quantity: {item.Quantity}", textPos,
                     Color.White * TransitionAlpha,
                     0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
                 textPos.Y += _font.LineSpacing * detailsFontScale;
+
+                // Calculate available width for description (narrower due to image)
+                float maxWidth = detailsRect.Right - textPos.X - (int)(10 * _uiScale);
+
+                // Draw description header
+                spriteBatch.DrawString(_font, "Description:", textPos,
+                    Color.LightBlue * TransitionAlpha,
+                    0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
+                textPos.Y += _font.LineSpacing * detailsFontScale;
+
+                // Calculate available space for description text
+                float availableDescriptionSpace = detailsRect.Bottom - textPos.Y - (int)(8 * _uiScale);
+                int maxLines = (int)(availableDescriptionSpace / (_font.LineSpacing * detailsFontScale));
+
+                // Draw description with line limiting
+                string description = item.Description;
+                List<string> lines = WrapText(description, _font, maxWidth / detailsFontScale);
+
+                // Show only what fits
+                for (int i = 0; i < Math.Min(lines.Count, maxLines); i++)
+                {
+                    spriteBatch.DrawString(_font, lines[i], textPos,
+                        Color.White * TransitionAlpha,
+                        0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
+                    textPos.Y += _font.LineSpacing * detailsFontScale;
+                }
+            }
+            else
+            {
+                // Original layout for items without textures
+                // Draw item name
+                spriteBatch.DrawString(_font, item.Name, textPos,
+                    Color.Yellow * TransitionAlpha,
+                    0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
+                textPos.Y += _font.LineSpacing * detailsFontScale;
+
+                // Draw quantity
+                spriteBatch.DrawString(_font, $"Quantity: {item.Quantity}", textPos,
+                    Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
+                textPos.Y += _font.LineSpacing * detailsFontScale;
+
+                // Calculate available space for description
+                float availableDescriptionSpace = detailsRect.Bottom - textPos.Y - (int)(8 * _uiScale);
+                int maxLines = (int)(availableDescriptionSpace / (_font.LineSpacing * detailsFontScale));
+
+                // Draw description with line limiting
+                string description = item.Description;
+                float maxWidth = detailsRect.Width - (int)(20 * _uiScale);
+                List<string> lines = WrapText(description, _font, maxWidth / detailsFontScale);
+
+                // Show only what fits
+                for (int i = 0; i < Math.Min(lines.Count, maxLines); i++)
+                {
+                    spriteBatch.DrawString(_font, lines[i], textPos,
+                        Color.White * TransitionAlpha,
+                        0f, Vector2.Zero, detailsFontScale, SpriteEffects.None, 0f);
+                    textPos.Y += _font.LineSpacing * detailsFontScale;
+                }
             }
         }
 

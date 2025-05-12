@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Superorganism.AI;
 using Superorganism.Collisions;
 using Superorganism.Common;
+using Superorganism.Core.Inventory;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Particle;
@@ -15,7 +16,9 @@ using Superorganism.Tiles;
 namespace Superorganism.Core.Managers;
 
 /// <summary>
-/// Manage entities
+/// Manages the initialization, updating, and interactions of all entities in the game world,
+/// including the player (ant), enemies, crops, and flies.
+/// Handles player invincibility, collisions, and entity states.
 /// </summary>
 public class EntityOraganizer
 {
@@ -39,48 +42,90 @@ public class EntityOraganizer
     private double _invincibleTimer;
     private bool _blinkState;
 
+    /// <summary>
+    /// Gets or sets the position of the player ant.
+    /// </summary>
     public Vector2 PlayerPosition
     {
         get => _ant.Position;
         set => _ant.Position = value;
     }
 
+    /// <summary>
+    /// Gets or sets the current health of the player ant.
+    /// </summary>
     public float PlayerHealth
     {
         get => _ant.EntityStatus.HitPoints;
         set => _ant.EntityStatus.HitPoints = value;
     }
 
+    /// <summary>
+    /// Gets or sets the current stamina of the player ant.
+    /// </summary>
     public float PlayerStamina
     {
-        //get => _ant.Stamina;
-        //set => _ant.Stamina = value;
         get => _ant.EntityStatus.Stamina;
         set => _ant.EntityStatus.Stamina = value;
     }
 
+    /// <summary>
+    /// Gets or sets the current hunger level of the player ant.
+    /// </summary>
     public float PlayerHunger
     {
         get => _ant.EntityStatus.Hunger;
         set => _ant.EntityStatus.Hunger = value;
     }
 
+    /// <summary>
+    /// Gets or sets the status object representing player's health, stamina, and hunger.
+    /// </summary>
     public EntityStatus PlayerEntityStatus
     {
         get => _ant.EntityStatus;
         set => _ant.EntityStatus = value;
     }
 
+    /// <summary>
+    /// Gets the maximum health of the player.
+    /// </summary>
     public float PlayerMaxHealth => _ant.EntityStatus.MaxHitPoints;
+
+    /// <summary>
+    /// Gets the maximum stamina of the player.
+    /// </summary>
     public float PlayerMaxStamina => _ant.EntityStatus.MaxStamina;
+
+    /// <summary>
+    /// Gets the maximum hunger of the player.
+    /// </summary>
     public float PlayerMaxHunger => _ant.EntityStatus.MaxHunger;
+
+    /// <summary>
+    /// Gets the number of crops currently in the game world.
+    /// </summary>
     public int CropsCount => _crops.Count;
+
+    /// <summary>
+    /// Indicates whether the player is currently invincible (immune to damage).
+    /// </summary>
     public bool IsPlayerInvincible { get; private set; }
+
+    /// <summary>
+    /// Retrieves the positions of all enemy ants in the game world.
+    /// </summary>
+    /// <returns>An array of <see cref="Vector2"/> representing the position of each enemy ant.</returns>
     public Vector2[] GetEnemyPositions()
     {
         return _antEnemies.Select(enemy => enemy.Position).ToArray();
     }
 
+    /// <summary>
+    /// Sets the position of a specific enemy ant by index.
+    /// </summary>
+    /// <param name="index">Index of the enemy in the list.</param>
+    /// <param name="position">New position to assign.</param>
     public void SetEnemyPosition(int index, Vector2 position)
     {
         if (index >= 0 && index < _antEnemies.Count)
@@ -89,11 +134,20 @@ public class EntityOraganizer
         }
     }
 
+    /// <summary>
+    /// Retrieves the current strategy assigned to each enemy ant.
+    /// </summary>
+    /// <returns>An array of <see cref="Strategy"/> objects representing each enemy's behavior strategy.</returns>
     public Strategy[] GetEnemyStrategies()
     {
         return _antEnemies.Select(enemy => enemy.Strategy).ToArray();
     }
 
+    /// <summary>
+    /// Sets the strategy of a specific enemy ant.
+    /// </summary>
+    /// <param name="index">Index of the enemy in the list.</param>
+    /// <param name="strategy">New strategy to assign.</param>
     public void SetEnemyStrategy(int index, Strategy strategy)
     {
         if (index >= 0 && index < _antEnemies.Count)
@@ -102,6 +156,10 @@ public class EntityOraganizer
         }
     }
 
+    /// <summary>
+    /// Assigns the same strategy to all enemy ants.
+    /// </summary>
+    /// <param name="strategy">Strategy to apply to all enemies.</param>
     public void SetAllEnemyStrategies(Strategy strategy)
     {
         foreach (AntEnemy enemy in _antEnemies)
@@ -110,19 +168,32 @@ public class EntityOraganizer
         }
     }
 
+    /// <summary>
+    /// Retrieves the collision boundaries for all enemy ants.
+    /// </summary>
+    /// <returns>An array of <see cref="ICollisionBounding"/> representing each enemy's collision bounds.</returns>
     public ICollisionBounding[] GetEnemyCollisionBoundings()
     {
         return _antEnemies.Select(enemy => enemy.CollisionBounding).ToArray();
     }
 
+    /// <summary>
+    /// Gets the strategic history for each enemy ant.
+    /// </summary>
+    /// <returns>A list of strategy history entries for each enemy.</returns>
     public List<(Strategy Strategy, double StartTime, double LastActionTime)>[] GetEnemyStrategyHistories()
     {
         return _antEnemies.Select(enemy => enemy.StrategyHistory).ToArray();
     }
 
-    // Add helper method to get number of enemies
+    /// <summary>
+    /// Gets the number of enemy ants currently in the game world.
+    /// </summary>
     public int EnemyCount => _antEnemies.Count;
 
+    /// <summary>
+    /// Gets or sets the player-controlled ant.
+    /// </summary>
     public Ant PlayerAnt
     {
         get => _ant;
@@ -130,7 +201,11 @@ public class EntityOraganizer
 
     }
 
-    // Add method to get specific enemy
+    /// <summary>
+    /// Retrieves a specific enemy ant by index.
+    /// </summary>
+    /// <param name="index">Index of the enemy.</param>
+    /// <returns>AntEnemy instance if found, otherwise null.</returns>
     public AntEnemy GetEnemy(int index)
     {
         if (index >= 0 && index < _antEnemies.Count)
@@ -139,8 +214,16 @@ public class EntityOraganizer
         }
         return null;
     }
-    public TiledMap GetCurrentMap() => _map;
 
+    /// <summary>
+    /// Constructs the entity organizer and sets up the game world entities,
+    /// loading from a saved state if available or initializing default entities.
+    /// </summary>
+    /// <param name="game">Reference to the game.</param>
+    /// <param name="content">Content manager for loading assets.</param>
+    /// <param name="graphicsDevice">Graphics device for rendering purposes.</param>
+    /// <param name="map">Tiled map used for tile-based positioning.</param>
+    /// <param name="gameStateInfo">State info containing previous entity states.</param>
     public EntityOraganizer(Game game, ContentManager content,
         GraphicsDevice graphicsDevice, TiledMap map, GameStateInfo gameStateInfo)
     {
@@ -175,14 +258,25 @@ public class EntityOraganizer
 
 
         LoadContent(content);
-        //_ant.CollisionBounding = (BoundingRectangle)_ant.TextureInfo.CollisionType;
     }
 
+    /// <summary>
+    /// Initializes all default entities including player ant, enemies, crops, and flies.
+    /// </summary>
+    /// <param name="graphicsDevice">Graphics device used by the particle system.</param>
     private void InitializeEntities(GraphicsDevice graphicsDevice)
     {
         _ant = new Ant();
         _ant.InitializeAtTile(114, 10);
         _ant.IsControlled = true;
+        _ant.Inventory =
+        [
+            InventoryItem.CreateFromTileset("T1", 3, "Test 1", _map.Tilesets.GetValueAtIndex(1), 49),
+            InventoryItem.CreateFromTileset("T2", 3, "Test 2", _map.Tilesets.GetValueAtIndex(1), 50),
+            InventoryItem.CreateFromTileset("T3", 3, "Test 3", _map.Tilesets.GetValueAtIndex(1), 51),
+            InventoryItem.CreateFromTileset("T4", 3, "Test 4", _map.Tilesets.GetValueAtIndex(1), 52)
+        ];
+        _ant.Inventory.Add(InventoryItem.CreateFromTileset("T4", 1, "Test", _map.Tilesets.GetValueAtIndex(1), 51));
 
         // Initialize multiple ant enemies
         const int count = 1;
@@ -210,7 +304,10 @@ public class EntityOraganizer
         }
     }
 
-
+    /// <summary>
+    /// Initializes crops in the game world at random tile locations.
+    /// </summary>
+    /// <param name="graphicsDevice">Graphics device (currently unused in this method).</param>
     private void InitializeCrops(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
@@ -232,6 +329,10 @@ public class EntityOraganizer
         }
     }
 
+    /// <summary>
+    /// Initializes fly entities at randomized locations in the game world.
+    /// </summary>
+    /// <param name="graphicsDevice">Graphics device (currently unused in this method).</param>
     private void InitializeFlies(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
@@ -254,6 +355,10 @@ public class EntityOraganizer
         }
     }
 
+    /// <summary>
+    /// Loads visual and audio assets for all entities.
+    /// </summary>
+    /// <param name="content">Content manager for asset loading.</param>
     private void LoadContent(ContentManager content)
     {
         _ant.LoadContent(content, "ant-side_Rev2", 3, 1,
@@ -280,6 +385,10 @@ public class EntityOraganizer
         }
     }
 
+    /// <summary>
+    /// Updates all entities and handles the player's invincibility timer.
+    /// </summary>
+    /// <param name="gameTime">Game timing snapshot.</param>
     public void Update(GameTime gameTime)
     {
         if (IsPlayerInvincible)
@@ -290,7 +399,10 @@ public class EntityOraganizer
         UpdateEntities(gameTime);
     }
 
-    // Inside UpdateInvincibility method:
+    /// <summary>
+    /// Updates the player's invincibility duration and visual blinking effect.
+    /// </summary>
+    /// <param name="deltaTime">Time elapsed since last update.</param>
     private void UpdateInvincibility(double deltaTime)
     {
         _invincibleTimer -= deltaTime;
@@ -311,6 +423,10 @@ public class EntityOraganizer
         _ant.Color = Color.White * alpha;
     }
 
+    /// <summary>
+    /// Updates each entity's behavior and animation.
+    /// </summary>
+    /// <param name="gameTime">Game timing snapshot.</param>
     private void UpdateEntities(GameTime gameTime)
     {
         _ant.Update(gameTime);
@@ -331,12 +447,19 @@ public class EntityOraganizer
         }
     }
 
+    /// <summary>
+    /// Ends the invincibility state for the player.
+    /// </summary>
     private void EndInvincibility()
     {
         IsPlayerInvincible = false;
         _ant.Color = Color.White;
     }
 
+    /// <summary>
+    /// Begins a temporary invincibility period for the player.
+    /// </summary>
+    /// <param name="duration">Duration of invincibility in seconds.</param>
     private void StartInvincibility(double duration)
     {
         IsPlayerInvincible = true;
@@ -344,6 +467,11 @@ public class EntityOraganizer
         _blinkState = true;
     }
 
+    /// <summary>
+    /// Checks for collisions between the player and any uncollected crops.
+    /// Marks the crop as collected on collision.
+    /// </summary>
+    /// <returns>True if a collision occurred, otherwise false.</returns>
     public bool CheckCropCollisions()
     {
         foreach (Crop crop in _crops.Where(c => !c.Collected))
@@ -357,6 +485,10 @@ public class EntityOraganizer
         return false;
     }
 
+    /// <summary>
+    /// Checks if the player is currently colliding with any enemy ant.
+    /// </summary>
+    /// <returns>True if a collision occurred and the player is not invincible.</returns>
     public bool IsCollidingWithEnemy()
     {
         if (IsPlayerInvincible) return false;
@@ -364,6 +496,9 @@ public class EntityOraganizer
         return _antEnemies.Any(enemy => enemy.CollisionBounding.CollidesWith(_ant.CollisionBounding));
     }
 
+    /// <summary>
+    /// Applies damage to the player due to enemy contact and triggers invincibility.
+    /// </summary>
     public void ApplyEnemyDamage()
     {
         if (IsPlayerInvincible) return;
@@ -375,6 +510,11 @@ public class EntityOraganizer
         StartInvincibility(EnemyInvincibleDuration);
     }
 
+    /// <summary>
+    /// Checks for collisions between the player and any non-destroyed flies.
+    /// Destroys the fly and applies damage on collision.
+    /// </summary>
+    /// <returns>True if a collision occurred, otherwise false.</returns>
     public bool CheckFlyCollisions()
     {
         if (IsPlayerInvincible) return false;
@@ -396,7 +536,11 @@ public class EntityOraganizer
         return false;
     }
 
-    // Modify Draw method to handle layering
+    /// <summary>
+    /// Draws all entities in the proper rendering order, with visual effects for invincibility.
+    /// </summary>
+    /// <param name="gameTime">Game timing snapshot.</param>
+    /// <param name="spriteBatch">Sprite batch used for drawing.</param>
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
     {
         // Draw crops first (they're on the ground)
@@ -423,6 +567,10 @@ public class EntityOraganizer
         }
     }
 
+    /// <summary>
+    /// Resets visual colors of all entities to white (default).
+    /// Useful after flashing effects or damage states.
+    /// </summary>
     public void ResetEntityColors()
     {
         _ant.Color = Color.White;
@@ -432,6 +580,10 @@ public class EntityOraganizer
         }
     }
 
+    /// <summary>
+    /// Resets the player and enemies to new positions.
+    /// Clears decision-making entity list for fresh setup.
+    /// </summary>
     public void Reset()
     {
         _ant.Position = new Vector2(200, 200);
@@ -449,6 +601,9 @@ public class EntityOraganizer
         DecisionMaker.Entities.Clear();
     }
 
+    /// <summary>
+    /// Unloads systems such as the explosion particle system from the game components.
+    /// </summary>
     public void Unload()
     {
         _game.Components.Remove(_explosions);

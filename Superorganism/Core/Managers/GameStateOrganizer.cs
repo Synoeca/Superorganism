@@ -7,6 +7,7 @@ using Superorganism.AI;
 using Superorganism.Collisions;
 using Superorganism.Common;
 using Superorganism.Core.Camera;
+using Superorganism.Core.Inventory;
 using Superorganism.Entities;
 using Superorganism.ScreenManagement;
 using Superorganism.Tiles;
@@ -39,6 +40,16 @@ namespace Superorganism.Core.Managers
         private double _enemyCollisionTimer;
         private const double EnemyCollisionInterval = 0.2;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="game"></param>
+        /// <param name="content"></param>
+        /// <param name="graphicsDevice"></param>
+        /// <param name="camera"></param>
+        /// <param name="audio"></param>
+        /// <param name="map"></param>
+        /// <param name="gameStateInfo"></param>
         public GameStateOrganizer(Game game, ContentManager content, GraphicsDevice graphicsDevice,
             Camera2D camera, GameAudioManager audio, TiledMap map, GameStateInfo gameStateInfo)
         {
@@ -54,6 +65,7 @@ namespace Superorganism.Core.Managers
                 [Buttons.Start, Buttons.Back],
                 [Keys.Back, Keys.Escape],
                 true);
+            //_entityOraganizer.PlayerAnt.Inventory.Add(InventoryItem.CreateFromTileset("T4", 1, "Test", _map.Tilesets.GetValueAtIndex(1), 51));
 
             InitializeGameState();
         }
