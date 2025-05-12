@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Input;
 using Superorganism.Collisions;
 using Superorganism.Common;
 using Superorganism.Core.Managers;
+using Superorganism.Core.Timing;
 using Superorganism.Interfaces;
 
 namespace Superorganism.Entities
@@ -80,6 +81,16 @@ namespace Superorganism.Entities
         /// Timer used to regulate the frequency of movement sound playback
         /// </summary>
         protected float _soundTimer;
+
+        /// <summary>
+        /// Timer tracking time since last jump to enforce cooldown
+        /// </summary>
+        private double _lastJumpTime = 0.0;
+
+        /// <summary>
+        /// Minimum time in seconds that must elapse between jumps
+        /// </summary>
+        private const float JumpCooldownDuration = 0.3f;
 
 
         /// <summary>
@@ -197,6 +208,10 @@ namespace Superorganism.Entities
             bool canSprint;
             bool canJump;
 
+            // Calculate time elapsed since last jump using GameTimer
+            double currentTime = GameTimer.TotalGameplayTime;
+            double timeSinceLastJump = currentTime - _lastJumpTime;
+
             // If stamina is zero, disable abilities until fresh key press
             if (EntityStatus != null)
             {
@@ -222,7 +237,7 @@ namespace Superorganism.Entities
 
                 // Use the current ability states combined with stamina check
                 canSprint = _canSprint && EntityStatus.Stamina > EntityStatus.SprintStaminaThreshold;
-                canJump = _canJump && EntityStatus.Stamina > EntityStatus.JumpStaminaThreshold;
+                canJump = _canJump && EntityStatus.Stamina > EntityStatus.JumpStaminaThreshold && timeSinceLastJump >= JumpCooldownDuration;
             }
             else
             {
@@ -295,10 +310,11 @@ namespace Superorganism.Entities
                     gameTime);
             }
 
-            // Play jump sound if we just started jumping
+            // Play jump sound if we just started jumping and reset cooldown timer
             if (!wasJumping && _isJumping && wasOnGround)
             {
                 JumpSound?.Play();
+                _lastJumpTime = GameTimer.TotalGameplayTime;  // Record the jump time using GameTimer
             }
 
             // Update the previous keyboard state

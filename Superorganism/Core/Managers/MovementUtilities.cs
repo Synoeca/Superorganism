@@ -1192,14 +1192,8 @@ public static class MovementUtilities
             }
             else
             {
-                float prevNewGrounY = newGroundY;
-                if (prevNewGrounY > 959)
-                {
-
-                }
                 if (xMovementBlocked)
                 {
-                    //position.X += movementSpeed;
                     newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                 }
                 if (newGroundY - position.Y > 64)
@@ -1528,10 +1522,6 @@ public static class MovementUtilities
 
                     if (collisionBounding.CollidesWith(tileRect))
                     {
-                        if (x == 102 && y == 13)
-                        {
-
-                        }
                         if (collisionBounding.Center.X <= tileRect.Right && collisionBounding.Center.X >= tileRect.Left)
                         {
                             if (isDiagonalTile)
