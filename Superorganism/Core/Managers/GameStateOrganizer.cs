@@ -261,6 +261,7 @@ namespace Superorganism.Core.Managers
         public float GetPlayerHunger() => _entityOraganizer.PlayerHunger;
         public float GetPlayerMaxHunger() => _entityOraganizer.PlayerMaxHunger;
         public EntityStatus GetPlayerEntityStatus => _entityOraganizer.PlayerEntityStatus;
+        public Ant GetPlayerAnt() => _entityOraganizer.PlayerAnt;
         public void ResumeMusic() => _audioManager.ResumeMusic();
 
         public void Unload()

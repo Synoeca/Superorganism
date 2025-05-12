@@ -123,6 +123,13 @@ public class EntityOraganizer
     // Add helper method to get number of enemies
     public int EnemyCount => _antEnemies.Count;
 
+    public Ant PlayerAnt
+    {
+        get => _ant;
+        set => _ant = value;
+
+    }
+
     // Add method to get specific enemy
     public AntEnemy GetEnemy(int index)
     {

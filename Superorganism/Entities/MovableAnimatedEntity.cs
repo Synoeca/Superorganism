@@ -23,7 +23,7 @@ namespace Superorganism.Entities
 		public virtual short AnimationFrame { get; set; }
 
         protected bool UseRotation { get; set; }
-        protected float Rotation { get; set; }
+        protected internal float Rotation { get; set; }
         protected const float RotationSmoothing = 0.05f;
 
         protected Vector2 _lastKnownTargetPosition;

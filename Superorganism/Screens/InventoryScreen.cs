@@ -4,10 +4,13 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.Timers;
 using Superorganism.Common;
 using Superorganism.Core.Inventory;
 using Superorganism.Core.Timing;
+using Superorganism.Entities;
 using Superorganism.ScreenManagement;
+using GameTimer = Superorganism.Core.Timing.GameTimer;
 
 namespace Superorganism.Screens
 {
@@ -925,13 +928,12 @@ namespace Superorganism.Screens
             Vector2 helpSize = _font.MeasureString(helpText) * _fontScale;
             int bottomPadding = (int)(helpSize.Y + 25 * _uiScale); // Add extra padding for safety
 
-            // Draw character silhouette or model
-            // Now with adjusted height to prevent overlap with help text
+            // Draw character background
             Rectangle characterImageRect = new(
                 _characterRect.X + (int)(20 * _uiScale),
                 _characterRect.Y + (int)(40 * _uiScale),
                 _characterRect.Width - (int)(40 * _uiScale),
-                _characterRect.Height - bottomPadding - (int)(60 * _uiScale)); // Reduced height to make room
+                _characterRect.Height - bottomPadding - (int)(60 * _uiScale));
 
             Color characterBg = new Color(50, 50, 80, 150) * TransitionAlpha;
             spriteBatch.Draw(_backgroundTexture, characterImageRect, characterBg);
@@ -940,7 +942,108 @@ namespace Superorganism.Screens
             DrawRectangleBorder(spriteBatch, characterImageRect,
                 new Color(100, 100, 150, 200) * TransitionAlpha, (int)(2 * _uiScale));
 
-            // Draw character type text with more space from bottom of window
+            // Get reference to the player ant
+            MovableAnimatedEntity playerAnt = null;
+            if (ScreenManager != null)
+            {
+                foreach (GameScreen screen in ScreenManager.GetScreens())
+                {
+                    if (screen is GameplayScreen gameplayScreen && gameplayScreen.GameStateOrganizer != null)
+                    {
+                        // Try to get player ant from the game state
+                        playerAnt = gameplayScreen.GameStateOrganizer.GetPlayerAnt();
+                        break;
+                    }
+                }
+            }
+
+            // Draw the player ant sprite if we have it
+            if (playerAnt != null && playerAnt.Texture != null)
+            {
+                // Calculate center of character panel
+                Vector2 centerPosition = new Vector2(
+                    characterImageRect.X + characterImageRect.Width / 2,
+                    characterImageRect.Y + characterImageRect.Height / 2);
+
+                // Use the idle frame for display (usually frame 0)
+                int frameToShow = 0; // Idle frame
+
+                // Get sprite dimensions from TextureInfo
+                int frameWidth = (int)(playerAnt.TextureInfo.TextureWidth / playerAnt.TextureInfo.NumOfSpriteCols);
+                int frameHeight = (int)(playerAnt.TextureInfo.TextureHeight);
+
+                if (!playerAnt.HasDirection)
+                {
+                    // For sprites without direction (like the ant with 3 frames in 1 row)
+                    Rectangle source = new Rectangle(
+                        frameToShow * frameWidth,
+                        0, // y is always 0 for single row
+                        frameWidth,
+                        frameHeight);
+
+                    // Calculate scale to fit in panel
+                    float scale = Math.Min(
+                        characterImageRect.Width / (float)frameWidth,
+                        characterImageRect.Height / (float)frameHeight) * 0.8f; // 80% of max size for some padding
+
+                    // Calculate draw position (center the frame)
+                    Vector2 drawPosition = new Vector2(
+                        centerPosition.X - (frameWidth * scale / 2),
+                        centerPosition.Y - (frameHeight * scale / 2));
+
+                    // Draw the ant frame
+                    spriteBatch.Draw(
+                        playerAnt.Texture,
+                        drawPosition,
+                        source,
+                        Color.White * TransitionAlpha,
+                        0f,
+                        Vector2.Zero,
+                        scale,
+                        SpriteEffects.None, // No flipping for display
+                        0f);
+                }
+                else
+                {
+                    // For directional sprites
+                    int directionIndex = 0; // Default direction (usually down)
+
+                    Rectangle source = new Rectangle(
+                        frameToShow * frameWidth,
+                        directionIndex * (frameHeight / playerAnt.TextureInfo.NumOfSpriteRows),
+                        frameWidth,
+                        frameHeight / playerAnt.TextureInfo.NumOfSpriteRows);
+
+                    // Calculate scale to fit in panel
+                    float scale = Math.Min(
+                        characterImageRect.Width / (float)source.Width,
+                        characterImageRect.Height / (float)source.Height) * 0.8f;
+
+                    // Calculate draw position (center the frame)
+                    Vector2 drawPosition = new Vector2(
+                        centerPosition.X - (source.Width * scale / 2),
+                        centerPosition.Y - (source.Height * scale / 2));
+
+                    // Draw the ant frame
+                    spriteBatch.Draw(
+                        playerAnt.Texture,
+                        drawPosition,
+                        source,
+                        Color.White * TransitionAlpha,
+                        0f,
+                        Vector2.Zero,
+                        scale,
+                        SpriteEffects.None,
+                        0f);
+                }
+            }
+            else
+            {
+                // If player sprite isn't available, draw a placeholder
+                DrawAntPlaceholder(spriteBatch, characterImageRect);
+            }
+
+            // Draw character type text
             string charType = "Ant Worker";
             Vector2 typeSize = _font.MeasureString(charType) * _fontScale;
             spriteBatch.DrawString(_font, charType,
@@ -948,6 +1051,82 @@ namespace Superorganism.Screens
                     characterImageRect.Bottom + (int)(10 * _uiScale)),
                 Color.White * TransitionAlpha,
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+        }
+
+        /// <summary>
+        /// Draws a simple ant placeholder if the actual sprite is not available
+        /// </summary>
+        private void DrawAntPlaceholder(SpriteBatch spriteBatch, Rectangle rect)
+        {
+            // Draw a simple ant silhouette as a placeholder
+
+            // Ant body (oval)
+            int bodyWidth = (int)(rect.Width * 0.6f);
+            int bodyHeight = (int)(rect.Height * 0.4f);
+            Rectangle bodyRect = new Rectangle(
+                rect.X + (rect.Width - bodyWidth) / 2,
+                rect.Y + (rect.Height - bodyHeight) / 2,
+                bodyWidth,
+                bodyHeight);
+
+            Color antColor = new Color(120, 70, 20, 200) * TransitionAlpha; // Brown for ant
+            spriteBatch.Draw(_backgroundTexture, bodyRect, antColor);
+
+            // Ant head (circle)
+            int headSize = (int)(bodyHeight * 0.8f);
+            Rectangle headRect = new Rectangle(
+                bodyRect.X - headSize / 3,
+                bodyRect.Y + (bodyHeight - headSize) / 2,
+                headSize,
+                headSize);
+
+            spriteBatch.Draw(_backgroundTexture, headRect, antColor);
+
+            // Legs (lines)
+            int legLength = (int)(bodyWidth * 0.4f);
+            int legThickness = (int)(3 * _uiScale);
+
+            // Draw 6 legs (3 on each side)
+            for (int i = 0; i < 3; i++)
+            {
+                // Position along body
+                float position = 0.2f + (i * 0.3f);
+
+                // Left leg
+                Rectangle leftLeg = new Rectangle(
+                    bodyRect.X + (int)(bodyWidth * position),
+                    bodyRect.Y + bodyHeight / 2,
+                    legThickness,
+                    legLength);
+                spriteBatch.Draw(_backgroundTexture, leftLeg, antColor);
+
+                // Right leg
+                Rectangle rightLeg = new Rectangle(
+                    bodyRect.X + (int)(bodyWidth * position),
+                    bodyRect.Y + bodyHeight / 2,
+                    legThickness,
+                    legLength);
+                spriteBatch.Draw(_backgroundTexture, rightLeg, antColor);
+            }
+
+            // Antennae
+            int antennaLength = (int)(headSize * 0.8f);
+            int antennaThickness = (int)(2 * _uiScale);
+
+            Rectangle leftAntenna = new Rectangle(
+                headRect.X + headSize / 4,
+                headRect.Y - antennaLength + antennaThickness,
+                antennaThickness,
+                antennaLength);
+
+            Rectangle rightAntenna = new Rectangle(
+                headRect.X + headSize * 3 / 4,
+                headRect.Y - antennaLength + antennaThickness,
+                antennaThickness,
+                antennaLength);
+
+            spriteBatch.Draw(_backgroundTexture, leftAntenna, antColor);
+            spriteBatch.Draw(_backgroundTexture, rightAntenna, antColor);
         }
 
         /// <summary>
@@ -964,11 +1143,11 @@ namespace Superorganism.Screens
                 Color.White * TransitionAlpha,
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
 
-            // Starting position for stats - increased vertical padding
-            Vector2 statPos = new(_statsRect.X + (int)(15 * _uiScale), _statsRect.Y + (int)(35 * _uiScale)); // Reduced from 40
+            // Starting position for stats
+            Vector2 statPos = new(_statsRect.X + (int)(15 * _uiScale), _statsRect.Y + (int)(35 * _uiScale));
 
             // Calculate a better line height with more spacing
-            float lineHeight = _font.LineSpacing * _fontScale * 1.5f; // Reduced from 1.4f for tighter spacing
+            float lineHeight = _font.LineSpacing * _fontScale * 1.3f;
 
             // Create category headers with distinct styling
             float headerFontScale = _fontScale * 1.1f;
@@ -978,135 +1157,160 @@ namespace Superorganism.Screens
             spriteBatch.DrawString(_font, "Vital Statistics",
                 statPos, headerColor,
                 0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
-            statPos.Y += lineHeight; // Reduced from 1.2f for tighter spacing
+            statPos.Y += lineHeight;
 
             // Draw Health
             DrawStatBar(spriteBatch, statPos, "Health",
                 _playerStatus.HitPoints, _playerStatus.MaxHitPoints,
                 Color.Red);
-            statPos.Y += lineHeight;
+            statPos.Y += lineHeight * 1.3f; // Increased from 1.0 to 1.1 for more padding
 
             // Draw Stamina
             DrawStatBar(spriteBatch, statPos, "Stamina",
                 _playerStatus.Stamina, _playerStatus.MaxStamina,
                 Color.Green);
-            statPos.Y += lineHeight;
+            statPos.Y += lineHeight * 1.3f; // Increased from 1.0 to 1.1 for more padding
 
             // Draw Hunger
             DrawStatBar(spriteBatch, statPos, "Hunger",
                 _playerStatus.Hunger, _playerStatus.MaxHunger,
                 Color.Yellow);
-            statPos.Y += lineHeight; // Reduced from 1.5f for tighter spacing
+            statPos.Y += lineHeight * 1.8f; // Increased from 1.5 to 1.6 for more padding before attributes
 
-            // --- ATTRIBUTES SECTION ---
-            spriteBatch.DrawString(_font, "Attributes",
-                statPos, headerColor,
-                0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
-            statPos.Y += lineHeight; // Reduced from 1.2f for tighter spacing
-
-            // Organize attributes in two columns if space permits
-            float columnWidth = _statsRect.Width / 2 - (int)(20 * _uiScale);
-            Vector2 rightColPos = new Vector2(statPos.X + columnWidth, statPos.Y);
-
-            // Use a more compact arrangement for attributes - three per column if possible
-            if (columnWidth >= 80) // Only show two columns if enough width
-            {
-                // Left column attributes - 3 attributes
-                spriteBatch.DrawString(_font, $"Strength: {_playerStatus.Strength}",
-                    statPos, Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-                statPos.Y += lineHeight * 0.9f; // Tighter spacing between attributes
-
-                spriteBatch.DrawString(_font, $"Endurance: {_playerStatus.Endurance}",
-                    statPos, Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-                statPos.Y += lineHeight * 0.9f;
-
-                spriteBatch.DrawString(_font, $"Intelligence: {_playerStatus.Intelligence}",
-                    statPos, Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-
-                // Right column attributes - 3 attributes
-                spriteBatch.DrawString(_font, $"Agility: {_playerStatus.Agility}",
-                    rightColPos, Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-                rightColPos.Y += lineHeight * 0.9f;
-
-                spriteBatch.DrawString(_font, $"Perception: {_playerStatus.Perception}",
-                    rightColPos, Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-                rightColPos.Y += lineHeight * 0.9f;
-
-                spriteBatch.DrawString(_font, $"Luck: {_playerStatus.Luck}",
-                    rightColPos, Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-            }
-            else // Single column layout if width is constrained
-            {
-                // Compact single column layout
-                spriteBatch.DrawString(_font, $"Str: {_playerStatus.Strength}  Agi: {_playerStatus.Agility}",
-                    statPos, Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-                statPos.Y += lineHeight * 0.9f;
-
-                spriteBatch.DrawString(_font, $"End: {_playerStatus.Endurance}  Per: {_playerStatus.Perception}",
-                    statPos, Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-                statPos.Y += lineHeight * 0.9f;
-
-                spriteBatch.DrawString(_font, $"Int: {_playerStatus.Intelligence}  Lck: {_playerStatus.Luck}",
-                    statPos, Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-            }
-
-            // Use the maximum Y position from either column
-            statPos.Y = Math.Max(statPos.Y, rightColPos.Y) + lineHeight * 0.9f; // Reduced for tighter spacing
-
-            // --- RECOVERY RATES SECTION ---
-            // Start recovery rates higher up to avoid item details overlap
-            spriteBatch.DrawString(_font, "Recovery Rates",
+            // --- SPECIAL ATTRIBUTES SECTION ---
+            spriteBatch.DrawString(_font, "SPECIAL Attributes",
                 statPos, headerColor,
                 0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
             statPos.Y += lineHeight;
 
-            // Format recovery rates nicely
-            string staminaRegen = $"Stamina: {_playerStatus.StaminaRegenRate:F1}/sec";
-            if (_playerStatus.StaminaRegenDelay > 0)
-                staminaRegen += $" (after {_playerStatus.StaminaRegenDelay:F1}s)";
+            // Determine if we have enough space for two columns or need a compact format
+            float attributeFontScale = _fontScale * 0.9f; // Slightly smaller for attributes
+            float columnWidth = _statsRect.Width / 2 - (int)(25 * _uiScale);
+            Vector2 rightColPos = new Vector2(statPos.X + columnWidth, statPos.Y);
 
-            spriteBatch.DrawString(_font, staminaRegen,
-                statPos, Color.White * TransitionAlpha,
-                0f, Vector2.Zero, _fontScale * 0.9f, SpriteEffects.None, 0f);
-            statPos.Y += lineHeight * 0.9f;
+            // Check available width
+            Vector2 sampleTextSize = _font.MeasureString("Strength: 10") * attributeFontScale;
+            bool useColumns = sampleTextSize.X < columnWidth; // Only use columns if text fits
 
-            // Show hunger consumption rates with compact formatting
-            string hungerText = "Hunger rates: ";
-            float hungerFontScale = _fontScale * 0.85f; // Slightly smaller for better fitting
-
-            spriteBatch.DrawString(_font, hungerText,
-                statPos, Color.White * TransitionAlpha,
-                0f, Vector2.Zero, hungerFontScale, SpriteEffects.None, 0f);
-            statPos.Y += lineHeight * 0.8f;
-
-            // Split hunger rates into separate lines for better visibility
-            if (_playerStatus.IdleHungerRate > 0)
+            if (useColumns)
             {
-                spriteBatch.DrawString(_font, $"  Idle: {_playerStatus.IdleHungerRate * 60:F2}/min",
-                    new Vector2(statPos.X, statPos.Y),
-                    Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, hungerFontScale, SpriteEffects.None, 0f);
+                // Left column - S, P, E, C
+                spriteBatch.DrawString(_font, $"Strength: {_playerStatus.Strength}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
                 statPos.Y += lineHeight * 0.8f;
+
+                spriteBatch.DrawString(_font, $"Perception: {_playerStatus.Perception}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight * 0.8f;
+
+                spriteBatch.DrawString(_font, $"Endurance: {_playerStatus.Endurance}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight * 0.8f;
+
+                spriteBatch.DrawString(_font, $"Charisma: {_playerStatus.Charisma}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
+
+                // Right column - I, A, L
+                spriteBatch.DrawString(_font, $"Intelligence: {_playerStatus.Intelligence}",
+                    rightColPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
+                rightColPos.Y += lineHeight * 0.8f;
+
+                spriteBatch.DrawString(_font, $"Agility: {_playerStatus.Agility}",
+                    rightColPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
+                rightColPos.Y += lineHeight * 0.8f;
+
+                spriteBatch.DrawString(_font, $"Luck: {_playerStatus.Luck}",
+                    rightColPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
+
+                // Use maximum Y position from either column for next section
+                statPos.Y = Math.Max(statPos.Y, rightColPos.Y) + lineHeight * 0.8f;
+            }
+            else
+            {
+                // Compact single column format - use abbreviations for SPECIAL
+                float smallPadding = lineHeight * 0.7f;
+
+                spriteBatch.DrawString(_font, $"S: {_playerStatus.Strength}   P: {_playerStatus.Perception}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
+                statPos.Y += smallPadding;
+
+                spriteBatch.DrawString(_font, $"E: {_playerStatus.Endurance}   C: {_playerStatus.Charisma}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
+                statPos.Y += smallPadding;
+
+                spriteBatch.DrawString(_font, $"I: {_playerStatus.Intelligence}   A: {_playerStatus.Agility}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
+                statPos.Y += smallPadding;
+
+                spriteBatch.DrawString(_font, $"L: {_playerStatus.Luck}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, attributeFontScale, SpriteEffects.None, 0f);
+                statPos.Y += smallPadding;
             }
 
-            if (_playerStatus.MovingHungerRate > 0)
+            // Add a bit more space after attributes section
+            statPos.Y += lineHeight * 0.5f;
+
+            // --- RECOVERY RATES SECTION ---
+            float remainingHeight = _statsRect.Bottom - statPos.Y;
+            if (remainingHeight >= lineHeight * 3) // Only show if enough space
             {
-                spriteBatch.DrawString(_font, $"  Moving: {_playerStatus.MovingHungerRate * 60:F2}/min",
-                    new Vector2(statPos.X, statPos.Y),
-                    Color.White * TransitionAlpha,
-                    0f, Vector2.Zero, hungerFontScale, SpriteEffects.None, 0f);
+                spriteBatch.DrawString(_font, "Recovery Rates",
+                    statPos, headerColor,
+                    0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight;
+
+                // Format recovery rates nicely
+                string staminaRegen = $"Stamina: {_playerStatus.StaminaRegenRate:F1}/sec";
+                if (_playerStatus.StaminaRegenDelay > 0)
+                    staminaRegen += $" (after {_playerStatus.StaminaRegenDelay:F1}s)";
+
+                spriteBatch.DrawString(_font, staminaRegen,
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale * 0.9f, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight * 0.8f;
+
+                // Show hunger consumption rates with compact formatting
+                if (remainingHeight >= lineHeight * 5) // Only if enough space
+                {
+                    float hungerFontScale = _fontScale * 0.85f;
+
+                    spriteBatch.DrawString(_font, "Hunger rates:",
+                        statPos, Color.White * TransitionAlpha,
+                        0f, Vector2.Zero, hungerFontScale, SpriteEffects.None, 0f);
+                    statPos.Y += lineHeight * 0.7f;
+
+                    if (_playerStatus.IdleHungerRate > 0)
+                    {
+                        spriteBatch.DrawString(_font, $"  Idle: {_playerStatus.IdleHungerRate * 60:F2}/min",
+                            statPos, Color.White * TransitionAlpha,
+                            0f, Vector2.Zero, hungerFontScale, SpriteEffects.None, 0f);
+                        statPos.Y += lineHeight * 0.7f;
+                    }
+
+                    if (_playerStatus.MovingHungerRate > 0 && remainingHeight >= lineHeight * 6)
+                    {
+                        spriteBatch.DrawString(_font, $"  Moving: {_playerStatus.MovingHungerRate * 60:F2}/min",
+                            statPos, Color.White * TransitionAlpha,
+                            0f, Vector2.Zero, hungerFontScale, SpriteEffects.None, 0f);
+                    }
+                }
             }
         }
 
+        /// <summary>
+        /// Draws a stat bar with label, current value, and colored fill bar
+        /// </summary>
         /// <summary>
         /// Draws a stat bar with label, current value, and colored fill bar
         /// </summary>
@@ -1117,12 +1321,16 @@ namespace Superorganism.Screens
             spriteBatch.DrawString(_font, label, position, Color.White * TransitionAlpha,
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
 
-            // Calculate bar position and size - added more vertical padding
+            // Calculate bar position and size with increased vertical padding
             int barWidth = _statsRect.Width - (int)(30 * _uiScale);
-            int barHeight = (int)(14 * _uiScale); // Slightly reduced from 16
+            int barHeight = (int)(14 * _uiScale);
+
+            // Add more padding between label and bar
+            int topPadding = (int)(_font.LineSpacing * _fontScale) + (int)(4 * _uiScale);
+
             Rectangle barBg = new(
                 (int)position.X,
-                (int)position.Y + (int)(_font.LineSpacing * _fontScale) + (int)(4 * _uiScale), // Added padding
+                (int)position.Y + topPadding,
                 barWidth,
                 barHeight);
 
@@ -1166,6 +1374,9 @@ namespace Superorganism.Screens
             spriteBatch.DrawString(_font, valueText, textPos,
                 Color.White * TransitionAlpha,
                 0f, Vector2.Zero, _fontScale * 0.9f, SpriteEffects.None, 0f);
+
+            // Return the adjusted position with added vertical padding after the bar
+            // This is handled by the caller incrementing statPos.Y by lineHeight
         }
 
         /// <summary>
