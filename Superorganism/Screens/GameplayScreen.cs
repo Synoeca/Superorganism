@@ -155,9 +155,9 @@ namespace Superorganism.Screens
             _map.MapFileName = mapFileName;
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
-            MapHelper.TileSize = _map.TileWidth;
-            MapHelper.MapWidth = _map.Width;
-            MapHelper.MapHeight = _map.Height;
+            TilePhysicsInspector.TileSize = _map.TileWidth;
+            TilePhysicsInspector.MapWidth = _map.Width;
+            TilePhysicsInspector.MapHeight = _map.Height;
 
             GameStateOrganizer = new GameStateOrganizer(
                 ScreenManager.Game,

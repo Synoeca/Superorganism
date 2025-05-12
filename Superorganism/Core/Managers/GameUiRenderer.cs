@@ -494,7 +494,7 @@ namespace Superorganism.Core.Managers
             currentOffset.Y += _gameFont.MeasureString(worldPosText).Y * textScale;
 
             // Draw tile coordinates
-            (int tileX, int tileY) = MapHelper.WorldToTile(mouseWorldPosition);
+            (int tileX, int tileY) = TilePhysicsInspector.WorldToTile(mouseWorldPosition);
             string tilePosText = $"Tile: {tileX}, {tileY}";
             DrawDebugText(tilePosText, textPosition + currentOffset, textScale);
 

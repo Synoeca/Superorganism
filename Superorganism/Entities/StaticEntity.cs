@@ -57,13 +57,13 @@ namespace Superorganism.Entities
             // Check map bounds
             newPosition.X = MathHelper.Clamp(newPosition.X,
                 (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f,
-                MapHelper.GetMapWorldBounds().Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
+                TilePhysicsInspector.GetMapWorldBounds().Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
 
             bool hitsDiagonal = false;
             float slope = 0;
 
             // Get ground level at new position
-            float groundY = MapHelper.GetGroundYPosition(
+            float groundY = TilePhysicsInspector.GetGroundYPosition(
                 GameState.CurrentMap,
                 newPosition.X,
                 Position.Y,

@@ -82,8 +82,8 @@ namespace Superorganism.AI
             );
 
             // Get the tile at the proposed position
-            int tileX = (int)(proposedPosition.X / MapHelper.TileSize);
-            int tileY = (int)(proposedPosition.Y / MapHelper.TileSize);
+            int tileX = (int)(proposedPosition.X / TilePhysicsInspector.TileSize);
+            int tileY = (int)(proposedPosition.Y / TilePhysicsInspector.TileSize);
 
             // Check each layer for collision, excluding diagonal tiles
             foreach (Layer layer in GameState.CurrentMap.Layers.Values)
@@ -94,7 +94,7 @@ namespace Superorganism.AI
                     tileId != 53 && tileId != 54 && tileId != 57)
                 {
                     // Check collision with non-diagonal tiles
-                    if (MapHelper.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
+                    if (TilePhysicsInspector.CheckEntityMapCollision(GameState.CurrentMap, proposedPosition, collisionSize))
                     {
                         return true;
                     }
@@ -160,7 +160,7 @@ namespace Superorganism.AI
             ref float jumpDiagonalPosY, ref bool flipped)
         {
             double currentStrategyDuration = GetStrategyDuration(strategyHistory, gameTime);
-            Rectangle mapBounds = MapHelper.GetMapWorldBounds();
+            Rectangle mapBounds = TilePhysicsInspector.GetMapWorldBounds();
 
             switch (strategy)
             {
@@ -242,7 +242,7 @@ namespace Superorganism.AI
                         float slope = 0;
 
                         // Check ground collision before applying position update
-                        float groundY = MapHelper.GetGroundYPosition(
+                        float groundY = TilePhysicsInspector.GetGroundYPosition(
                             GameState.CurrentMap,
                             newPosition.X,
                             position.Y,

@@ -799,7 +799,7 @@ public static class MovementUtilities
             BoundingRectangle xTileRec = new();
 
             // Check if the collision is with a diagonal tile
-            if (MapHelper.HandleDiagonalCollision(currentMap, position, proposedXPosition, collisionBounding,
+            if (TilePhysicsInspector.HandleDiagonalCollision(currentMap, position, proposedXPosition, collisionBounding,
                     ref velocity, ref newPosY, ref xTileRec, ref hasLeftDiagonal, ref hasRightDiagonal))
             {
                 position.X = proposedXPosition.X;
@@ -911,7 +911,7 @@ public static class MovementUtilities
         }
 
         // Check map bounds
-        Rectangle mapBounds = MapHelper.GetMapWorldBounds();
+        Rectangle mapBounds = TilePhysicsInspector.GetMapWorldBounds();
         position.X = MathHelper.Clamp(position.X,
             (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
             mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
@@ -974,7 +974,7 @@ public static class MovementUtilities
         float rightSlope = 0;
 
         // Check ground at both bottom corners
-        float leftGroundY = MapHelper.GetGroundYPosition(
+        float leftGroundY = TilePhysicsInspector.GetGroundYPosition(
             currentMap,
             position.X,
             position.Y,
@@ -984,7 +984,7 @@ public static class MovementUtilities
             ref leftSlope
         );
 
-        float rightGroundY = MapHelper.GetGroundYPosition(
+        float rightGroundY = TilePhysicsInspector.GetGroundYPosition(
             currentMap,
             position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
             position.Y,
@@ -1369,18 +1369,18 @@ public static class MovementUtilities
                 br.Height
             );
 
-            leftTile = (int)(testBounds.Left / MapHelper.TileSize) - 1;
-            rightTile = (int)Math.Ceiling(testBounds.Right / MapHelper.TileSize);
-            topTile = (int)(testBounds.Top / MapHelper.TileSize) - 1;
-            bottomTile = (int)Math.Ceiling(testBounds.Bottom / MapHelper.TileSize) - 1;
+            leftTile = (int)(testBounds.Left / TilePhysicsInspector.TileSize) - 1;
+            rightTile = (int)Math.Ceiling(testBounds.Right / TilePhysicsInspector.TileSize);
+            topTile = (int)(testBounds.Top / TilePhysicsInspector.TileSize) - 1;
+            bottomTile = (int)Math.Ceiling(testBounds.Bottom / TilePhysicsInspector.TileSize) - 1;
         }
         else if (collisionBounding is BoundingCircle bc)
         {
             Vector2 testCenter = new(position.X, position.Y);
-            leftTile = (int)((testCenter.X - bc.Radius) / MapHelper.TileSize);
-            rightTile = (int)Math.Ceiling((testCenter.X + bc.Radius) / MapHelper.TileSize);
-            topTile = (int)((testCenter.Y - bc.Radius) / MapHelper.TileSize);
-            bottomTile = (int)Math.Ceiling((testCenter.Y + bc.Radius) / MapHelper.TileSize);
+            leftTile = (int)((testCenter.X - bc.Radius) / TilePhysicsInspector.TileSize);
+            rightTile = (int)Math.Ceiling((testCenter.X + bc.Radius) / TilePhysicsInspector.TileSize);
+            topTile = (int)((testCenter.Y - bc.Radius) / TilePhysicsInspector.TileSize);
+            bottomTile = (int)Math.Ceiling((testCenter.Y + bc.Radius) / TilePhysicsInspector.TileSize);
         }
 
         // Check collision with map layers
@@ -1432,13 +1432,13 @@ public static class MovementUtilities
         ref bool isCenterOnDiagonal, 
         ref bool yCollisionFromAbove)
     {
-        int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
-        int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
+        int tilex = (int)(collisionBounding.Center.X / TilePhysicsInspector.TileSize);
+        int tiley = (int)(collisionBounding.Center.Y / TilePhysicsInspector.TileSize);
 
         if (leftTile < 0 || rightTile < 0) { leftTile = rightTile = 0; }
-        if (leftTile >= MapHelper.MapWidth || rightTile >= MapHelper.MapWidth) { leftTile = rightTile = MapHelper.MapWidth - 1; }
+        if (leftTile >= TilePhysicsInspector.MapWidth || rightTile >= TilePhysicsInspector.MapWidth) { leftTile = rightTile = TilePhysicsInspector.MapWidth - 1; }
         if (topTile < 0 || bottomTile < 0) { topTile = bottomTile = 0; }
-        if (topTile >= MapHelper.MapHeight || bottomTile >= MapHelper.MapHeight) { topTile = bottomTile = MapHelper.MapHeight - 1; }
+        if (topTile >= TilePhysicsInspector.MapHeight || bottomTile >= TilePhysicsInspector.MapHeight) { topTile = bottomTile = TilePhysicsInspector.MapHeight - 1; }
 
         for (int y = topTile; y <= bottomTile; y++)
         {
@@ -1448,7 +1448,7 @@ public static class MovementUtilities
 
                 if (tileId != 0)
                 {
-                    Dictionary<string, string> property = MapHelper.GetTileProperties(tileId);
+                    Dictionary<string, string> property = TilePhysicsInspector.GetTileProperties(tileId);
 
                     // Skip non-collidable tiles
                     if (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false")
@@ -1457,10 +1457,10 @@ public static class MovementUtilities
                     }
 
                     BoundingRectangle tileRect = new(
-                        x * MapHelper.TileSize,
-                        y * MapHelper.TileSize,
-                        MapHelper.TileSize - 5,
-                        MapHelper.TileSize - 5
+                        x * TilePhysicsInspector.TileSize,
+                        y * TilePhysicsInspector.TileSize,
+                        TilePhysicsInspector.TileSize - 5,
+                        TilePhysicsInspector.TileSize - 5
                     );
 
                     bool isDiagonalTile = false;
@@ -1476,10 +1476,10 @@ public static class MovementUtilities
                         {
                             if (collisionBounding is BoundingRectangle br)
                             {
-                                float tileLeft = x * MapHelper.TileSize;
-                                float slope = (slopeRight - slopeLeft) / (float)MapHelper.TileSize;
+                                float tileLeft = x * TilePhysicsInspector.TileSize;
+                                float slope = (slopeRight - slopeLeft) / (float)TilePhysicsInspector.TileSize;
                                 float distanceFromLeft = collisionBounding.Center.X - tileLeft;
-                                float tileBottom = (y + 1) * MapHelper.TileSize;
+                                float tileBottom = (y + 1) * TilePhysicsInspector.TileSize;
 
                                 float slopeY;
                                 if (slope > 0)
@@ -1488,7 +1488,7 @@ public static class MovementUtilities
                                 }
                                 else
                                 {
-                                    slopeY = (tileBottom - slopeRight) + (slope * (MapHelper.TileSize - Math.Abs(distanceFromLeft)));
+                                    slopeY = (tileBottom - slopeRight) + (slope * (TilePhysicsInspector.TileSize - Math.Abs(distanceFromLeft)));
                                 }
 
                                 if (position.Y < slopeY && velocityY < 0)

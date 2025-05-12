@@ -221,7 +221,7 @@ public class EntityOraganizer
             Crop crop = new();
             int cropX = 10 + (2 * i); // Spread them out horizontally
             int cropY = 5 + rand.Next(10); // Random height between tile 5-14
-            Vector2 position = MapHelper.TileToWorld(cropX, cropY);
+            Vector2 position = TilePhysicsInspector.TileToWorld(cropX, cropY);
 
             // Add small random offset within tile
             position.X += rand.Next(-16, 16);
@@ -242,7 +242,7 @@ public class EntityOraganizer
             // Spread flies across a wider range and higher up
             int spreadX = 40 + rand.Next(80);  // Spread between tile 40-120
             int spreadY = 2 + rand.Next(10);   // Higher up between tile 2-11
-            Vector2 position = MapHelper.TileToWorld(spreadX, spreadY);
+            Vector2 position = TilePhysicsInspector.TileToWorld(spreadX, spreadY);
 
             // Add random offsets within tile for more natural distribution
             position.X += rand.Next(-32, 32);

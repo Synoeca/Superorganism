@@ -7,14 +7,33 @@ using Superorganism.Core.Managers;
 
 namespace Superorganism.Tiles
 {
-    public static class MapHelper
+    /// <summary>
+    /// Provides static methods for analyzing and interacting with tile-based map physics, including 
+    /// ground detection, tile conversions, and collision handling in a 2D tile map.
+    /// </summary>
+    public static class TilePhysicsInspector
     {
+        /// <summary>
+        /// Size of a single tile in pixels.
+        /// </summary>
         public static int TileSize { get; set; }
+
+        /// <summary>
+        /// Total width of the map in tiles.
+        /// </summary>
         public static int MapWidth { get; set; }
+
+        /// <summary>
+        /// Total height of the map in tiles.
+        /// </summary>
         public static int MapHeight { get; set; }
 
         private static readonly Dictionary<int, int> GroundLevels = new();
 
+        /// <summary>
+        /// Analyzes the map to determine the ground level (first solid tile) in each column.
+        /// </summary>
+        /// <param name="map">The tile map to analyze.</param>
         public static void AnalyzeMapGround(TiledMap map)
         {
             GroundLevels.Clear();
@@ -41,8 +60,11 @@ namespace Superorganism.Tiles
 
 
         /// <summary>
-        /// Converts tile coordinates to world coordinates, aligning with tile boundaries
+        /// Converts tile coordinates to world space coordinates aligned with tile boundaries.
         /// </summary>
+        /// <param name="tileX">The tile's X index.</param>
+        /// <param name="tileY">The tile's Y index.</param>
+        /// <returns>A Vector2 representing world space position.</returns>
         public static Vector2 TileToWorld(int tileX, int tileY)
         {
             // For X position: same as before
@@ -55,14 +77,21 @@ namespace Superorganism.Tiles
         }
 
         /// <summary>
-        /// Converts world coordinates to tile coordinates
+        /// Converts world coordinates to tile coordinates.
         /// </summary>
+        /// <param name="position">The position in world space.</param>
+        /// <returns>A tuple representing the tile's X and Y indices.</returns>
         public static (int X, int Y) WorldToTile(Vector2 position)
         {
             return ((int)(position.X / TileSize), (int)(position.Y / TileSize));
         }
 
-        // Update GetGroundLevel to use our analyzed data
+        /// <summary>
+        /// Gets the Y-coordinate of the ground level in world space at the specified X position.
+        /// </summary>
+        /// <param name="map">The tile map to query.</param>
+        /// <param name="worldX">The X-coordinate in world space.</param>
+        /// <returns>Y-coordinate in world space of the ground level.</returns>
         public static float GetGroundLevel(TiledMap map, float worldX)
         {
             int tileX = (int)(worldX / TileSize);
@@ -77,8 +106,11 @@ namespace Superorganism.Tiles
         }
 
         /// <summary>
-        /// Checks if a point is inside a solid tile
+        /// Determines whether a point in world space is inside a solid tile.
         /// </summary>
+        /// <param name="map">The tile map to check.</param>
+        /// <param name="position">The point in world space.</param>
+        /// <returns>True if the point is inside a solid tile, otherwise false.</returns>
         public static bool IsInsideTile(TiledMap map, Vector2 position)
         {
             (int tileX, int tileY) = WorldToTile(position);
@@ -98,16 +130,21 @@ namespace Superorganism.Tiles
         }
 
         /// <summary>
-        /// Gets the world bounds of the map
+        /// Returns the world space bounding rectangle of the entire tile map.
         /// </summary>
+        /// <returns>A Rectangle representing the map bounds in world space.</returns>
         public static Rectangle GetMapWorldBounds()
         {
             return new Rectangle(0, 0, MapWidth * TileSize, MapHeight * TileSize);
         }
 
         /// <summary>
-        /// Checks collision with nearby tiles for an entity
+        /// Checks whether an entity intersects any solid tiles in the map.
         /// </summary>
+        /// <param name="map">The tile map to check.</param>
+        /// <param name="position">The center position of the entity.</param>
+        /// <param name="size">The size of the entity.</param>
+        /// <returns>True if a collision occurs, otherwise false.</returns>
         public static bool CheckEntityMapCollision(TiledMap map, Vector2 position, Vector2 size)
         {
             // Get the tiles the entity might be intersecting with
@@ -185,6 +222,18 @@ namespace Superorganism.Tiles
             return false;
         }
 
+        /// <summary>
+        /// Computes the Y position of the ground under a specific X world coordinate, 
+        /// accounting for diagonal tiles and collision bounds.
+        /// </summary>
+        /// <param name="map">The tile map to query.</param>
+        /// <param name="worldX">The horizontal position in world space.</param>
+        /// <param name="positionY">The current Y position of the entity.</param>
+        /// <param name="entityHeight">The height of the entity.</param>
+        /// <param name="collisionBounding">The collision bounding shape.</param>
+        /// <param name="hitsDiagonalTile">Returns true if a diagonal tile is hit.</param>
+        /// <param name="diagonalSlope">The slope of the diagonal tile if hit.</param>
+        /// <returns>The Y-coordinate of the ground in world space.</returns>
         public static float GetGroundYPosition(TiledMap map, float worldX, float positionY, float entityHeight, 
             ICollisionBounding collisionBounding, ref bool hitsDiagonalTile, ref float diagonalSlope)
         {
@@ -330,6 +379,11 @@ namespace Superorganism.Tiles
             return MapHeight * TileSize;
         }
 
+        /// <summary>
+        /// Gets the custom properties of a tile based on its ID.
+        /// </summary>
+        /// <param name="tileId">The global tile ID.</param>
+        /// <returns>A dictionary of property key-value pairs, or empty if none found.</returns>
         public static Dictionary<string, string> GetTileProperties(int tileId)
         {
             // Find the correct tileset based on FirstGid
@@ -355,6 +409,19 @@ namespace Superorganism.Tiles
                    ?? new Dictionary<string, string>();
         }
 
+        /// <summary>
+        /// Handles collision detection and resolution against diagonal tiles.
+        /// </summary>
+        /// <param name="map">The tile map.</param>
+        /// <param name="position">The current position of the entity.</param>
+        /// <param name="proposedPosition">The proposed new position of the entity.</param>
+        /// <param name="collisionBounding">The collision bounding shape of the entity.</param>
+        /// <param name="velocity">The current velocity of the entity.</param>
+        /// <param name="newPosY">Reference to the Y position to update based on collision.</param>
+        /// <param name="xTileRec">Reference to the tile rectangle the entity may be colliding with.</param>
+        /// <param name="hasLeftDiagonal">Returns true if a left-leaning diagonal is involved.</param>
+        /// <param name="hasRightDiagonal">Returns true if a right-leaning diagonal is involved.</param>
+        /// <returns>True if movement is allowed, otherwise false.</returns>
         public static bool HandleDiagonalCollision(TiledMap map, Vector2 position, Vector2 proposedPosition,
             ICollisionBounding collisionBounding, ref Vector2 velocity, ref float newPosY, ref BoundingRectangle xTileRec,
             ref bool hasLeftDiagonal, ref bool hasRightDiagonal)
@@ -524,8 +591,16 @@ namespace Superorganism.Tiles
             return isOnDiagonalTile && !hasCollisionAtProposedPos;
         }
 
-
-        
+        /// <summary>
+        /// Checks whether a tile at a given position blocks movement based on the given collision bounding.
+        /// </summary>
+        /// <param name="layer">The layer containing the tile.</param>
+        /// <param name="x">Tile X index.</param>
+        /// <param name="y">Tile Y index.</param>
+        /// <param name="collisionBounding">The shape used to detect collisions.</param>
+        /// <param name="isOnDiagonalTile">Whether the entity is on a diagonal tile.</param>
+        /// <param name="isGoingRight">True if the entity is moving right, otherwise false.</param>
+        /// <returns>True if the tile blocks movement, otherwise false.</returns>
         private static bool CheckBlockingCollision(Layer layer, int x, int y, ICollisionBounding collisionBounding,
             bool isOnDiagonalTile, bool isGoingRight)
         {
@@ -686,13 +761,18 @@ namespace Superorganism.Tiles
             return false;
         }
 
-        private static bool IsCurrentDiagonalTile(int x, int y, int currentLeftTile, int currentRightTile,
-            int currentTopTile, int currentBottomTile)
-        {
-            return x >= currentLeftTile && x <= currentRightTile &&
-                   y >= currentTopTile && y <= currentBottomTile;
-        }
-
+        /// <summary>
+        /// Checks if the specified tile is a diagonal tile and handles collision resolution.
+        /// </summary>
+        /// <param name="layer">The tile layer to check.</param>
+        /// <param name="x">Tile X index.</param>
+        /// <param name="y">Tile Y index.</param>
+        /// <param name="newPosY">Ref to Y position adjusted during collision resolution.</param>
+        /// <param name="collisionBounding">The collision bounding object.</param>
+        /// <param name="position">The current position.</param>
+        /// <param name="proposedPosition">The intended position to move to.</param>
+        /// <param name="xTileRec">Ref to tile rectangle for further processing.</param>
+        /// <returns>True if tile is a diagonal tile and has been handled, otherwise false.</returns>
         private static bool CheckDiagonalTile(Layer layer, int x, int y, ref float newPosY,
             ICollisionBounding collisionBounding, Vector2 position, Vector2 proposedPosition, ref BoundingRectangle xTileRec)
         {

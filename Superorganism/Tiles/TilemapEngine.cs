@@ -1497,7 +1497,7 @@ namespace Superorganism.Tiles
             // Store the source path for later use
             result.SourcePath = filename;
 
-            MapHelper.AnalyzeMapGround(result);
+            TilePhysicsInspector.AnalyzeMapGround(result);
             return result;
         }
 
