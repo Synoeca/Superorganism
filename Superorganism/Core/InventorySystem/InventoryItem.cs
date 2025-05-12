@@ -1,9 +1,11 @@
 ﻿#nullable enable
+using System.Collections.Generic;
+using System;
 using System.ComponentModel;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Superorganism.Core.Inventory
+namespace Superorganism.Core.InventorySystem
 {
     /// <summary>
     /// Represents an item in the inventory with change notifications.
@@ -113,6 +115,48 @@ namespace Superorganism.Core.Inventory
             }
         }
 
+        private bool _isFromTileset;
+        /// <summary>
+        /// Whether this item was created from a tileset
+        /// </summary>
+        public bool IsFromTileset
+        {
+            get => _isFromTileset;
+            set
+            {
+                _isFromTileset = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFromTileset)));
+            }
+        }
+
+        private int _tilesetIndex = -1;
+        /// <summary>
+        /// The index of the tileset this item was created from (-1 if not from a tileset)
+        /// </summary>
+        public int TilesetIndex
+        {
+            get => _tilesetIndex;
+            set
+            {
+                _tilesetIndex = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TilesetIndex)));
+            }
+        }
+
+        private int _tileIndex = -1;
+        /// <summary>
+        /// The index of the tile in the tileset this item was created from (-1 if not from a tileset)
+        /// </summary>
+        public int TileIndex
+        {
+            get => _tileIndex;
+            set
+            {
+                _tileIndex = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TileIndex)));
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the InventoryItem class.
         /// </summary>
@@ -125,6 +169,9 @@ namespace Superorganism.Core.Inventory
             _quantity = quantity;
             _description = description;
             _sourceRectangle = Rectangle.Empty;
+            _isFromTileset = false;
+            _tilesetIndex = -1;
+            _tileIndex = -1;
         }
 
         /// <summary>
@@ -148,21 +195,67 @@ namespace Superorganism.Core.Inventory
         }
 
         /// <summary>
-        /// Creates an item from a tileset tile
+        /// Initializes a new instance of the InventoryItem class with tileset info.
         /// </summary>
         /// <param name="name">The name of the item</param>
         /// <param name="quantity">The quantity of the item</param>
         /// <param name="description">The description of the item</param>
-        /// <param name="tileset">The tileset containing the tile</param>
+        /// <param name="texture">The texture of the item</param>
+        /// <param name="sourceRectangle">The source rectangle within the texture</param>
+        /// <param name="tilesetIndex">The index of the tileset</param>
+        /// <param name="tileIndex">The index of the tile in the tileset</param>
+        /// <param name="scale">Scale factor for rendering the texture</param>
+        public InventoryItem(string name, int quantity, string description, Texture2D texture,
+            Rectangle sourceRectangle, int tilesetIndex, int tileIndex, float scale = 1.0f)
+            : this(name, quantity, description, texture, sourceRectangle, true, scale)
+        {
+            _isFromTileset = true;
+            _tilesetIndex = tilesetIndex;
+            _tileIndex = tileIndex;
+        }
+
+        /// <summary>
+        /// Creates an item from a tileset tile using the tileset index
+        /// </summary>
+        /// <param name="name">The name of the item</param>
+        /// <param name="quantity">The quantity of the item</param>
+        /// <param name="description">The description of the item</param>
+        /// <param name="tilesets">The collection of tilesets</param>
+        /// <param name="tilesetIndex">The index of the tileset in the collection</param>
         /// <param name="tileIndex">The index of the tile in the tileset</param>
         /// <returns>A new InventoryItem with the tile's texture information</returns>
         public static InventoryItem CreateFromTileset(string name, int quantity, string description,
-            Tiles.Tileset tileset, int tileIndex)
+            SortedList<string, Tiles.Tileset> tilesets, int tilesetIndex, int tileIndex)
         {
+            // Get the tileset from the collection using the index
+            if (tilesetIndex < 0 || tilesetIndex >= tilesets.Count)
+            {
+                throw new ArgumentException($"Tileset index {tilesetIndex} is out of range");
+            }
+
+            // Get the tileset at the specified index
+            Tiles.Tileset tileset = tilesets.Values[tilesetIndex];
+
+            if (tileset == null)
+            {
+                throw new ArgumentException($"No tileset found at index {tilesetIndex}");
+            }
+
             Rectangle sourceRect = Rectangle.Empty;
             tileset.MapTileToRect(tileIndex, ref sourceRect);
 
-            return new InventoryItem(name, quantity, description, tileset.TileTexture, sourceRect, true);
+            // Create the item with the tileset and tile indices
+            InventoryItem item = new(
+                name,
+                quantity,
+                description,
+                tileset.TileTexture,
+                sourceRect,
+                tilesetIndex,
+                tileIndex
+            );
+
+            return item;
         }
 
         /// <summary>

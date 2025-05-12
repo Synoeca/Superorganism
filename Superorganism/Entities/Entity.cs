@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.Collisions;
 using Superorganism.Common;
-using Superorganism.Core.Inventory;
+using Superorganism.Core.InventorySystem;
 using Superorganism.Interfaces;
 namespace Superorganism.Entities
 {

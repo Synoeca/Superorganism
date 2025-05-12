@@ -4,25 +4,43 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 using Superorganism.Common;
+using Superorganism.Core.InventorySystem;
 using Superorganism.Core.Managers;
 using Superorganism.Core.Timing;
 using Superorganism.Entities;
 
 namespace Superorganism.Core.SaveLoadSystem
 {
+    /// <summary>
+    /// Class responsible for saving game state to disk
+    /// </summary>
     public static class GameStateSaver
     {
+        /// <summary>
+        /// Base directory for save files
+        /// </summary>
         private static readonly string BaseContentPath =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                         "Superorganism", "Saves");
 
+        /// <summary>
+        /// Serializer options for JSON serialization
+        /// </summary>
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
             WriteIndented = true,
             Converters = { new Vector2Converter() }
         };
 
+        /// <summary>
+        /// Saves the current game state to a file
+        /// </summary>
+        /// <param name="gameState">The game state to save</param>
+        /// <param name="mapFileName">The current map file name</param>
+        /// <param name="content">Content manager for resource loading</param>
+        /// <param name="saveFileName">Optional custom save file name</param>
         public static void SaveGameState(GameStateInfo gameState, string mapFileName, ContentManager content, string saveFileName = null)
         {
             try
@@ -82,7 +100,8 @@ namespace Superorganism.Core.SaveLoadSystem
                         Position = player.Position,
                         IsControlled = player.IsControlled,
                         Health = player.EntityStatus.HitPoints,
-                        Status = SerializeEntityStatus(player.EntityStatus)
+                        Status = SerializeEntityStatus(player.EntityStatus),
+                        Inventory = SerializeInventory(player.Inventory)
                     });
                     Console.WriteLine("Player saved");
                 }
@@ -103,7 +122,8 @@ namespace Superorganism.Core.SaveLoadSystem
                             StartTime = sh.StartTime,
                             LastActionTime = sh.LastActionTime
                         }).ToList(),
-                        Status = SerializeEntityStatus(enemy.EntityStatus)
+                        Status = SerializeEntityStatus(enemy.EntityStatus),
+                        Inventory = SerializeInventory(enemy.Inventory)
                     });
                 }
                 Console.WriteLine($"Enemies saved: {gameState.Entities.OfType<AntEnemy>().Count()}");
@@ -115,6 +135,7 @@ namespace Superorganism.Core.SaveLoadSystem
                     {
                         Type = "Crop",
                         Position = crop.Position,
+                        Inventory = SerializeInventory(crop.Inventory)
                     });
                 }
                 Console.WriteLine($"Crops saved: {gameState.Entities.OfType<Crop>().Count()}");
@@ -127,7 +148,8 @@ namespace Superorganism.Core.SaveLoadSystem
                         Type = "Fly",
                         Position = fly.Position,
                         Health = (int)fly.EntityStatus.HitPoints,
-                        Status = SerializeEntityStatus(fly.EntityStatus)
+                        Status = SerializeEntityStatus(fly.EntityStatus),
+                        Inventory = SerializeInventory(fly.Inventory)
                     });
                 }
                 Console.WriteLine($"Flies saved: {gameState.Entities.OfType<Fly>().Count()}");
@@ -162,6 +184,10 @@ namespace Superorganism.Core.SaveLoadSystem
             }
         }
 
+        /// <summary>
+        /// Gets the next available save number
+        /// </summary>
+        /// <returns>The next available save number</returns>
         private static int GetNextSaveNumber()
         {
             if (!Directory.Exists(BaseContentPath))
@@ -177,7 +203,11 @@ namespace Superorganism.Core.SaveLoadSystem
                 .Max() + 1;
         }
 
-        // Helper method to serialize EntityStatus
+        /// <summary>
+        /// Serializes an EntityStatus object to its data representation
+        /// </summary>
+        /// <param name="status">The entity status to serialize</param>
+        /// <returns>Serialized entity status data</returns>
         private static EntityStatusData SerializeEntityStatus(EntityStatus status)
         {
             if (status == null) return null;
@@ -213,6 +243,49 @@ namespace Superorganism.Core.SaveLoadSystem
                 LowStaminaSpeedMultiplier = status.LowStaminaSpeedMultiplier,
                 HungerTimer = status.HungerTimer
             };
+        }
+
+        /// <summary>
+        /// Serializes an Inventory object to its data representation
+        /// </summary>
+        /// <param name="inventory">The inventory to serialize</param>
+        /// <returns>Serialized inventory data</returns>
+        private static InventoryData SerializeInventory(Inventory inventory)
+        {
+            if (inventory == null) return null;
+
+            InventoryData inventoryData = new()
+            {
+                Items = []
+            };
+
+            foreach (InventoryItem item in inventory.Items)
+            {
+                string textureName = null;
+
+                // Get texture name directly from the texture object
+                if (item.Texture != null)
+                {
+                    textureName = item.Texture.Name; // Use the name property directly
+                    Console.WriteLine($"Saving texture name: {textureName}");
+                }
+
+                inventoryData.Items.Add(new InventoryItemData
+                {
+                    Name = item.Name,
+                    Quantity = item.Quantity,
+                    Description = item.Description,
+                    TextureName = textureName,
+                    SourceRectangle = item.SourceRectangle,
+                    IsSpriteAtlas = item.IsSpriteAtlas,
+                    Scale = item.Scale,
+                    IsFromTileset = item.IsFromTileset,
+                    TilesetIndex = item.TilesetIndex,
+                    TileIndex = item.TileIndex
+                });
+            }
+
+            return inventoryData;
         }
     }
 }

@@ -7,7 +7,6 @@ using Superorganism.AI;
 using Superorganism.Collisions;
 using Superorganism.Common;
 using Superorganism.Core.Camera;
-using Superorganism.Core.Inventory;
 using Superorganism.Entities;
 using Superorganism.ScreenManagement;
 using Superorganism.Tiles;
@@ -65,7 +64,6 @@ namespace Superorganism.Core.Managers
                 [Buttons.Start, Buttons.Back],
                 [Keys.Back, Keys.Escape],
                 true);
-            //_entityOraganizer.PlayerAnt.Inventory.Add(InventoryItem.CreateFromTileset("T4", 1, "Test", _map.Tilesets.GetValueAtIndex(1), 51));
 
             InitializeGameState();
         }

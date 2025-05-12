@@ -1,12 +1,11 @@
 ﻿#nullable enable
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 
-namespace Superorganism.Core.Inventory
+namespace Superorganism.Core.InventorySystem
 {
     /// <summary>
     /// Represents a collection of inventory items with change notifications.

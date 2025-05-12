@@ -129,6 +129,11 @@ namespace Superorganism.Screens
             string mapFileName = "TestMapRev5"; // Default map
             GameStateInfo loadedState = new();
 
+            _map = new TiledMap();
+            _map = _map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath($"{mapFileName}.tmx")), _content);
+            _map.MapFileName = mapFileName;
+            _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
+
             if (SaveFileToLoad != null)
             {
                 try
@@ -141,7 +146,7 @@ namespace Superorganism.Screens
 
                     if (File.Exists(savePath))
                     {
-                        (loadedState, mapFileName) = GameStateLoader.LoadGameState(SaveFileToLoad);
+                        (loadedState, mapFileName) = GameStateLoader.LoadGameState(SaveFileToLoad, _content, _map);
                     }
                 }
                 catch (Exception ex)
@@ -149,11 +154,6 @@ namespace Superorganism.Screens
                     System.Diagnostics.Debug.WriteLine($"Failed to load save file: {ex.Message}");
                 }
             }
-
-            _map = new TiledMap();
-            _map = _map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath($"{mapFileName}.tmx")), _content);
-            _map.MapFileName = mapFileName;
-            _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
             TilePhysicsInspector.TileSize = _map.TileWidth;
             TilePhysicsInspector.MapWidth = _map.Width;

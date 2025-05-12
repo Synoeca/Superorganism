@@ -6,7 +6,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.Common;
-using Superorganism.Core.Inventory;
+using Superorganism.Core.InventorySystem;
+using Superorganism.Core.Managers;
 using Superorganism.Core.Timing;
 using Superorganism.Entities;
 using Superorganism.ScreenManagement;
@@ -89,24 +90,24 @@ namespace Superorganism.Screens
 
             // Define input actions
             _menuUp = new InputAction(
-                [Buttons.DPadUp, Buttons.LeftThumbstickUp],
-                [Keys.Up, Keys.W], true);
+                [Buttons.DPadUp],
+                [Keys.Up], true);
 
             _menuDown = new InputAction(
-                [Buttons.DPadDown, Buttons.LeftThumbstickDown],
-                [Keys.Down, Keys.S], true);
+                [Buttons.DPadDown],
+                [Keys.Down], true);
 
             _menuLeft = new InputAction(
-                [Buttons.DPadLeft, Buttons.LeftThumbstickLeft],
-                [Keys.Left, Keys.A], true);
+                [Buttons.DPadLeft],
+                [Keys.Left], true);
 
             _menuRight = new InputAction(
-                [Buttons.DPadRight, Buttons.LeftThumbstickRight],
-                [Keys.Right, Keys.D], true);
+                [Buttons.DPadRight],
+                [Keys.Right], true);
 
             _menuSelect = new InputAction(
                 [Buttons.A],
-                [Keys.Enter, Keys.Space], true);
+                [Keys.Enter], true);
 
             _menuCancel = new InputAction(
                 [Buttons.B, Buttons.Back],
@@ -117,7 +118,7 @@ namespace Superorganism.Screens
                 [Keys.E], true);
 
             // Create a default entity status for when we can't get it from the game
-            _playerStatus = new EntityStatus();
+            _playerStatus = GameState.GetPlayerEntityStatus();
         }
 
         /// <summary>

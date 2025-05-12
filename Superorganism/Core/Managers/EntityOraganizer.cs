@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Superorganism.AI;
 using Superorganism.Collisions;
 using Superorganism.Common;
-using Superorganism.Core.Inventory;
+using Superorganism.Core.InventorySystem;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Particle;
@@ -256,7 +256,6 @@ public class EntityOraganizer
             }
         }
 
-
         LoadContent(content);
     }
 
@@ -271,12 +270,12 @@ public class EntityOraganizer
         _ant.IsControlled = true;
         _ant.Inventory =
         [
-            InventoryItem.CreateFromTileset("T1", 3, "Test 1", _map.Tilesets.GetValueAtIndex(1), 49),
-            InventoryItem.CreateFromTileset("T2", 3, "Test 2", _map.Tilesets.GetValueAtIndex(1), 50),
-            InventoryItem.CreateFromTileset("T3", 3, "Test 3", _map.Tilesets.GetValueAtIndex(1), 51),
-            InventoryItem.CreateFromTileset("T4", 3, "Test 4", _map.Tilesets.GetValueAtIndex(1), 52)
+            InventoryItem.CreateFromTileset("T1", 3, "Test 1", _map.Tilesets, 1, 49),
+            InventoryItem.CreateFromTileset("T2", 3, "Test 2", _map.Tilesets, 1, 50),
+            InventoryItem.CreateFromTileset("T3", 3, "Test 3", _map.Tilesets, 1, 51),
+            InventoryItem.CreateFromTileset("T4", 3, "Test 4", _map.Tilesets, 1, 52)
         ];
-        _ant.Inventory.Add(InventoryItem.CreateFromTileset("T4", 1, "Test", _map.Tilesets.GetValueAtIndex(1), 51));
+        _ant.Inventory.Add(InventoryItem.CreateFromTileset("T4", 3, "Test 4", _map.Tilesets, 1, 52));
 
         // Initialize multiple ant enemies
         const int count = 1;
@@ -292,7 +291,7 @@ public class EntityOraganizer
             _antEnemies.Add(antEnemy);
         }
 
-        InitializeCrops(graphicsDevice);
+        InitializeCrops();
         InitializeFlies(graphicsDevice);
         _explosions = new ExplosionParticleSystem(_game, 20);
 
@@ -307,8 +306,7 @@ public class EntityOraganizer
     /// <summary>
     /// Initializes crops in the game world at random tile locations.
     /// </summary>
-    /// <param name="graphicsDevice">Graphics device (currently unused in this method).</param>
-    private void InitializeCrops(GraphicsDevice graphicsDevice)
+    private void InitializeCrops()
     {
         Random rand = new();
         int count = 1;
