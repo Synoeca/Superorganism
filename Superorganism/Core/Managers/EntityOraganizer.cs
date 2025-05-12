@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Superorganism.AI;
 using Superorganism.Collisions;
+using Superorganism.Common;
 using Superorganism.Entities;
 using Superorganism.Enums;
 using Superorganism.Particle;
@@ -62,6 +63,12 @@ public class EntityOraganizer
     {
         get => _ant.EntityStatus.Hunger;
         set => _ant.EntityStatus.Hunger = value;
+    }
+
+    public EntityStatus PlayerEntityStatus
+    {
+        get => _ant.EntityStatus;
+        set => _ant.EntityStatus = value;
     }
 
     public float PlayerMaxHealth => _ant.EntityStatus.MaxHitPoints;

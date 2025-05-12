@@ -18,7 +18,6 @@ namespace Superorganism.Screens
     public class InventoryScreen : GameScreen
     {
         // Indicates this screen doesn't pause the game
-        public bool ShouldPauseGame { get; } = false;
 
         // Inventory grid configuration
         private const int GridColumns = 6;
@@ -246,15 +245,7 @@ namespace Superorganism.Screens
                 {
                     // This assumes GameStateOrganizer has a way to get player status
                     // You'll need to adjust this based on your actual implementation
-                    _playerStatus = new EntityStatus
-                    {
-                        HitPoints = gameplayScreen.GameStateOrganizer.GetPlayerHealth(),
-                        MaxHitPoints = gameplayScreen.GameStateOrganizer.GetPlayerMaxHealth(),
-                        Stamina = gameplayScreen.GameStateOrganizer.GetPlayerStamina(),
-                        MaxStamina = gameplayScreen.GameStateOrganizer.GetPlayerMaxStamina(),
-                        Hunger = gameplayScreen.GameStateOrganizer.GetPlayerHunger(),
-                        MaxHunger = gameplayScreen.GameStateOrganizer.GetPlayerMaxHunger()
-                    };
+                    _playerStatus = gameplayScreen.GameStateOrganizer.GetPlayerEntityStatus;
                     break;
                 }
             }
@@ -977,6 +968,9 @@ namespace Superorganism.Screens
         /// <summary>
         /// Draws the stats panel in the right section
         /// </summary>
+        /// <summary>
+        /// Draws the stats panel in the right section
+        /// </summary>
         private void DrawStatsPanel(SpriteBatch spriteBatch)
         {
             // Draw section title
@@ -984,13 +978,25 @@ namespace Superorganism.Screens
             Vector2 titleSize = _font.MeasureString(title) * _fontScale;
             spriteBatch.DrawString(_font, title,
                 new Vector2(_statsRect.X + (_statsRect.Width - titleSize.X) / 2,
-                    _statsRect.Y + (int)(10 * _uiScale)),
+                    _statsRect.Y + (int)(8 * _uiScale)),
                 Color.White * TransitionAlpha,
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
 
-            // Starting position for stats
-            Vector2 statPos = new(_statsRect.X + (int)(20 * _uiScale), _statsRect.Y + (int)(50 * _uiScale));
-            float lineHeight = _font.LineSpacing * _fontScale * 1.2f;
+            // Starting position for stats - increased vertical padding
+            Vector2 statPos = new(_statsRect.X + (int)(15 * _uiScale), _statsRect.Y + (int)(40 * _uiScale));
+
+            // Calculate a better line height with more spacing
+            float lineHeight = _font.LineSpacing * _fontScale * 1.4f; // Increased from 1.2f for better spacing
+
+            // Create category headers with distinct styling
+            float headerFontScale = _fontScale * 1.1f; // Slightly larger for headers
+            Color headerColor = new Color(200, 200, 255) * TransitionAlpha; // Light blue for headers
+
+            // --- VITAL STATISTICS SECTION ---
+            spriteBatch.DrawString(_font, "Vital Statistics",
+                statPos, headerColor,
+                0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
+            statPos.Y += lineHeight * 1.2f; // Add extra padding after header
 
             // Draw Health
             DrawStatBar(spriteBatch, statPos, "Health",
@@ -1008,15 +1014,20 @@ namespace Superorganism.Screens
             DrawStatBar(spriteBatch, statPos, "Hunger",
                 _playerStatus.Hunger, _playerStatus.MaxHunger,
                 Color.Yellow);
-            statPos.Y += lineHeight * 1.5f;
+            statPos.Y += lineHeight * 1.5f; // Add extra space between sections
 
-            // Draw attributes
+            // --- ATTRIBUTES SECTION ---
+            spriteBatch.DrawString(_font, "Attributes",
+                statPos, headerColor,
+                0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
+            statPos.Y += lineHeight * 1.2f; // Add extra padding after header
+
+            // Organize attributes in two columns if space permits
+            float columnWidth = _statsRect.Width / 2 - (int)(20 * _uiScale);
+            Vector2 rightColPos = new Vector2(statPos.X + columnWidth, statPos.Y);
+
+            // Left column attributes
             spriteBatch.DrawString(_font, $"Strength: {_playerStatus.Strength}",
-                statPos, Color.White * TransitionAlpha,
-                0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
-            statPos.Y += lineHeight;
-
-            spriteBatch.DrawString(_font, $"Agility: {_playerStatus.Agility}",
                 statPos, Color.White * TransitionAlpha,
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
             statPos.Y += lineHeight;
@@ -1029,28 +1040,100 @@ namespace Superorganism.Screens
             spriteBatch.DrawString(_font, $"Intelligence: {_playerStatus.Intelligence}",
                 statPos, Color.White * TransitionAlpha,
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+            statPos.Y += lineHeight;
+
+            // Right column attributes (if width allows)
+            if (columnWidth >= 80) // Only show second column if enough width
+            {
+                spriteBatch.DrawString(_font, $"Agility: {_playerStatus.Agility}",
+                    rightColPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+                rightColPos.Y += lineHeight;
+
+                spriteBatch.DrawString(_font, $"Perception: {_playerStatus.Perception}",
+                    rightColPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+                rightColPos.Y += lineHeight;
+
+                spriteBatch.DrawString(_font, $"Luck: {_playerStatus.Luck}",
+                    rightColPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+            }
+            else // Single column layout if width is constrained
+            {
+                spriteBatch.DrawString(_font, $"Agility: {_playerStatus.Agility}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight;
+
+                spriteBatch.DrawString(_font, $"Perception: {_playerStatus.Perception}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight;
+
+                spriteBatch.DrawString(_font, $"Luck: {_playerStatus.Luck}",
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
+            }
+
+            // Use the maximum Y position from either column
+            statPos.Y = Math.Max(statPos.Y, rightColPos.Y);
+            statPos.Y += lineHeight * 1.5f; // Add extra space between sections
+
+            // --- RECOVERY RATES SECTION ---
+            // Only show if there's enough vertical space left
+            float remainingHeight = _statsRect.Bottom - statPos.Y;
+            if (remainingHeight > lineHeight * 4) // Check if we have at least 4 lines of space
+            {
+                spriteBatch.DrawString(_font, "Recovery Rates",
+                    statPos, headerColor,
+                    0f, Vector2.Zero, headerFontScale, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight * 1.2f;
+
+                // Format recovery rates nicely
+                string staminaRegen = $"Stamina: {_playerStatus.StaminaRegenRate:F1}/sec";
+                if (_playerStatus.StaminaRegenDelay > 0)
+                    staminaRegen += $" (after {_playerStatus.StaminaRegenDelay:F1}s)";
+
+                spriteBatch.DrawString(_font, staminaRegen,
+                    statPos, Color.White * TransitionAlpha,
+                    0f, Vector2.Zero, _fontScale * 0.9f, SpriteEffects.None, 0f);
+                statPos.Y += lineHeight;
+
+                // Show hunger consumption rates if enough space
+                if (remainingHeight > lineHeight * 6)
+                {
+                    string hungerText = "Hunger loss: ";
+                    if (_playerStatus.IdleHungerRate > 0)
+                        hungerText += $"{_playerStatus.IdleHungerRate * 60:F1}/min (idle)";
+
+                    spriteBatch.DrawString(_font, hungerText,
+                        statPos, Color.White * TransitionAlpha,
+                        0f, Vector2.Zero, _fontScale * 0.9f, SpriteEffects.None, 0f);
+                }
+            }
         }
 
         /// <summary>
         /// Draws a stat bar with label, current value, and colored fill bar
         /// </summary>
         private void DrawStatBar(SpriteBatch spriteBatch, Vector2 position, string label,
-                                float currentValue, float maxValue, Color barColor)
+                                 float currentValue, float maxValue, Color barColor)
         {
             // Draw label
             spriteBatch.DrawString(_font, label, position, Color.White * TransitionAlpha,
                 0f, Vector2.Zero, _fontScale, SpriteEffects.None, 0f);
 
-            // Calculate bar position and size
-            int barWidth = _statsRect.Width - (int)(40 * _uiScale);
-            int barHeight = (int)(16 * _uiScale);
+            // Calculate bar position and size - added more vertical padding
+            int barWidth = _statsRect.Width - (int)(30 * _uiScale);
+            int barHeight = (int)(14 * _uiScale); // Slightly reduced from 16
             Rectangle barBg = new(
                 (int)position.X,
-                (int)position.Y + (int)(_font.LineSpacing * _fontScale),
+                (int)position.Y + (int)(_font.LineSpacing * _fontScale) + (int)(4 * _uiScale), // Added padding
                 barWidth,
                 barHeight);
 
-            // Draw background
+            // Draw background with semi-transparency
             Color bgColor = new Color(40, 40, 60, 150) * TransitionAlpha;
             spriteBatch.Draw(_backgroundTexture, barBg, bgColor);
 
@@ -1064,7 +1147,14 @@ namespace Superorganism.Screens
                 (int)(barBg.Width * fillPercent),
                 barBg.Height);
 
-            spriteBatch.Draw(_backgroundTexture, barFill, barColor * TransitionAlpha);
+            // Make color slightly more transparent for nicer appearance
+            Color fillColor = new Color(
+                barColor.R,
+                barColor.G,
+                barColor.B,
+                (byte)(barColor.A * 0.9f)) * TransitionAlpha;
+
+            spriteBatch.Draw(_backgroundTexture, barFill, fillColor);
 
             // Draw border
             DrawRectangleBorder(spriteBatch, barBg, Color.White * TransitionAlpha, 1);

@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Superorganism.AI;
 using Superorganism.Collisions;
+using Superorganism.Common;
 using Superorganism.Core.Camera;
 using Superorganism.Entities;
 using Superorganism.ScreenManagement;
@@ -259,6 +260,7 @@ namespace Superorganism.Core.Managers
         public float GetPlayerMaxStamina() => _entityOraganizer.PlayerMaxStamina;
         public float GetPlayerHunger() => _entityOraganizer.PlayerHunger;
         public float GetPlayerMaxHunger() => _entityOraganizer.PlayerMaxHunger;
+        public EntityStatus GetPlayerEntityStatus => _entityOraganizer.PlayerEntityStatus;
         public void ResumeMusic() => _audioManager.ResumeMusic();
 
         public void Unload()
