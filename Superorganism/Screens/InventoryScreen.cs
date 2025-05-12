@@ -1063,7 +1063,7 @@ namespace Superorganism.Screens
 
             // Get mouse position to check for hover states
             MouseState mouse = Mouse.GetState();
-            Point mousePos = new Point(mouse.X, mouse.Y);
+            Point mousePos = new(mouse.X, mouse.Y);
 
             // --- Draw Close Button (X) ---
             bool closeHover = _closeButtonRect.Contains(mousePos);
@@ -1075,7 +1075,7 @@ namespace Superorganism.Screens
 
             // Draw X (diagonal lines)
             // Top-left to bottom-right diagonal
-            Rectangle closeX1 = new Rectangle(
+            Rectangle closeX1 = new(
                 _closeButtonRect.X + iconPadding,
                 _closeButtonRect.Y + iconPadding,
                 _closeButtonRect.Width - (iconPadding * 2),
@@ -1084,7 +1084,7 @@ namespace Superorganism.Screens
             // Need to draw a rotated rectangle, so create a diagonal line
             for (int i = 0; i < _closeButtonRect.Height - (iconPadding * 2); i++)
             {
-                Rectangle diagPiece = new Rectangle(
+                Rectangle diagPiece = new(
                     _closeButtonRect.X + iconPadding + i,
                     _closeButtonRect.Y + iconPadding + i,
                     iconThickness,
@@ -1095,7 +1095,7 @@ namespace Superorganism.Screens
             // Bottom-left to top-right diagonal
             for (int i = 0; i < _closeButtonRect.Height - (iconPadding * 2); i++)
             {
-                Rectangle diagPiece = new Rectangle(
+                Rectangle diagPiece = new(
                     _closeButtonRect.X + iconPadding + i,
                     _closeButtonRect.Y + _closeButtonRect.Height - iconPadding - i,
                     iconThickness,
@@ -1109,7 +1109,7 @@ namespace Superorganism.Screens
                 maxHover ? buttonHoverColor : buttonBgColor);
 
             // Draw appropriate icon based on window state
-            Rectangle maxIconRect = new Rectangle(
+            Rectangle maxIconRect = new(
                 _maximizeButtonRect.X + iconPadding,
                 _maximizeButtonRect.Y + iconPadding,
                 _maximizeButtonRect.Width - (iconPadding * 2),
@@ -1119,14 +1119,14 @@ namespace Superorganism.Screens
             {
                 // Draw "restore down" icon (two overlapping squares)
                 // Draw back square (top-left)
-                Rectangle backSquare = new Rectangle(
+                Rectangle backSquare = new(
                     maxIconRect.X,
                     maxIconRect.Y,
                     (int)(maxIconRect.Width * 0.7f),
                     (int)(maxIconRect.Height * 0.7f));
 
                 // Draw front square (bottom-right)
-                Rectangle frontSquare = new Rectangle(
+                Rectangle frontSquare = new(
                     maxIconRect.X + (int)(maxIconRect.Width * 0.3f),
                     maxIconRect.Y + (int)(maxIconRect.Height * 0.3f),
                     (int)(maxIconRect.Width * 0.7f),
@@ -1143,11 +1143,11 @@ namespace Superorganism.Screens
                 DrawRectangleBorder(spriteBatch, maxIconRect, iconColor, iconThickness);
 
                 // Draw diagonal arrow inside (from bottom-left to top-right)
-                Point arrowStart = new Point(
+                Point arrowStart = new(
                     maxIconRect.X + (int)(maxIconRect.Width * 0.3f),
                     maxIconRect.Y + (int)(maxIconRect.Height * 0.7f));
 
-                Point arrowEnd = new Point(
+                Point arrowEnd = new(
                     maxIconRect.X + (int)(maxIconRect.Width * 0.7f),
                     maxIconRect.Y + (int)(maxIconRect.Height * 0.3f));
 
@@ -1182,7 +1182,7 @@ namespace Superorganism.Screens
 
             // Draw horizontal line for minimize
             int lineY = _minimizeButtonRect.Y + _minimizeButtonRect.Height - iconPadding - iconThickness;
-            Rectangle minLine = new Rectangle(
+            Rectangle minLine = new(
                 _minimizeButtonRect.X + iconPadding,
                 lineY,
                 _minimizeButtonRect.Width - (iconPadding * 2),
@@ -1218,7 +1218,7 @@ namespace Superorganism.Screens
             // Draw each pixel along the line
             for (int i = 0; i <= steps; i++)
             {
-                Rectangle pixelRect = new Rectangle(
+                Rectangle pixelRect = new(
                     (int)x, (int)y, 1, 1);
                 spriteBatch.Draw(_backgroundTexture, pixelRect, color);
 
