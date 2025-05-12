@@ -16,7 +16,7 @@ namespace Superorganism.Screens
         // Add a property to explicitly indicate this screen doesn't pause the game
         public bool ShouldPauseGame { get; } = false;
 
-        private readonly List<InventoryItem> _inventoryItems = new List<InventoryItem>();
+        private readonly List<InventoryItem> _inventoryItems = [];
         private Texture2D _panelBackground;
         private Rectangle _inventoryRect;
         private int _selectedItemIndex = -1;
@@ -46,24 +46,24 @@ namespace Superorganism.Screens
 
             // Define input actions
             _menuUp = new InputAction(
-                new[] { Buttons.DPadUp, Buttons.LeftThumbstickUp },
-                new[] { Keys.Up, Keys.W }, true);
+                [Buttons.DPadUp, Buttons.LeftThumbstickUp],
+                [Keys.Up, Keys.W], true);
 
             _menuDown = new InputAction(
-                new[] { Buttons.DPadDown, Buttons.LeftThumbstickDown },
-                new[] { Keys.Down, Keys.S }, true);
+                [Buttons.DPadDown, Buttons.LeftThumbstickDown],
+                [Keys.Down, Keys.S], true);
 
             _menuSelect = new InputAction(
-                new[] { Buttons.A },
-                new[] { Keys.Enter, Keys.Space }, true);
+                [Buttons.A],
+                [Keys.Enter, Keys.Space], true);
 
             _menuCancel = new InputAction(
-                new[] { Buttons.B, Buttons.Back },
-                new[] { Keys.Escape, Keys.I }, true);
+                [Buttons.B, Buttons.Back],
+                [Keys.Escape, Keys.I], true);
 
             _menuUse = new InputAction(
-                new[] { Buttons.X },
-                new[] { Keys.E }, true);
+                [Buttons.X],
+                [Keys.E], true);
         }
 
         /// <summary>
@@ -320,7 +320,7 @@ namespace Superorganism.Screens
             Color borderColor = new Color(100, 100, 180, 255) * TransitionAlpha;
 
             // Draw the border
-            Rectangle borderRect = new Rectangle(
+            Rectangle borderRect = new(
                 _inventoryRect.X - 2,
                 _inventoryRect.Y - 2,
                 _inventoryRect.Width + 4,
@@ -333,7 +333,7 @@ namespace Superorganism.Screens
             // Draw inventory title
             string title = "Inventory";
             Vector2 titleSize = _font.MeasureString(title);
-            Vector2 titlePosition = new Vector2(
+            Vector2 titlePosition = new(
                 _inventoryRect.X + (_inventoryRect.Width - titleSize.X) / 2,
                 _inventoryRect.Y + 15);
 
@@ -346,14 +346,14 @@ namespace Superorganism.Screens
 
             // Set up scissor rect for inventory item area
             Rectangle originalScissorRect = ScreenManager.GraphicsDevice.ScissorRectangle;
-            Rectangle scissorRect = new Rectangle(
+            Rectangle scissorRect = new(
                 _inventoryRect.X,
                 _inventoryRect.Y + 60,
                 _inventoryRect.Width,
                 _inventoryRect.Height - 90);
 
             // Begin new batch with scissor test enabled
-            RasterizerState rasterizerState = new RasterizerState { ScissorTestEnable = true };
+            RasterizerState rasterizerState = new() { ScissorTestEnable = true };
             ScreenManager.GraphicsDevice.ScissorRectangle = scissorRect;
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, rasterizerState);
 
@@ -364,7 +364,7 @@ namespace Superorganism.Screens
                 bool isSelected = (i == _selectedItemIndex);
 
                 // Calculate item position
-                Rectangle itemRect = new Rectangle(
+                Rectangle itemRect = new(
                     _inventoryRect.X + ItemPadding,
                     _inventoryRect.Y + 60 + (i * (ItemHeight + ItemPadding)) - (int)_scrollPosition.Y,
                     _inventoryRect.Width - (ItemPadding * 2),
@@ -382,7 +382,7 @@ namespace Superorganism.Screens
 
                 // Draw item name and quantity
                 string itemText = $"{item.Name} x{item.Quantity}";
-                Vector2 textPos = new Vector2(itemRect.X + 10, itemRect.Y + 10);
+                Vector2 textPos = new(itemRect.X + 10, itemRect.Y + 10);
                 Color textColor = isSelected ? Color.Yellow : Color.White;
 
                 // Draw text shadow
@@ -402,7 +402,7 @@ namespace Superorganism.Screens
 
             string helpText = "W/S: Navigate  E: Use Item  Esc: Close";
             Vector2 helpSize = _font.MeasureString(helpText);
-            Vector2 helpPos = new Vector2(
+            Vector2 helpPos = new(
                 _inventoryRect.X + (_inventoryRect.Width - helpSize.X) / 2,
                 _inventoryRect.Bottom - 30);
 

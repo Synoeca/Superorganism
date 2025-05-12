@@ -67,6 +67,29 @@ namespace Superorganism.Screens
         private float _pauseAlpha;
 
         /// <summary>
+        /// Determines if a screen is one of the screen types that should pause the game.
+        /// Checks for specific screen classes that are known to require game pausing.
+        /// </summary>
+        /// <param name="screen">The screen to check</param>
+        /// <returns>True if the screen is a type that should pause the game, false otherwise</returns>
+        private bool ShouldPause(GameScreen screen)
+        {
+            return screen != this && screen is PauseMenuScreen or SaveFileMenuScreen or OptionsMenuScreen;
+        }
+
+        /// <summary>
+        /// Checks if a screen has the ShouldPauseGame property and if that property is true.
+        /// Used to determine if a screen should pause the game when active.
+        /// </summary>
+        /// <param name="screen">The screen to check</param>
+        /// <returns>True if the screen has ShouldPauseGame=true, false otherwise</returns>
+        private bool HasPauseProperty(GameScreen screen)
+        {
+            return screen != this &&
+                   screen.GetType().GetProperty("ShouldPauseGame")?.GetValue(screen) is true;
+        }
+
+        /// <summary>
         /// A flag to track if we're transitioning from pause back to gameplay
         /// </summary>
         private bool _returningFromPause = false;
@@ -232,16 +255,14 @@ namespace Superorganism.Screens
                         continue;
 
                     // Check if the screen is a type that should pause the game
-                    if (screen != this && (screen is PauseMenuScreen ||
-                                           screen is SaveFileMenuScreen ||
-                                           screen is OptionsMenuScreen))
+                    if (ShouldPause(screen))
                     {
                         shouldPause = true;
                         break;
                     }
 
                     // Check if screen has the ShouldPauseGame property
-                    if (screen != this && screen.GetType().GetProperty("ShouldPauseGame")?.GetValue(screen) is bool pauseValue && pauseValue)
+                    if (HasPauseProperty(screen))
                     {
                         shouldPause = true;
                         break;
@@ -362,7 +383,7 @@ namespace Superorganism.Screens
         {
             // Adjust the speed for fading in and out
             float fadeInSpeed = 0.05f;  // Speed when going from gameplay to pause
-            float fadeOutSpeed = 0.03f;  // Slower speed when returning from pause to gameplay
+            float fadeOutSpeed = 0.05f;  // Slower speed when returning from pause to gameplay
 
             if (isPaused)
             {
