@@ -876,11 +876,26 @@ public static class MovementUtilities
                         {
                             if (flipped)
                             {
-                                position.X += movementSpeed;
+                                if (isJumping)
+                                {
+                                    position.X -= movementSpeed;
+                                }
+                                else
+                                {
+                                    position.X += movementSpeed;
+                                }
                             }
                             else
                             {
-                                position.X -= movementSpeed;
+                                if (isJumping)
+                                {
+                                    position.X += movementSpeed;
+                                }
+                                else
+                                {
+                                    position.X -= movementSpeed;
+                                }
+                                    
                             }
                         }
                     }
