@@ -192,9 +192,6 @@ namespace Superorganism.Screens
             ScreenManager.GameplayScreenCamera2D = _camera;
         }
 
-        /// <summary>
-        /// Checks periodically for nearby collectible items to display indicator
-        /// </summary>
         private void UpdateNearbyItemCheck(GameTime gameTime)
         {
             _itemCheckTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -203,32 +200,48 @@ namespace Superorganism.Screens
                 // Reset timer
                 _itemCheckTimer = ItemCheckInterval;
 
-                // Find collectible items
-                List<DroppedItem> collectibleItems = [];
-                foreach (Entity entity in DecisionMaker.Entities)
-                {
-                    if (entity is DroppedItem droppedItem && droppedItem.CanBeCollected &&
-                        Vector2.Distance(GameStateOrganizer.GetPlayerPosition(), droppedItem.Position) < 50)
-                    {
-                        collectibleItems.Add(droppedItem);
-                    }
-                }
+                // Start with no nearby item
+                _nearestCollectibleItem = null;
 
-                // Sort by X-axis distance only (ignoring Y to prevent bobbing items from changing priority)
-                DroppedItem closestItem = null;
-                float closestXDistance = float.MaxValue;
+                // Get player position
                 Vector2 playerPos = GameStateOrganizer.GetPlayerPosition();
 
-                foreach (DroppedItem item in collectibleItems)
+                // Get player entity for collision detection
+                Ant playerAnt = GameStateOrganizer.GetPlayerAnt();
+
+                if (playerAnt == null || playerAnt.CollisionBounding == null)
+                    return;
+
+                // Check if there are any collectible items nearby
+                DroppedItem closestItem = null;
+                float closestDistance = float.MaxValue;
+
+                // Define the pickup radius
+                const float pickupRadius = 100f; // Reduced from 100 to 50
+
+                foreach (Entity entity in DecisionMaker.Entities)
                 {
-                    float xDistance = Math.Abs(item.Position.X - playerPos.X); // Only use X distance!
-                    if (xDistance < closestXDistance)
+                    if (entity is DroppedItem droppedItem &&
+                        !droppedItem.Collected &&
+                        droppedItem.CanBeCollected)
                     {
-                        closestXDistance = xDistance;
-                        closestItem = item;
+                        // Check if the item is close enough for detection
+                        float distance = Vector2.Distance(playerPos, droppedItem.Position);
+
+                        // Use consistent pickup radius
+                        if (distance < pickupRadius)
+                        {
+                            // Check if this is the closest item so far
+                            if (distance < closestDistance)
+                            {
+                                closestDistance = distance;
+                                closestItem = droppedItem;
+                            }
+                        }
                     }
                 }
 
+                // Set the nearest collectible item (will be null if none found)
                 _nearestCollectibleItem = closestItem;
             }
         }
@@ -250,8 +263,15 @@ namespace Superorganism.Screens
             // Handle F key press for item pickup
             if (input.IsNewKeyPress(Keys.G, ControllingPlayer, out _))
             {
-                // Update the nearest item right before attempting to collect
-                _nearestCollectibleItem = GameStateOrganizer.FindNearestCollectibleItem();
+                // Force an immediate check for the nearest item
+                _itemCheckTimer = 0;
+                UpdateNearbyItemCheck(gameTime);
+
+                // Fallback: If no item was found by UpdateNearbyItemCheck, use the direct finder
+                if (_nearestCollectibleItem == null)
+                {
+                    _nearestCollectibleItem = GameStateOrganizer.FindNearestCollectibleItem();
+                }
 
                 // If there's an item nearby, collect it
                 if (_nearestCollectibleItem != null && _nearestCollectibleItem.CanBeCollected)

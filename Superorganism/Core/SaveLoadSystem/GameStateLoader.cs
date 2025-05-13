@@ -12,6 +12,8 @@ using Superorganism.Core.Timing;
 using Superorganism.Core.InventorySystem;
 using System.Collections.Generic;
 using Superorganism.Tiles;
+using Superorganism.AI;
+using Superorganism.Collisions;
 
 namespace Superorganism.Core.SaveLoadSystem
 {
@@ -186,6 +188,117 @@ namespace Superorganism.Core.SaveLoadSystem
                     }
                     return fly;
 
+                case "DroppedItem":
+                    DroppedItem droppedItem = new()
+                    {
+                        // Set position
+                        Position = data.Position
+                    };
+
+                    // Apply entity status if available
+                    if (data.Status != null)
+                    {
+                        droppedItem.EntityStatus = DeserializeEntityStatus(data.Status);
+                    }
+
+                    // Load item details from inventory data if available
+                    if (data.Inventory != null && data.Inventory.Items.Count > 0)
+                    {
+                        InventoryItemData itemData = data.Inventory.Items[0];
+
+                        // Set basic properties
+                        droppedItem.ItemName = itemData.Name;
+                        droppedItem.ItemDescription = itemData.Description;
+                        droppedItem.IsSpriteAtlas = itemData.IsSpriteAtlas;
+                        droppedItem.IsFromTileset = itemData.IsFromTileset;
+                        droppedItem.TilesetIndex = itemData.TilesetIndex;
+                        droppedItem.TileIndex = itemData.TileIndex;
+
+                        // Set source rectangle
+                        droppedItem.SourceRectangle = itemData.SourceRectangle;
+
+                        // Load texture - either from content manager or tileset
+                        if (itemData.IsFromTileset && _map != null &&
+                            itemData.TilesetIndex >= 0 && itemData.TileIndex >= 0)
+                        {
+                            try
+                            {
+                                // Get the tileset texture - access public tileset properties
+                                if (_map.Tilesets.Count > itemData.TilesetIndex)
+                                {
+                                    Tileset tileset = _map.Tilesets.Values[itemData.TilesetIndex];
+                                    // Use the TileTexture property which should be public instead of Texture
+                                    droppedItem.Texture = tileset.TileTexture;
+
+                                    // Calculate source rectangle from tile index if not set
+                                    if (droppedItem.SourceRectangle == Rectangle.Empty)
+                                    {
+                                        // Use tileset's method to calculate the rect
+                                        tileset.MapTileToRect(itemData.TileIndex, ref droppedItem._sourceRectangle);
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Warning: Could not load tileset texture for DroppedItem. Error: {ex.Message}");
+                            }
+                        }
+                        else if (!string.IsNullOrEmpty(itemData.TextureName))
+                        {
+                            try
+                            {
+                                droppedItem.Texture = _contentManager.Load<Texture2D>(itemData.TextureName);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Warning: Could not load texture '{itemData.TextureName}' for DroppedItem. Error: {ex.Message}");
+                            }
+                        }
+
+                        // Set up texture info
+                        int width = droppedItem.SourceRectangle != Rectangle.Empty ?
+                            droppedItem.SourceRectangle.Width :
+                            droppedItem.Texture?.Width ?? 32;
+
+                        int height = droppedItem.SourceRectangle != Rectangle.Empty ?
+                            droppedItem.SourceRectangle.Height :
+                            droppedItem.Texture?.Height ?? 32;
+
+                        // Create a new TextureInfo instance with correct values
+                        droppedItem.TextureInfo = new TextureInfo
+                        {
+                            TextureWidth = droppedItem.Texture?.Width ?? width,
+                            TextureHeight = droppedItem.Texture?.Height ?? height,
+                            NumOfSpriteCols = 1,
+                            NumOfSpriteRows = 1,
+                            SizeScale = itemData.Scale,
+                            Center = new Vector2(width / 2.0f, height / 2.0f)
+                        };
+
+                        // Create collision bounds slightly smaller than the item for better collision
+                        float boundingWidth = width * itemData.Scale * 0.8f;
+                        float boundingHeight = height * itemData.Scale * 0.8f;
+
+                        BoundingRectangle boundingRect = new(
+                            droppedItem.Position.X - (boundingWidth / 2),
+                            droppedItem.Position.Y - (boundingHeight / 2),
+                            boundingWidth,
+                            boundingHeight
+                        );
+                        droppedItem.CollisionBounding = boundingRect;
+
+                        // Set color
+                        droppedItem.Color = Color.White;
+                    }
+
+                    // Initialize the state for loading
+                    droppedItem.InitializeFromSavedState();
+
+                    // Set collected status to false since we're only saving uncollected items
+                    droppedItem.Collected = false;
+
+                    // Return null so it doesn't also get added to gameState.Entities
+                    return droppedItem;
                 default:
                     return null;
             }

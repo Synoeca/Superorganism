@@ -290,7 +290,8 @@ namespace Superorganism.Core.Managers
         /// <param name="nearbyItem">The nearby item that can be collected, or null if none</param>
         public void DrawNearbyItemIndicator(GameTime gameTime, DroppedItem nearbyItem)
         {
-            if (nearbyItem == null || !nearbyItem.CanBeCollected)
+            // Early return if there's no nearby item or it can't be collected
+            if (nearbyItem == null || !nearbyItem.CanBeCollected || nearbyItem.Collected)
                 return;
 
             // Update the pulse animation
@@ -320,7 +321,7 @@ namespace Superorganism.Core.Managers
             );
 
             // Background panel with pulsating transparency
-            Color panelColor = new(40, 40, 60, 180 + (int)(40 * pulse));
+            Color panelColor = new(40, 40, 60, 200);
             _spriteBatch.Draw(_grayTexture, panelRect, panelColor);
 
             // Draw border with highlight color
@@ -333,10 +334,7 @@ namespace Superorganism.Core.Managers
             DrawRectangleOutline(panelRect, 2, borderColor);
 
             // Draw text with shadow for better readability
-            DrawTextWithShadow(indicatorText, textPosition, new Color(255, 255, 200) * pulse, textScale);
-
-            // Optionally, draw an icon or symbol next to the text
-            // You could add a small item icon or keyboard key icon here
+            DrawTextWithShadow(indicatorText, textPosition, Color.White, textScale);
         }
 
         // Add this method to your GameUiRenderer class
@@ -348,34 +346,34 @@ namespace Superorganism.Core.Managers
         /// <param name="cameraMatrix">The camera transformation matrix</param>
         public void DrawItemWorldIndicator(GameTime gameTime, DroppedItem nearbyItem, Matrix cameraMatrix)
         {
-            if (nearbyItem == null || !nearbyItem.CanBeCollected)
+            if (nearbyItem == null || !nearbyItem.CanBeCollected || nearbyItem.Collected)
                 return;
 
-            // Update the pulse animation
+            // Update the pulse animation (uses the shared pulse value)
             float pulse = (float)Math.Sin(_itemIndicatorPulse) * 0.3f + 0.7f;
 
             // Transform item position to screen coordinates
             Vector2 screenPos = Vector2.Transform(nearbyItem.Position, cameraMatrix);
 
-            // Calculate size of the indicator
-            int indicatorSize = 20; // Size of "pickup" indicator
+            // Calculate size of the indicator (increased for better visibility)
+            int indicatorSize = 24;
 
             // Draw an arrow or indicator above the item
-            Vector2 arrowTop = screenPos + new Vector2(0, -indicatorSize * 2);
-            Vector2 arrowLeft = screenPos + new Vector2(-indicatorSize / 2, -indicatorSize * 1.2f);
-            Vector2 arrowRight = screenPos + new Vector2(indicatorSize / 2, -indicatorSize * 1.2f);
+            Vector2 arrowTop = screenPos + new Vector2(0, -indicatorSize * 2.2f);
+            Vector2 arrowLeft = screenPos + new Vector2(-indicatorSize / 2, -indicatorSize * 1.4f);
+            Vector2 arrowRight = screenPos + new Vector2(indicatorSize / 2, -indicatorSize * 1.4f);
 
-            // Pulsing gold/yellow color
+            // Brighter, more pulsing gold/yellow color
             Color indicatorColor = new Color(255, (byte)(215 * pulse), 0) * pulse;
 
             // Draw a triangle arrow pointing down at the item
-            DrawLine(arrowTop, arrowLeft, indicatorColor, 2);
-            DrawLine(arrowLeft, arrowRight, indicatorColor, 2);
-            DrawLine(arrowRight, arrowTop, indicatorColor, 2);
+            DrawLine(arrowTop, arrowLeft, indicatorColor, 3); // Thicker lines
+            DrawLine(arrowLeft, arrowRight, indicatorColor, 3);
+            DrawLine(arrowRight, arrowTop, indicatorColor, 3);
 
             // Draw a circle around the item
-            float circleRadius = indicatorSize * (0.8f + (pulse * 0.2f)); // Pulsating size
-            DrawCircleOutline(screenPos, circleRadius, 2, indicatorColor);
+            float circleRadius = indicatorSize * (0.8f + (pulse * 0.3f)); // More pulsating
+            DrawCircleOutline(screenPos, circleRadius, 3, indicatorColor); // Thicker circle
         }
 
         public void DrawDebugInfo(Vector2 position, Matrix cameraMatrix, float distanceToPlayer, ICollisionBounding collisionBounding)

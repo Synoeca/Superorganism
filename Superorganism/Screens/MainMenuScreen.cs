@@ -164,8 +164,10 @@ namespace Superorganism.Screens
             ScreenState = ScreenState.Hidden;
 
             // Create and add the save file menu screen
-            SaveFileMenuScreen loadScreen = new(true);
-            loadScreen.SourceMainMenu = this;
+            SaveFileMenuScreen loadScreen = new(true)
+            {
+                SourceMainMenu = this
+            };
             ScreenManager.AddScreen(loadScreen, e.PlayerIndex);
         }
 
@@ -175,8 +177,10 @@ namespace Superorganism.Screens
             ScreenState = ScreenState.Hidden;
 
             // Create and add the instructions screen
-            InstructionsScreen instructionsScreen = new();
-            instructionsScreen.SourceMainMenu = this;
+            InstructionsScreen instructionsScreen = new()
+            {
+                SourceMainMenu = this
+            };
             ScreenManager.AddScreen(instructionsScreen, e.PlayerIndex);
         }
 
@@ -186,8 +190,10 @@ namespace Superorganism.Screens
             ScreenState = ScreenState.Hidden;
 
             // Create and add the options menu screen
-            OptionsMenuScreen optionsScreen = new();
-            optionsScreen.SourceMainMenu = this;
+            OptionsMenuScreen optionsScreen = new()
+            {
+                SourceMainMenu = this
+            };
             ScreenManager.AddScreen(optionsScreen, e.PlayerIndex);
         }
 

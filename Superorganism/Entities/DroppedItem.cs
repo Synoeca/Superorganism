@@ -14,7 +14,12 @@ namespace Superorganism.Entities
         // Item properties
         public string ItemName { get; set; }
         public string ItemDescription { get; set; }
-        public Rectangle SourceRectangle { get; set; }
+        public Rectangle _sourceRectangle;
+        public Rectangle SourceRectangle
+        {
+            get => _sourceRectangle;
+            set => _sourceRectangle = value;
+        }
         public bool IsFromTileset { get; set; }
         public int TilesetIndex { get; set; }
         public int TileIndex { get; set; }
@@ -100,6 +105,18 @@ namespace Superorganism.Entities
             // Add a small rotation effect (for visual interest if you implement it later)
             _flipped = _random.Next(2) == 0;
         }
+
+        public void InitializeFromSavedState()
+        {
+            // Mark as already landed (since we're loading from a save)
+            _hasLandedOnGround = true;
+            _isOnGround = true;
+            _positionInitialized = true;
+            _originalPosition = Position;
+            _velocity = Vector2.Zero;
+            CanBeCollected = true;
+        }
+
 
         public override void Update(GameTime gameTime)
         {

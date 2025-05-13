@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Superorganism.AI;
 using Superorganism.Common;
 using Superorganism.Core.InventorySystem;
 using Superorganism.Core.Managers;
@@ -165,6 +166,41 @@ namespace Superorganism.Core.SaveLoadSystem
                     MapFileName = newMapFileName,
                     GameplayTime = GameTimer.TotalGameplayTime
                 };
+
+                List<DroppedItem> droppedItems = DecisionMaker.Entities.OfType<DroppedItem>()
+                    .Where(item => !item.Collected)
+                    .ToList();
+
+                foreach (DroppedItem droppedItem in droppedItems)
+                {
+                    entityDataList.Add(new EntityData
+                    {
+                        Type = "DroppedItem",
+                        Position = droppedItem.Position,
+                        Status = SerializeEntityStatus(droppedItem.EntityStatus),
+                        // Use the inventory to store the item's properties
+                        Inventory = new InventoryData
+                        {
+                            Items =
+                            [
+                                new InventoryItemData()
+                                {
+                                    Name = droppedItem.ItemName,
+                                    Quantity = 1,
+                                    Description = droppedItem.ItemDescription,
+                                    TextureName = droppedItem.Texture?.Name,
+                                    SourceRectangle = droppedItem.SourceRectangle,
+                                    IsSpriteAtlas = droppedItem.IsSpriteAtlas,
+                                    Scale = droppedItem.TextureInfo?.SizeScale ?? 1.0f,
+                                    IsFromTileset = droppedItem.IsFromTileset,
+                                    TilesetIndex = droppedItem.TilesetIndex,
+                                    TileIndex = droppedItem.TileIndex
+                                }
+                            ]
+                        }
+                    });
+                }
+                Console.WriteLine($"Dropped items saved: {droppedItems.Count}");
 
                 Console.WriteLine("Creating save directory...");
                 string savePath = Path.Combine(BaseContentPath, saveFileName);
