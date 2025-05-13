@@ -310,7 +310,7 @@ namespace Superorganism.Core.Managers
             int height = sourceRect != Rectangle.Empty ? sourceRect.Height : texture.Height;
 
             // Create a new dropped item
-            DroppedItem droppedItem = new DroppedItem
+            DroppedItem droppedItem = new()
             {
                 ItemName = itemName,
                 ItemDescription = itemDescription,
@@ -322,25 +322,24 @@ namespace Superorganism.Core.Managers
                 TilesetIndex = tilesetIndex,
                 TileIndex = tileIndex,
                 Color = Color.White,
-                Collected = false
-            };
-
-            // Create proper TextureInfo
-            droppedItem.TextureInfo = new Common.TextureInfo
-            {
-                TextureWidth = texture.Width,
-                TextureHeight = texture.Height,
-                NumOfSpriteCols = 1,
-                NumOfSpriteRows = 1,
-                SizeScale = scale,
-                Center = new Vector2(width / 2.0f, height / 2.0f),
+                Collected = false,
+                // Create proper TextureInfo
+                TextureInfo = new TextureInfo
+                {
+                    TextureWidth = texture.Width,
+                    TextureHeight = texture.Height,
+                    NumOfSpriteCols = 1,
+                    NumOfSpriteRows = 1,
+                    SizeScale = scale,
+                    Center = new Vector2(width / 2.0f, height / 2.0f),
+                }
             };
 
             // Create collision bounds slightly smaller than the item for better collision
             float boundingWidth = width * scale * 0.8f;
             float boundingHeight = height * scale * 0.8f;
 
-            BoundingRectangle boundingRect = new BoundingRectangle(
+            BoundingRectangle boundingRect = new(
                 position.X - (boundingWidth / 2),
                 position.Y - (boundingHeight / 2),
                 boundingWidth,
@@ -412,7 +411,7 @@ namespace Superorganism.Core.Managers
                 return false;
 
             // Create inventory item from the dropped item
-            InventoryItem inventoryItem = new InventoryItem(
+            InventoryItem inventoryItem = new(
                 item.ItemName,
                 1,  // Just pick up one item
                 item.ItemDescription);
@@ -434,6 +433,7 @@ namespace Superorganism.Core.Managers
 
             // Mark as collected
             item.Collected = true;
+            item.CanBeCollected = false;
 
             // Play pickup sound
             _audioManager?.PlayCropPickup();
@@ -462,7 +462,7 @@ namespace Superorganism.Core.Managers
                     item.CollisionBounding.CollidesWith(playerAnt.CollisionBounding))
                 {
                     // Create inventory item from the dropped item
-                    InventoryItem inventoryItem = new InventoryItem(
+                    InventoryItem inventoryItem = new(
                         item.ItemName,
                         1,  // Add just one item
                         item.ItemDescription);

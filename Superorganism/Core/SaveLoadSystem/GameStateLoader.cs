@@ -207,7 +207,7 @@ namespace Superorganism.Core.SaveLoadSystem
                 {
                     HitPoints = 100
                 },
-                Inventory = new Inventory() // Initialize with empty inventory
+                Inventory = [] // Initialize with empty inventory
             };
             return new GameStateInfo
             {
@@ -265,9 +265,9 @@ namespace Superorganism.Core.SaveLoadSystem
         /// <returns>The deserialized inventory</returns>
         private static Inventory DeserializeInventory(InventoryData inventoryData)
         {
-            if (inventoryData == null) return new Inventory();
+            if (inventoryData == null) return [];
 
-            Inventory inventory = new Inventory();
+            Inventory inventory = [];
 
             foreach (InventoryItemData itemData in inventoryData.Items)
             {

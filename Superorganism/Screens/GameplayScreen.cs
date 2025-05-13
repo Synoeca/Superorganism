@@ -13,6 +13,7 @@ using System.IO;
 using Superorganism.Core.SaveLoadSystem;
 using Superorganism.Core.Timing;
 using Superorganism.Entities;
+using System.Collections.Generic;
 
 #pragma warning disable CA1416
 
@@ -55,6 +56,11 @@ namespace Superorganism.Screens
         /// Content manager for loading game assets specific to this screen.
         /// </summary>
         private ContentManager _content;
+
+        // Item collection tracking
+        private DroppedItem _nearestCollectibleItem = null;
+        private float _itemCheckTimer = 0f;
+        private const float ItemCheckInterval = 0.2f; // Check for nearby items every 200ms
 
         // Constants
         /// <summary>
@@ -187,6 +193,47 @@ namespace Superorganism.Screens
         }
 
         /// <summary>
+        /// Checks periodically for nearby collectible items to display indicator
+        /// </summary>
+        private void UpdateNearbyItemCheck(GameTime gameTime)
+        {
+            _itemCheckTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (_itemCheckTimer <= 0f)
+            {
+                // Reset timer
+                _itemCheckTimer = ItemCheckInterval;
+
+                // Find collectible items
+                List<DroppedItem> collectibleItems = [];
+                foreach (Entity entity in DecisionMaker.Entities)
+                {
+                    if (entity is DroppedItem droppedItem && droppedItem.CanBeCollected &&
+                        Vector2.Distance(GameStateOrganizer.GetPlayerPosition(), droppedItem.Position) < 50)
+                    {
+                        collectibleItems.Add(droppedItem);
+                    }
+                }
+
+                // Sort by X-axis distance only (ignoring Y to prevent bobbing items from changing priority)
+                DroppedItem closestItem = null;
+                float closestXDistance = float.MaxValue;
+                Vector2 playerPos = GameStateOrganizer.GetPlayerPosition();
+
+                foreach (DroppedItem item in collectibleItems)
+                {
+                    float xDistance = Math.Abs(item.Position.X - playerPos.X); // Only use X distance!
+                    if (xDistance < closestXDistance)
+                    {
+                        closestXDistance = xDistance;
+                        closestItem = item;
+                    }
+                }
+
+                _nearestCollectibleItem = closestItem;
+            }
+        }
+
+        /// <summary>
         /// Handles user input including pause, debug toggles, and game reset commands.
         /// </summary>
         /// <param name="gameTime">Timing information for the current frame.</param>
@@ -203,13 +250,27 @@ namespace Superorganism.Screens
             // Handle F key press for item pickup
             if (input.IsNewKeyPress(Keys.G, ControllingPlayer, out _))
             {
-                // Find the nearest item that can be collected
-                DroppedItem nearestItem = GameStateOrganizer.FindNearestCollectibleItem();
+                // Update the nearest item right before attempting to collect
+                _nearestCollectibleItem = GameStateOrganizer.FindNearestCollectibleItem();
 
                 // If there's an item nearby, collect it
-                if (nearestItem != null)
+                if (_nearestCollectibleItem != null && _nearestCollectibleItem.CanBeCollected)
                 {
-                    GameStateOrganizer.CollectDroppedItem(nearestItem);
+                    // Collect the item
+                    bool wasCollected = GameStateOrganizer.CollectDroppedItem(_nearestCollectibleItem);
+
+                    // If successfully collected, update local state
+                    if (wasCollected)
+                    {
+                        // Mark as collected in our local reference
+                        _nearestCollectibleItem.Collected = true;
+
+                        // Clear reference after collection
+                        _nearestCollectibleItem = null;
+
+                        // Reset timer to immediately check for more items
+                        _itemCheckTimer = 0f;
+                    }
                 }
             }
 
@@ -303,6 +364,9 @@ namespace Superorganism.Screens
                 GameTimer.Update(gameTime);
                 GameStateOrganizer.Update(gameTime);
                 _camera.Update(GameStateOrganizer.GetPlayerPosition(), gameTime);
+
+                // Periodically check for nearby items
+                UpdateNearbyItemCheck(gameTime);
             }
 
             // Always update the pause alpha, whether we're pausing or unpausing
@@ -351,6 +415,12 @@ namespace Superorganism.Screens
 
             GameStateOrganizer.Draw(gameTime, spriteBatch);
 
+            // Draw world indicator for item (if in world view)
+            if (_nearestCollectibleItem != null && _nearestCollectibleItem.CanBeCollected)
+            {
+                _uiRenderer.DrawItemWorldIndicator(gameTime, _nearestCollectibleItem, _camera.TransformMatrix);
+            }
+
             spriteBatch.End();
 
             // Draw UI elements without camera transform
@@ -367,6 +437,12 @@ namespace Superorganism.Screens
                 GameStateOrganizer.GetPlayerHunger(), GameStateOrganizer.GetPlayerMaxHunger());
             _uiRenderer.DrawCropsLeft(GameStateOrganizer.CropsLeft);
             _uiRenderer.DrawDebugInfo(gameTime, DecisionMaker.Entities, _camera.TransformMatrix, GameStateOrganizer.GetPlayerPosition());
+
+            // Draw item pickup indicator if we have a nearby item
+            if (_nearestCollectibleItem != null && _nearestCollectibleItem.CanBeCollected)
+            {
+                _uiRenderer.DrawNearbyItemIndicator(gameTime, _nearestCollectibleItem);
+            }
 
             // Draw win/lose screen if game is over
             if (GameStateOrganizer.IsGameOver)

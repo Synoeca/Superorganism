@@ -358,6 +358,29 @@ namespace Superorganism.Screens
             MouseState currentMouse = input.CurrentMouseState;
             MouseState prevMouse = input.LastMouseState;
 
+            // Handle item pickup with G key
+            if (input.IsNewKeyPress(Keys.G, ControllingPlayer, out _))
+            {
+                // Find GameplayScreen to access its item collection functions
+                foreach (GameScreen screen in ScreenManager.GetScreens())
+                {
+                    if (screen is GameplayScreen gameplayScreen && gameplayScreen.GameStateOrganizer != null)
+                    {
+                        // Find the nearest item that can be collected
+                        DroppedItem nearestItem = gameplayScreen.GameStateOrganizer.FindNearestCollectibleItem();
+
+                        // If there's an item nearby, collect it
+                        if (nearestItem != null)
+                        {
+                            gameplayScreen.GameStateOrganizer.CollectDroppedItem(nearestItem);
+                            // Force refresh inventory display to show the new item
+                            LoadInventoryItems();
+                        }
+                        break;
+                    }
+                }
+            }
+
             // Handle mouse dragging and resizing
             HandleMouseDragAndResize(currentMouse, prevMouse);
 
@@ -475,6 +498,7 @@ namespace Superorganism.Screens
                 HandleInventoryClick(currentMouse.Position);
             }
         }
+
 
         /// <summary>
         /// Toggles between maximized and regular window state
@@ -1044,9 +1068,6 @@ namespace Superorganism.Screens
         /// <summary>
         /// Draws the inventory screen
         /// </summary>
-        /// <summary>
-        /// Draws the inventory screen
-        /// </summary>
         public override void Draw(GameTime gameTime)
         {
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
@@ -1093,7 +1114,7 @@ namespace Superorganism.Screens
             DrawSelectedItemDetails(spriteBatch);
 
             // Draw help text at bottom - sanitize text
-            string helpText = SanitizeText("WASD/Arrows: Navigate  E: Use Item  X: Throw Item  Esc/I: Close");
+            string helpText = SanitizeText("WASD/Arrows: Navigate  E: Use Item  X: Throw Item  G: Collect Nearby Items  Esc/I: Close");
             Vector2 helpSize = _font.MeasureString(helpText) * _fontScale;
             Vector2 helpPos = new(
                 _inventoryRect.X + (_inventoryRect.Width - helpSize.X) / 2,
@@ -2118,7 +2139,7 @@ namespace Superorganism.Screens
         /// </summary>
         private List<string> WrapText(string text, SpriteFont font, float maxWidth)
         {
-            List<string> lines = new();
+            List<string> lines = [];
 
             if (string.IsNullOrEmpty(text))
                 return lines;

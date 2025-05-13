@@ -23,6 +23,7 @@ namespace Superorganism.Core.Managers
         private Texture2D _greenTexture;
         private Texture2D _orangeTexture;
         private Texture2D _borderTexture;
+        private Texture2D _itemIndicatorTexture;
 
         // UI Constants
         private const int ScreenMargin = 40; 
@@ -33,6 +34,9 @@ namespace Superorganism.Core.Managers
         private bool _showCollisionBounds;
         private bool _showEntityInfo;
         private bool _showMousePosition;
+
+        private float _itemIndicatorPulse = 0f;
+        private const float PulseSpeed = 4.0f;  // Adjust for faster/slower pulsing
 
         /// <summary>
         /// Toggles the visibility of collision boundaries in debug view.
@@ -69,6 +73,7 @@ namespace Superorganism.Core.Managers
             _greenTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Green);
             _orangeTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Orange);
             _borderTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Red);
+            _itemIndicatorTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.White);
         }
 
         public void DrawCollisionBounds(Entity entity, ICollisionBounding collisionBounds, Matrix cameraMatrix)
@@ -276,6 +281,101 @@ namespace Superorganism.Core.Managers
                 ScreenMargin
             );
             DrawTextWithShadow(cropsLeftText, textPosition, Color.White, textScale);
+        }
+
+        /// <summary>
+        /// Draws an indicator when items are nearby and can be collected
+        /// </summary>
+        /// <param name="gameTime">Current game time for animation</param>
+        /// <param name="nearbyItem">The nearby item that can be collected, or null if none</param>
+        public void DrawNearbyItemIndicator(GameTime gameTime, DroppedItem nearbyItem)
+        {
+            if (nearbyItem == null || !nearbyItem.CanBeCollected)
+                return;
+
+            // Update the pulse animation
+            _itemIndicatorPulse += (float)gameTime.ElapsedGameTime.TotalSeconds * PulseSpeed;
+            float pulse = (float)Math.Sin(_itemIndicatorPulse) * 0.2f + 0.8f;
+
+            // Determine indicator text
+            string indicatorText = $"Press G to collect: {nearbyItem.ItemName}";
+
+            // Draw at bottom center of screen
+            float textScale = 0.8f;
+            Vector2 textSize = _gameFont.MeasureString(indicatorText) * textScale;
+
+            // Position text at bottom center with some margin
+            int bottomMargin = 60;
+            Vector2 textPosition = new(
+                (_spriteBatch.GraphicsDevice.Viewport.Width - textSize.X) / 2,
+                _spriteBatch.GraphicsDevice.Viewport.Height - textSize.Y - bottomMargin
+            );
+
+            // Draw background panel with animation
+            Rectangle panelRect = new(
+                (int)textPosition.X - 15,
+                (int)textPosition.Y - 5,
+                (int)textSize.X + 60,
+                (int)textSize.Y + 20
+            );
+
+            // Background panel with pulsating transparency
+            Color panelColor = new(40, 40, 60, 180 + (int)(40 * pulse));
+            _spriteBatch.Draw(_grayTexture, panelRect, panelColor);
+
+            // Draw border with highlight color
+            Color borderColor = new(
+                255,
+                (215 * pulse),  // Yellow-gold pulsating
+                0,
+                255
+            );
+            DrawRectangleOutline(panelRect, 2, borderColor);
+
+            // Draw text with shadow for better readability
+            DrawTextWithShadow(indicatorText, textPosition, new Color(255, 255, 200) * pulse, textScale);
+
+            // Optionally, draw an icon or symbol next to the text
+            // You could add a small item icon or keyboard key icon here
+        }
+
+        // Add this method to your GameUiRenderer class
+        /// <summary>
+        /// Draws a visual indicator at the position of collectible item in the world
+        /// </summary>
+        /// <param name="gameTime">Current game time for animation</param>
+        /// <param name="nearbyItem">The nearby item to highlight</param>
+        /// <param name="cameraMatrix">The camera transformation matrix</param>
+        public void DrawItemWorldIndicator(GameTime gameTime, DroppedItem nearbyItem, Matrix cameraMatrix)
+        {
+            if (nearbyItem == null || !nearbyItem.CanBeCollected)
+                return;
+
+            // Update the pulse animation
+            float pulse = (float)Math.Sin(_itemIndicatorPulse) * 0.3f + 0.7f;
+
+            // Transform item position to screen coordinates
+            Vector2 screenPos = Vector2.Transform(nearbyItem.Position, cameraMatrix);
+
+            // Calculate size of the indicator
+            int indicatorSize = 20; // Size of "pickup" indicator
+
+            // Draw an arrow or indicator above the item
+            Vector2 arrowTop = screenPos + new Vector2(0, -indicatorSize * 2);
+            Vector2 arrowLeft = screenPos + new Vector2(-indicatorSize / 2, -indicatorSize * 1.2f);
+            Vector2 arrowRight = screenPos + new Vector2(indicatorSize / 2, -indicatorSize * 1.2f);
+
+            // Pulsing gold/yellow color
+            Color indicatorColor = new Color(255, (byte)(215 * pulse), 0) * pulse;
+
+            // Draw a triangle arrow pointing down at the item
+            DrawLine(arrowTop, arrowLeft, indicatorColor, 2);
+            DrawLine(arrowLeft, arrowRight, indicatorColor, 2);
+            DrawLine(arrowRight, arrowTop, indicatorColor, 2);
+
+            // Draw a circle around the item
+            float circleRadius = indicatorSize * (0.8f + (pulse * 0.2f)); // Pulsating size
+            DrawCircleOutline(screenPos, circleRadius, 2, indicatorColor);
         }
 
         public void DrawDebugInfo(Vector2 position, Matrix cameraMatrix, float distanceToPlayer, ICollisionBounding collisionBounding)
@@ -657,7 +757,10 @@ namespace Superorganism.Core.Managers
         {
             _grayTexture?.Dispose();
             _redTexture?.Dispose();
+            _greenTexture?.Dispose();
+            _orangeTexture?.Dispose();
             _borderTexture?.Dispose();
+            _itemIndicatorTexture?.Dispose();
         }
     }
 }

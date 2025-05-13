@@ -271,11 +271,15 @@ public class EntityOraganizer
         _ant.Inventory =
         [
             InventoryItem.CreateFromTileset("T1", 3, "Test 1", _map.Tilesets, 1, 49),
+
             InventoryItem.CreateFromTileset("T2", 3, "Test 2", _map.Tilesets, 1, 50),
+
             InventoryItem.CreateFromTileset("T3", 3, "Test 3", _map.Tilesets, 1, 51),
+
+            InventoryItem.CreateFromTileset("T4", 3, "Test 4", _map.Tilesets, 1, 52),
             InventoryItem.CreateFromTileset("T4", 3, "Test 4", _map.Tilesets, 1, 52)
+            // Initialize multiple ant enemies
         ];
-        _ant.Inventory.Add(InventoryItem.CreateFromTileset("T4", 3, "Test 4", _map.Tilesets, 1, 52));
 
         // Initialize multiple ant enemies
         const int count = 1;
@@ -428,27 +432,25 @@ public class EntityOraganizer
     private void UpdateEntities(GameTime gameTime)
     {
         _ant.Update(gameTime);
-
         foreach (AntEnemy antEnemy in _antEnemies)
         {
             antEnemy.Update(gameTime);
         }
-
         foreach (Crop crop in _crops.Where(c => !c.Collected))
         {
             crop.Update(gameTime);
         }
-
         foreach (Fly fly in _flies.Where(f => !f.Destroyed))
         {
             fly.Update(gameTime);
         }
 
+        // Update dropped items that are not collected
         foreach (Entity entity in DecisionMaker.Entities)
         {
-            if (entity is DroppedItem di)
+            if (entity is DroppedItem droppedItem && !droppedItem.Collected)
             {
-                di.Update(gameTime);
+                droppedItem.Update(gameTime);
             }
         }
     }
