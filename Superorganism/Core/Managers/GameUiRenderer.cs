@@ -506,7 +506,7 @@ namespace Superorganism.Core.Managers
         public void DrawEnemiesRemaining(int enemiesRemaining)
         {
             // Display the enemy counter near the crops counter in the top-right
-            string enemiesText = $"Enemy Ants: {enemiesRemaining}";
+            string enemiesText = $"Red Ants: {enemiesRemaining}";
             const float textScale = 0.75f;
             Vector2 textSize = _gameFont.MeasureString(enemiesText) * textScale;
 

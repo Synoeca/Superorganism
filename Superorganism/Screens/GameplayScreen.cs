@@ -136,6 +136,27 @@ namespace Superorganism.Screens
             string mapFileName = "TestMapRev5"; // Default map
             GameStateInfo loadedState = new();
 
+            if (SaveFileToLoad != null)
+            {
+                try
+                {
+                    string savePath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "Superorganism",
+                        "Saves",
+                        SaveFileToLoad);
+
+                    if (File.Exists(savePath))
+                    {
+                        (loadedState, mapFileName) = GameStateLoader.LoadGameState(SaveFileToLoad, _content, _map);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to load save file: {ex.Message}");
+                }
+            }
+
             _map = new TiledMap();
             _map = _map.Load(Path.Combine(_content.RootDirectory, ContentPaths.GetMapPath($"{mapFileName}.tmx")), _content);
             _map.MapFileName = mapFileName;
