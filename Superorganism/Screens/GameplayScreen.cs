@@ -12,6 +12,7 @@ using Superorganism.Tiles;
 using System.IO;
 using Superorganism.Core.SaveLoadSystem;
 using Superorganism.Core.Timing;
+using Superorganism.Entities;
 
 #pragma warning disable CA1416
 
@@ -197,6 +198,19 @@ namespace Superorganism.Screens
             {
                 ScreenManager.AddScreen(new InventoryScreen(), playerIndex);
                 return;
+            }
+
+            // Handle F key press for item pickup
+            if (input.IsNewKeyPress(Keys.G, ControllingPlayer, out _))
+            {
+                // Find the nearest item that can be collected
+                DroppedItem nearestItem = GameStateOrganizer.FindNearestCollectibleItem();
+
+                // If there's an item nearby, collect it
+                if (nearestItem != null)
+                {
+                    GameStateOrganizer.CollectDroppedItem(nearestItem);
+                }
             }
 
             // Then handle pause menu

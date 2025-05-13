@@ -443,6 +443,14 @@ public class EntityOraganizer
         {
             fly.Update(gameTime);
         }
+
+        foreach (Entity entity in DecisionMaker.Entities)
+        {
+            if (entity is DroppedItem di)
+            {
+                di.Update(gameTime);
+            }
+        }
     }
 
     /// <summary>
@@ -562,6 +570,15 @@ public class EntityOraganizer
         {
             enemy.Color = Color.White;
             enemy.Draw(gameTime, spriteBatch);
+        }
+
+        foreach (Entity entity in DecisionMaker.Entities)
+        {
+            if (entity is DroppedItem di)
+            {
+                di.Color = Color.White;
+                di.Draw(gameTime, spriteBatch);
+            }
         }
     }
 

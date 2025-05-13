@@ -11,9 +11,21 @@ namespace Superorganism.Entities
 	{
 		public override Texture2D Texture { get; set; }
 		public override EntityStatus EntityStatus { get; set; }
-        public override Vector2 Position { get; set; }
+
+        protected Vector2 _position;
+        public override Vector2 Position
+        {
+            get => _position;
+            set => _position = value;
+        }
 		public override Color Color { get; set; } = Color.White;
-        public virtual Vector2 Velocity { get; set; }
+
+        protected Vector2 _velocity;
+        public virtual Vector2 Velocity
+        {
+            get => _velocity;
+            set => _velocity = value;
+        }
 
         protected ICollisionBounding _collisionBounding;
         public override ICollisionBounding CollisionBounding

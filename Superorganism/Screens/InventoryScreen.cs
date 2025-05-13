@@ -461,6 +461,14 @@ namespace Superorganism.Screens
                 }
             }
 
+            if (input.IsNewKeyPress(Keys.X, ControllingPlayer, out playerIndex))
+            {
+                if (_selectedItemIndex >= 0 && _selectedItemIndex < _inventoryItems.Count)
+                {
+                    ThrowOutItem(_selectedItemIndex, playerIndex);
+                }
+            }
+
             // Handle mouse click on grid slots
             if (input.IsNewMouseButtonPress(MouseButtons.Left))
             {
@@ -1013,7 +1021,6 @@ namespace Superorganism.Screens
             {
                 // Use the item in the player's inventory
                 _playerInventory.UseItem(item);
-
                 // We don't need to update _inventoryItems or _selectedItemIndex
                 // because the OnInventoryChanged handler will be called due to the
                 // UseItem method triggering a CollectionChanged event
@@ -1086,7 +1093,7 @@ namespace Superorganism.Screens
             DrawSelectedItemDetails(spriteBatch);
 
             // Draw help text at bottom - sanitize text
-            string helpText = SanitizeText("WASD/Arrows: Navigate  E: Use Item  Esc/I: Close");
+            string helpText = SanitizeText("WASD/Arrows: Navigate  E: Use Item  X: Throw Item  Esc/I: Close");
             Vector2 helpSize = _font.MeasureString(helpText) * _fontScale;
             Vector2 helpPos = new(
                 _inventoryRect.X + (_inventoryRect.Width - helpSize.X) / 2,
@@ -2218,6 +2225,86 @@ namespace Superorganism.Screens
                 // Update resize handle position
                 _resizeHandleRect.X = _inventoryRect.Right - (int)(20 * _uiScale);
                 _resizeHandleRect.Y = _inventoryRect.Bottom - (int)(20 * _uiScale);
+            }
+        }
+
+        /// <summary>
+        /// Throws out the selected inventory item, creating a collectible at the player's position
+        /// </summary>
+        /// <param name="itemIndex">The index of the item to throw out</param>
+        /// <param name="playerIndex">The player index</param>
+        private void ThrowOutItem(int itemIndex, PlayerIndex playerIndex)
+        {
+            if (itemIndex < 0 || itemIndex >= _inventoryItems.Count)
+                return;
+
+            InventoryItem item = _inventoryItems[itemIndex];
+
+            // Prevent throwing out if quantity is already 0
+            if (item.Quantity <= 0)
+                return;
+
+            // Find the GameplayScreen to get player position
+            GameplayScreen? gameplayScreen = null;
+            foreach (GameScreen screen in ScreenManager.GetScreens())
+            {
+                if (screen is GameplayScreen gps && gps.GameStateOrganizer != null)
+                {
+                    gameplayScreen = gps;
+                    break;
+                }
+            }
+
+            if (gameplayScreen != null)
+            {
+                // Get player position
+                Vector2 playerPosition = gameplayScreen.GameStateOrganizer.GetPlayerPosition();
+
+                // Create a collectible entity at the player's position
+                gameplayScreen.GameStateOrganizer.CreateItemDropFromInventory(
+                    item.Name,
+                    item.Description,
+                    playerPosition,
+                    item.Texture,
+                    item.SourceRectangle,
+                    item.IsSpriteAtlas,
+                    item.IsFromTileset,
+                    item.TilesetIndex,
+                    item.TileIndex,
+                    item.Scale * 0.5f); // Half size
+
+                // Remove one item from inventory
+                if (_playerInventory != null)
+                {
+                    bool removed = _playerInventory.RemoveQuantity(item, 1);
+
+                    // If all of this item was removed, update the selected index
+                    if (item.Quantity <= 0 && removed)
+                    {
+                        _selectedItemIndex = Math.Min(_selectedItemIndex, _inventoryItems.Count - 1);
+                        if (_selectedItemIndex < 0 && _inventoryItems.Count > 0)
+                            _selectedItemIndex = 0;
+                    }
+
+                    // Force update of inventory items
+                    LoadInventoryItems();
+                }
+                else
+                {
+                    // Fallback for when no player inventory is available
+                    if (item.Quantity > 0)
+                    {
+                        item.Quantity--;
+
+                        if (item.Quantity <= 0)
+                        {
+                            _inventoryItems.RemoveAt(itemIndex);
+                            _selectedItemIndex = Math.Min(_selectedItemIndex, _inventoryItems.Count - 1);
+                            if (_selectedItemIndex < 0 && _inventoryItems.Count > 0)
+                                _selectedItemIndex = 0;
+                        }
+                    }
+                }
             }
         }
     }
