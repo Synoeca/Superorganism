@@ -499,6 +499,43 @@ namespace Superorganism.Core.Managers
             }
         }
 
+        /// <summary>
+        /// Draws the remaining enemy ants counter on the UI
+        /// </summary>
+        /// <param name="enemiesRemaining">Current number of remaining enemies</param>
+        public void DrawEnemiesRemaining(int enemiesRemaining)
+        {
+            // Display the enemy counter near the crops counter in the top-right
+            string enemiesText = $"Enemy Ants: {enemiesRemaining}";
+            const float textScale = 0.75f;
+            Vector2 textSize = _gameFont.MeasureString(enemiesText) * textScale;
+
+            // Position below the crops counter
+            Vector2 cropsTextSize = _gameFont.MeasureString("Crops Left: 0") * textScale;
+            Vector2 textPosition = new(
+                _spriteBatch.GraphicsDevice.Viewport.Width - textSize.X - ScreenMargin,
+                ScreenMargin + cropsTextSize.Y + BarSpacing
+            );
+
+            // If near zero, use red color to highlight
+            Color textColor = enemiesRemaining <= 3 ? Color.Red : Color.White;
+
+            DrawTextWithShadow(enemiesText, textPosition, textColor, textScale);
+
+            // If only a few enemies remain, add a pulsing effect
+            if (enemiesRemaining <= 3 && enemiesRemaining > 0)
+            {
+                // Draw attention-grabbing indicator
+                float pulse = (float)Math.Sin(_itemIndicatorPulse) * 0.3f + 0.7f;
+                Color indicatorColor = new Color(255, (byte)(50 * pulse), 0) * pulse;
+
+                // Draw arrow/indicator
+                Vector2 arrowLeft = textPosition + new Vector2(-25, textSize.Y / 2);
+                Vector2 arrowRight = textPosition + new Vector2(-5, textSize.Y / 2);
+                DrawLine(arrowLeft, arrowRight, indicatorColor, 3);
+            }
+        }
+
         public void DrawDebugInfo(
             Vector2 position,
             Matrix cameraMatrix,

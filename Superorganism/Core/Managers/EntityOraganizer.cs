@@ -113,6 +113,206 @@ public class EntityOraganizer
     public bool IsPlayerInvincible { get; private set; }
 
     /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public bool IsCollidingWithEnemyFromAbove()
+    {
+        if (IsPlayerInvincible) return false;
+
+        foreach (AntEnemy enemy in _antEnemies.Where(e => !e.Destroyed))
+        {
+            // Get the player's bounding box properties
+            float playerBottom = 0;
+            float playerLeft = 0;
+            float playerRight = 0;
+
+            // Get the enemy's bounding box properties
+            float enemyTop = 0;
+            float enemyLeft = 0;
+            float enemyRight = 0;
+
+            // Extract necessary collision bounds information based on type
+            if (_ant.CollisionBounding is BoundingRectangle playerRect)
+            {
+                playerBottom = playerRect.Bottom;
+                playerLeft = playerRect.Left;
+                playerRight = playerRect.Right;
+            }
+            else if (_ant.CollisionBounding is BoundingCircle playerCircle)
+            {
+                playerBottom = playerCircle.Center.Y + playerCircle.Radius;
+                playerLeft = playerCircle.Center.X - playerCircle.Radius;
+                playerRight = playerCircle.Center.X + playerCircle.Radius;
+            }
+
+            if (enemy.CollisionBounding is BoundingRectangle enemyRect)
+            {
+                enemyTop = enemyRect.Top;
+                enemyLeft = enemyRect.Left;
+                enemyRight = enemyRect.Right;
+            }
+            else if (enemy.CollisionBounding is BoundingCircle enemyCircle)
+            {
+                enemyTop = enemyCircle.Center.Y - enemyCircle.Radius;
+                enemyLeft = enemyCircle.Center.X - enemyCircle.Radius;
+                enemyRight = enemyCircle.Center.X + enemyCircle.Radius;
+            }
+
+            // Calculate topside collision with tolerance
+            // Player's bottom is near the enemy's top (with tolerance)
+            bool playerIsAbove = playerBottom >= enemyTop - 10 && playerBottom <= enemyTop + 10;
+
+            // Check for horizontal overlap
+            bool horizontalOverlap = playerLeft < enemyRight && playerRight > enemyLeft;
+
+            // Check if player is moving downward (falling onto enemy)
+            bool playerFalling = _ant.Velocity.Y > 0;
+
+            // Check for a valid stomping collision
+            if (playerIsAbove && horizontalOverlap && playerFalling &&
+                _ant.CollisionBounding.CollidesWith(enemy.CollisionBounding))
+            {
+                // Mark this enemy for destruction
+                enemy.Destroyed = true;
+
+                // Apply bounce to player
+                ApplyEnemyBounce(enemy);
+
+                enemy.Destroyed = true;
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void ApplyEnemyBounce(AntEnemy enemy)
+    {
+        // Set player velocity upward (bounce)
+        float bounceStrength = -6.0f; // Negative value for upward velocity
+
+        // Apply the bounce effect to the player
+        if (_ant is MovableAnimatedEntity movableAnt)
+        {
+            // Apply the bounce velocity
+            movableAnt.Velocity = new Vector2(movableAnt.Velocity.X, bounceStrength);
+
+            // Force jump state if possible
+            if (_ant is ControllableEntity controllableAnt)
+            {
+                controllableAnt.IsJumping = true;
+                controllableAnt.IsOnGround = false;
+            }
+        }
+
+        // Create particle effects if available
+        _explosions?.PlaceExplosion(enemy.Position);
+
+        // Drop items from enemy (30% chance)
+        //Random rand = new();
+        //if (rand.Next(100) < 30)
+        //{
+        //    // Create a food item that the player can collect
+        //    InventoryItem foodItem = InventoryItem.CreateFromTileset(
+        //        "Food",
+        //        1,
+        //        "Restores hunger and health",
+        //        _map.Tilesets,
+        //        1,
+        //        48 // Change to appropriate tile index
+        //    );
+
+        //    // Create a dropped item in the world
+        //    CreateItemDropFromEnemy(
+        //        foodItem.Name,
+        //        foodItem.Description,
+        //        enemy.Position,
+        //        foodItem.Texture,
+        //        foodItem.SourceRectangle,
+        //        false,
+        //        true,
+        //        foodItem.TilesetIndex,
+        //        foodItem.TileIndex,
+        //        0.5f
+        //    );
+        //}
+    }
+
+    /// <summary>
+    /// Creates a dropped item when an enemy is defeated
+    /// </summary>
+    private void CreateItemDropFromEnemy(
+        string itemName,
+        string itemDescription,
+        Vector2 position,
+        Texture2D texture,
+        Rectangle sourceRect,
+        bool isSpriteAtlas = false,
+        bool isFromTileset = false,
+        int tilesetIndex = -1,
+        int tileIndex = -1,
+        float scale = 1.0f)
+    {
+        if (texture == null)
+            return;
+
+        // Calculate dimensions
+        int width = sourceRect != Rectangle.Empty ? sourceRect.Width : texture.Width;
+        int height = sourceRect != Rectangle.Empty ? sourceRect.Height : texture.Height;
+
+        // Create a new dropped item
+        DroppedItem droppedItem = new()
+        {
+            ItemName = itemName,
+            ItemDescription = itemDescription,
+            Position = position,
+            Texture = texture,
+            SourceRectangle = sourceRect,
+            IsSpriteAtlas = isSpriteAtlas,
+            IsFromTileset = isFromTileset,
+            TilesetIndex = tilesetIndex,
+            TileIndex = tileIndex,
+            Color = Color.White,
+            Collected = false,
+            CanBeCollected = false, // Will be set to true when it lands on ground
+            TextureInfo = new TextureInfo
+            {
+                TextureWidth = texture.Width,
+                TextureHeight = texture.Height,
+                NumOfSpriteCols = 1,
+                NumOfSpriteRows = 1,
+                SizeScale = scale,
+                Center = new Vector2(width / 2.0f, height / 2.0f),
+            }
+        };
+
+        // Create collision bounds slightly smaller than the item
+        float boundingWidth = width * scale * 0.8f;
+        float boundingHeight = height * scale * 0.8f;
+
+        BoundingRectangle boundingRect = new(
+            position.X - (boundingWidth / 2),
+            position.Y - (boundingHeight / 2),
+            boundingWidth,
+            boundingHeight
+        );
+        droppedItem.CollisionBounding = boundingRect;
+
+        // Add "pop" effect with random horizontal movement
+        Random rand = new Random();
+        float randomX = (rand.Next(0, 100) > 50) ? 1.0f : -1.0f;
+        randomX *= (float)rand.NextDouble() * 2.0f; // Random horizontal velocity
+
+        droppedItem.InitializePhysics(new Vector2(randomX, -3.0f));
+
+        // Add to entities
+        DecisionMaker.Entities.Add(droppedItem);
+    }
+
+
+    /// <summary>
     /// Retrieves the positions of all enemy ants in the game world.
     /// </summary>
     /// <returns>An array of <see cref="Vector2"/> representing the position of each enemy ant.</returns>
@@ -189,7 +389,7 @@ public class EntityOraganizer
     /// <summary>
     /// Gets the number of enemy ants currently in the game world.
     /// </summary>
-    public int EnemyCount => _antEnemies.Count;
+    public int EnemyCount => _antEnemies.Count(enemy => !enemy.Destroyed);
 
     /// <summary>
     /// Gets or sets the player-controlled ant.
@@ -271,18 +471,15 @@ public class EntityOraganizer
         _ant.Inventory =
         [
             InventoryItem.CreateFromTileset("T1", 3, "Test 1", _map.Tilesets, 1, 49),
-
             InventoryItem.CreateFromTileset("T2", 3, "Test 2", _map.Tilesets, 1, 50),
-
             InventoryItem.CreateFromTileset("T3", 3, "Test 3", _map.Tilesets, 1, 51),
-
             InventoryItem.CreateFromTileset("T4", 3, "Test 4", _map.Tilesets, 1, 52),
             InventoryItem.CreateFromTileset("T4", 3, "Test 4", _map.Tilesets, 1, 52)
             // Initialize multiple ant enemies
         ];
 
         // Initialize multiple ant enemies
-        const int count = 1;
+        const int count = 20;
         Random rand = new();
 
         for (int i = 0; i < count; i++)
@@ -290,8 +487,8 @@ public class EntityOraganizer
             int enemyX = 10 + rand.Next(150); // Spread between tile 60-100
             int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
             AntEnemy antEnemy = new();
-            //antEnemy.InitializeAtTile(enemyX, enemyY);
-            antEnemy.InitializeAtTile(115, 14);
+            antEnemy.InitializeAtTile(enemyX, enemyY);
+            //antEnemy.InitializeAtTile(115, 14);
             _antEnemies.Add(antEnemy);
         }
 
@@ -313,12 +510,12 @@ public class EntityOraganizer
     private void InitializeCrops()
     {
         Random rand = new();
-        int count = 1;
+        int count = 20;
         for (int i = 0; i < count; i++)
         {
             // Spread crops across different heights
             Crop crop = new();
-            int cropX = 10 + (2 * i); // Spread them out horizontally
+            int cropX = 10 + (7 * i); // Spread them out horizontally
             int cropY = 5 + rand.Next(10); // Random height between tile 5-14
             Vector2 position = TilePhysicsInspector.TileToWorld(cropX, cropY);
 
@@ -338,7 +535,7 @@ public class EntityOraganizer
     private void InitializeFlies(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 1;
+        int count = 30;
         for (int i = 0; i < count; i++)
         {
             Fly fly = new();
@@ -432,7 +629,7 @@ public class EntityOraganizer
     private void UpdateEntities(GameTime gameTime)
     {
         _ant.Update(gameTime);
-        foreach (AntEnemy antEnemy in _antEnemies)
+        foreach (AntEnemy antEnemy in _antEnemies.Where(e => !e.Destroyed))
         {
             antEnemy.Update(gameTime);
         }
@@ -494,14 +691,16 @@ public class EntityOraganizer
     }
 
     /// <summary>
-    /// Checks if the player is currently colliding with any enemy ant.
+    /// Checks if the player is currently colliding with any non-destroyed enemy ant.
     /// </summary>
     /// <returns>True if a collision occurred and the player is not invincible.</returns>
     public bool IsCollidingWithEnemy()
     {
         if (IsPlayerInvincible) return false;
 
-        return _antEnemies.Any(enemy => enemy.CollisionBounding.CollidesWith(_ant.CollisionBounding));
+        // Only check for collisions with enemies that are not destroyed
+        return _antEnemies.Where(enemy => !enemy.Destroyed)
+            .Any(enemy => enemy.CollisionBounding.CollidesWith(_ant.CollisionBounding));
     }
 
     /// <summary>

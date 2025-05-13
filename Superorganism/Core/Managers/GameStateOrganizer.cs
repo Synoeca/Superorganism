@@ -28,6 +28,7 @@ namespace Superorganism.Core.Managers
         private readonly Camera2D _camera;
         private readonly TiledMap _map;
         private readonly ContentManager _content;
+        private readonly GameUiRenderer _gameUiRenderer;
 
         public TiledMap CurrentMap => _map;
 
@@ -51,6 +52,7 @@ namespace Superorganism.Core.Managers
         public EntityStatus GetPlayerEntityStatus => _entityOraganizer.PlayerEntityStatus;
         public Ant GetPlayerAnt() => _entityOraganizer.PlayerAnt;
         public void ResumeMusic() => _audioManager.ResumeMusic();
+        public int EnemiesRemaining => _entityOraganizer.EnemyCount;
 
         /// <summary>
         /// 
@@ -61,15 +63,18 @@ namespace Superorganism.Core.Managers
         /// <param name="camera"></param>
         /// <param name="audio"></param>
         /// <param name="map"></param>
+        /// <param name="uiRenderer"></param>
         /// <param name="gameStateInfo"></param>
         public GameStateOrganizer(Game game, ContentManager content, GraphicsDevice graphicsDevice,
-            Camera2D camera, GameAudioManager audio, TiledMap map, GameStateInfo gameStateInfo)
+            Camera2D camera, GameAudioManager audio, TiledMap map, GameUiRenderer uiRenderer,
+            GameStateInfo gameStateInfo)
         {
             //DecisionMaker.Entities.Clear();
             _audioManager = audio;
             _camera = camera;
             _map = map;
             _content = content;
+            _gameUiRenderer = uiRenderer;
 
             _entityOraganizer = new EntityOraganizer(game, content, graphicsDevice, map, gameStateInfo);
 
@@ -112,15 +117,18 @@ namespace Superorganism.Core.Managers
 
         private void CheckCollisions()
         {
-            // Handle crop collisions
-            if (_entityOraganizer.CheckCropCollisions())
+            // Check for top-down enemy collisions first (Mario-style bounce)
+            if (_entityOraganizer.IsCollidingWithEnemyFromAbove())
             {
-                CropsLeft--;
-                _audioManager.PlayCropPickup();
-            }
+                // Play bounce sound
+                //_audioManager.PlayJumpSound();
+                _audioManager.PlayFliesDestroy();
 
-            // Handle enemy collisions with timer
-            if (_entityOraganizer.IsCollidingWithEnemy())
+                // Camera shake for bounce effect
+                //_camera.StartShake(0.2f); // Lighter shake for successful stomps
+            }
+            // Then check regular enemy collisions - only if not bouncing on top
+            else if (_entityOraganizer.IsCollidingWithEnemy())
             {
                 if (_enemyCollisionTimer <= 0)
                 {
@@ -138,19 +146,38 @@ namespace Superorganism.Core.Managers
                 }
             }
 
+            // Handle crop collisions
+            if (_entityOraganizer.CheckCropCollisions())
+            {
+                CropsLeft--;
+                _audioManager.PlayCropPickup();
+            }
+
             // Handle fly collisions
             if (_entityOraganizer.CheckFlyCollisions())
             {
                 _audioManager.PlayFliesDestroy();
                 _camera.StartShake(0.2f);
             }
+
+            // Handle dropped item collisions
+            //if (CheckDroppedItemCollisions())
+            //{
+            //    _audioManager.PlayCropPickup();
+            //}
         }
 
         private void CheckWinLoseConditions()
         {
+            // Original winning condition (collect all crops)
             if (CropsLeft <= 0)
                 IsGameWon = true;
 
+            // New winning condition (destroy all enemy ants)
+            if (EnemiesRemaining <= 0)
+                IsGameWon = true;
+
+            // Losing condition remains the same
             if (_entityOraganizer.PlayerHealth <= 0)
                 IsGameOver = true;
         }

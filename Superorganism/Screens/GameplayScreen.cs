@@ -173,6 +173,7 @@ namespace Superorganism.Screens
                 _camera,
                 ScreenManager.GameAudioManager,
                 _map,
+                _uiRenderer,
                 loadedState
             );
 
@@ -456,6 +457,7 @@ namespace Superorganism.Screens
                 GameStateOrganizer.GetPlayerStamina(), GameStateOrganizer.GetPlayerMaxStamina(),
                 GameStateOrganizer.GetPlayerHunger(), GameStateOrganizer.GetPlayerMaxHunger());
             _uiRenderer.DrawCropsLeft(GameStateOrganizer.CropsLeft);
+            _uiRenderer.DrawEnemiesRemaining(GameStateOrganizer.EnemiesRemaining);
             _uiRenderer.DrawDebugInfo(gameTime, DecisionMaker.Entities, _camera.TransformMatrix, GameStateOrganizer.GetPlayerPosition());
 
             // Draw item pickup indicator if we have a nearby item

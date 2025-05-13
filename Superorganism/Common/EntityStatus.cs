@@ -90,12 +90,12 @@ namespace Superorganism.Common
         /// <summary>
         /// Time before stamina begins regenerating (seconds)
         /// </summary>
-        public float StaminaRegenDelay { get; set; } = 3.0f;
+        public float StaminaRegenDelay { get; set; } = 1.5f;
 
         /// <summary>
         /// Rate of stamina regeneration per second
         /// </summary>
-        public float StaminaRegenRate { get; set; } = 5.0f;
+        public float StaminaRegenRate { get; set; } = 10.0f;
 
         /// <summary>
         /// Cost of stamina per second while sprinting
@@ -112,7 +112,7 @@ namespace Superorganism.Common
         /// <summary>
         /// Stamina cost when jumping
         /// </summary>
-        public float JumpStaminaCost { get; set; } = 10.0f;
+        public float JumpStaminaCost { get; set; } = 3.0f;
 
         /// <summary>
         /// Timer for stamina regeneration

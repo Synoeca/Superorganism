@@ -11,6 +11,9 @@ namespace Superorganism.Screens
         // Flag to track if we have a child screen open
         private bool _hasOpenChildScreen;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public MainMenuScreen() : base("Superorganism")
         {
             TransitionOnTime = TimeSpan.FromSeconds(1.0);

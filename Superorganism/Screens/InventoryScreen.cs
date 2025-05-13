@@ -1045,6 +1045,9 @@ namespace Superorganism.Screens
             {
                 // Use the item in the player's inventory
                 _playerInventory.UseItem(item);
+                _playerStatus.HitPoints += 10;
+                _playerStatus.Stamina += 10;
+                _playerStatus.Hunger += 5;
                 // We don't need to update _inventoryItems or _selectedItemIndex
                 // because the OnInventoryChanged handler will be called due to the
                 // UseItem method triggering a CollectionChanged event
