@@ -1,41 +1,81 @@
 ﻿using Superorganism.Tiles;
 using System;
 using Microsoft.Xna.Framework;
+using Superorganism.Common;
 
 namespace Superorganism.Core.Managers
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static class GameState
     {
-        private static GameStateManager _instance;
+        /// <summary>
+        /// 
+        /// </summary>
+        private static GameStateOrganizer _instance;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static string CurrentMapName { get; set; }
 
-        public static void Initialize(GameStateManager manager)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="organizer"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static void Initialize(GameStateOrganizer organizer)
         {
-            _instance = manager ?? throw new ArgumentNullException(nameof(manager));
+            _instance = organizer ?? throw new ArgumentNullException(nameof(organizer));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static TiledMap CurrentMap
         {
             get
             {
                 if (_instance == null)
-                    throw new InvalidOperationException("GameStateManager not initialized. Call Initialize() first.");
+                    throw new InvalidOperationException("GameStateOrganizer not initialized. Call Initialize() first.");
                 return _instance.CurrentMap;
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static EntityStatus GetPlayerEntityStatus()
+        {
+            if (_instance == null)
+                throw new InvalidOperationException("GameStateOrganizer not initialized. Call Initialize() first.");
+            return _instance.GetPlayerEntityStatus;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static Vector2 GetPlayerPosition()
         {
             if (_instance == null)
-                throw new InvalidOperationException("GameStateManager not initialized. Call Initialize() first.");
+                throw new InvalidOperationException("GameStateOrganizer not initialized. Call Initialize() first.");
             return _instance.GetPlayerPosition();
         }
 
-        public static int GetPlayerHealth()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static float GetPlayerHealth()
         {
             if (_instance == null)
-                throw new InvalidOperationException("GameStateManager not initialized. Call Initialize() first.");
+                throw new InvalidOperationException("GameStateOrganizer not initialized. Call Initialize() first.");
             return _instance.GetPlayerHealth();
         }
     }

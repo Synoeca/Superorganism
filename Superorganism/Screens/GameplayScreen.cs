@@ -11,39 +11,126 @@ using Superorganism.Core.Background;
 using Superorganism.Tiles;
 using System.IO;
 using Superorganism.Core.SaveLoadSystem;
+using Superorganism.Core.Timing;
+using Superorganism.Entities;
+using System.Collections.Generic;
 
 #pragma warning disable CA1416
 
 namespace Superorganism.Screens
 {
+    /// <summary>
+    /// Main gameplay screen that handles the primary game experience.
+    /// Manages game state, rendering, input handling, and provides the core
+    /// game loop for player interaction with the game world.
+    /// </summary>
     public class GameplayScreen : GameScreen
     {
         // Core components
-        public GameStateManager GameStateManager;
-        private GameUiManager _uiManager;
+        /// <summary>
+        /// Central organizer that manages all game state logic including entities, collisions, and gameplay rules.
+        /// </summary>
+        public GameStateOrganizer GameStateOrganizer;
+
+        /// <summary>
+        /// Handles rendering of UI elements such as health bars, stamina, debug info, and game over screens.
+        /// </summary>
+        private GameUiRenderer _uiRenderer;
+
+        /// <summary>
+        /// 2D camera that follows the player and controls viewport transformations.
+        /// </summary>
         private Camera2D _camera;
+
+        /// <summary>
+        /// Multi-layered scrolling background that creates depth effect in the game world.
+        /// </summary>
         private ParallaxBackground _parallaxBackground;
+
+        /// <summary>
+        /// Tiled map loaded from TMX file that defines the game level layout, tiles, and collision data.
+        /// </summary>
         private TiledMap _map;
+
+        /// <summary>
+        /// Content manager for loading game assets specific to this screen.
+        /// </summary>
         private ContentManager _content;
 
+        // Item collection tracking
+        private DroppedItem _nearestCollectibleItem = null;
+        private float _itemCheckTimer = 0f;
+        private const float ItemCheckInterval = 0.2f; // Check for nearby items every 200ms
+
         // Constants
+        /// <summary>
+        /// Default zoom level for the camera. Value of 1f represents no zoom.
+        /// </summary>
         public readonly float Zoom = 1f;
+
+        /// <summary>
+        /// Alpha value for screen fade effect when paused. Ranges from 0 (transparent) to 1 (opaque).
+        /// </summary>
         private float _pauseAlpha;
 
+        /// <summary>
+        /// Determines if a screen is one of the screen types that should pause the game.
+        /// Checks for specific screen classes that are known to require game pausing.
+        /// </summary>
+        /// <param name="screen">The screen to check</param>
+        /// <returns>True if the screen is a type that should pause the game, false otherwise</returns>
+        private bool ShouldPause(GameScreen screen)
+        {
+            return screen != this && screen is PauseMenuScreen or SaveFileMenuScreen or OptionsMenuScreen;
+        }
+
+        /// <summary>
+        /// Checks if a screen has the ShouldPauseGame property and if that property is true.
+        /// Used to determine if a screen should pause the game when active.
+        /// </summary>
+        /// <param name="screen">The screen to check</param>
+        /// <returns>True if the screen has ShouldPauseGame=true, false otherwise</returns>
+        private bool HasPauseProperty(GameScreen screen)
+        {
+            return screen != this &&
+                   screen.GetType().GetProperty("ShouldPauseGame")?.GetValue(screen) is true;
+        }
+
+        /// <summary>
+        /// A flag to track if we're transitioning from pause back to gameplay
+        /// </summary>
+        private bool _returningFromPause = false;
+
+        /// <summary>
+        /// Gets or sets the path to a save file that should be loaded when the screen starts.
+        /// If null, a new game will be started instead.
+        /// </summary>
         public string SaveFileToLoad { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the GameplayScreen class.
+        /// Sets up transition times for screen animations.
+        /// </summary>
         public GameplayScreen()
         {
             TransitionOnTime = TimeSpan.FromSeconds(1.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
         }
 
+        /// <summary>
+        /// Activates the screen by initializing the content manager and all game components.
+        /// Called when the screen becomes active in the screen manager.
+        /// </summary>
         public override void Activate()
         {
             _content ??= new ContentManager(ScreenManager.Game.Services, "Content");
             InitializeComponents();
         }
 
+        /// <summary>
+        /// Initializes all gameplay components including map, camera, and game state.
+        /// Loads a save file if specified, otherwise starts a new game with default values.
+        /// </summary>
         private void InitializeComponents()
         {
             string mapFileName = "TestMapRev5"; // Default map
@@ -61,7 +148,7 @@ namespace Superorganism.Screens
 
                     if (File.Exists(savePath))
                     {
-                        (loadedState, mapFileName) = GameStateLoader.LoadGameState(SaveFileToLoad);
+                        (loadedState, mapFileName) = GameStateLoader.LoadGameState(SaveFileToLoad, _content, _map);
                     }
                 }
                 catch (Exception ex)
@@ -75,28 +162,47 @@ namespace Superorganism.Screens
             _map.MapFileName = mapFileName;
             _camera = new Camera2D(ScreenManager.GraphicsDevice, Zoom);
 
-            MapHelper.TileSize = _map.TileWidth;
-            MapHelper.MapWidth = _map.Width;
-            MapHelper.MapHeight = _map.Height;
+            if (SaveFileToLoad != null)
+            {
+                try
+                {
+                    string savePath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "Superorganism",
+                        "Saves",
+                        SaveFileToLoad);
 
-            GameStateManager = new GameStateManager(
+                    if (File.Exists(savePath))
+                    {
+                        (loadedState, mapFileName) = GameStateLoader.LoadGameState(SaveFileToLoad, _content, _map);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to load save file: {ex.Message}");
+                }
+            }
+
+            TilePhysicsInspector.TileSize = _map.TileWidth;
+            TilePhysicsInspector.MapWidth = _map.Width;
+            TilePhysicsInspector.MapHeight = _map.Height;
+
+            GameStateOrganizer = new GameStateOrganizer(
                 ScreenManager.Game,
                 _content,
                 ScreenManager.GraphicsDevice,
                 _camera,
                 ScreenManager.GameAudioManager,
                 _map,
+                _uiRenderer,
                 loadedState
             );
 
-            GameState.Initialize(GameStateManager);
+            GameState.Initialize(GameStateOrganizer);
             GameState.CurrentMapName = GameState.CurrentMap.MapFileName;
-            //GameState.CurrentMapName = GameState.CurrentMap
-
-
 
             // Initialize UI and other components
-            _uiManager = new GameUiManager(
+            _uiRenderer = new GameUiRenderer(
                 _content.Load<SpriteFont>("gamefont"),
                 ScreenManager.SpriteBatch
             );
@@ -104,48 +210,223 @@ namespace Superorganism.Screens
             _parallaxBackground = new ParallaxBackground();
             _parallaxBackground.LoadContent(_content);
 
-            _camera.Initialize(GameStateManager.GetPlayerPosition(), ScreenManager);
+            _camera.Initialize(GameStateOrganizer.GetPlayerPosition(), ScreenManager);
             ScreenManager.GameplayScreenCamera2D = _camera;
         }
 
+        private void UpdateNearbyItemCheck(GameTime gameTime)
+        {
+            _itemCheckTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (_itemCheckTimer <= 0f)
+            {
+                // Reset timer
+                _itemCheckTimer = ItemCheckInterval;
+
+                // Start with no nearby item
+                _nearestCollectibleItem = null;
+
+                // Get player position
+                Vector2 playerPos = GameStateOrganizer.GetPlayerPosition();
+
+                // Get player entity for collision detection
+                Ant playerAnt = GameStateOrganizer.GetPlayerAnt();
+
+                if (playerAnt == null || playerAnt.CollisionBounding == null)
+                    return;
+
+                // Check if there are any collectible items nearby
+                DroppedItem closestItem = null;
+                float closestDistance = float.MaxValue;
+
+                // Define the pickup radius
+                const float pickupRadius = 100f; // Reduced from 100 to 50
+
+                foreach (Entity entity in DecisionMaker.Entities)
+                {
+                    if (entity is DroppedItem droppedItem &&
+                        !droppedItem.Collected &&
+                        droppedItem.CanBeCollected)
+                    {
+                        // Check if the item is close enough for detection
+                        float distance = Vector2.Distance(playerPos, droppedItem.Position);
+
+                        // Use consistent pickup radius
+                        if (distance < pickupRadius)
+                        {
+                            // Check if this is the closest item so far
+                            if (distance < closestDistance)
+                            {
+                                closestDistance = distance;
+                                closestItem = droppedItem;
+                            }
+                        }
+                    }
+                }
+
+                // Set the nearest collectible item (will be null if none found)
+                _nearestCollectibleItem = closestItem;
+            }
+        }
+
+        /// <summary>
+        /// Handles user input including pause, debug toggles, and game reset commands.
+        /// </summary>
+        /// <param name="gameTime">Timing information for the current frame.</param>
+        /// <param name="input">The input state containing keyboard, mouse, and gamepad data.</param>
         public override void HandleInput(GameTime gameTime, InputState input)
         {
-            if (GameStateManager.HandlePauseInput(input, ControllingPlayer, out PlayerIndex playerIndex))
+            // Handle inventory toggle first
+            if (input.IsNewKeyPress(Keys.I, ControllingPlayer, out PlayerIndex playerIndex))
             {
-                //GameStateManager.PauseMusic();
+                ScreenManager.AddScreen(new InventoryScreen(), playerIndex);
+                return;
+            }
+
+            // Handle F key press for item pickup
+            if (input.IsNewKeyPress(Keys.G, ControllingPlayer, out _))
+            {
+                // Force an immediate check for the nearest item
+                _itemCheckTimer = 0;
+                UpdateNearbyItemCheck(gameTime);
+
+                // Fallback: If no item was found by UpdateNearbyItemCheck, use the direct finder
+                if (_nearestCollectibleItem == null)
+                {
+                    _nearestCollectibleItem = GameStateOrganizer.FindNearestCollectibleItem();
+                }
+
+                // If there's an item nearby, collect it
+                if (_nearestCollectibleItem != null && _nearestCollectibleItem.CanBeCollected)
+                {
+                    // Collect the item
+                    bool wasCollected = GameStateOrganizer.CollectDroppedItem(_nearestCollectibleItem);
+
+                    // If successfully collected, update local state
+                    if (wasCollected)
+                    {
+                        // Mark as collected in our local reference
+                        _nearestCollectibleItem.Collected = true;
+
+                        // Clear reference after collection
+                        _nearestCollectibleItem = null;
+
+                        // Reset timer to immediately check for more items
+                        _itemCheckTimer = 0f;
+                    }
+                }
+            }
+
+            // Then handle pause menu
+            if (GameStateOrganizer.HandlePauseInput(input, ControllingPlayer, out playerIndex))
+            {
+                // Pause the gameplay timer when entering pause menu
+                GameTimer.Pause();
                 ScreenManager.AddScreen(new PauseMenuScreen(), playerIndex);
                 return;
             }
 
             // Debug visualization toggles
             if (input.IsNewKeyPress(Keys.F1, ControllingPlayer, out _))
-                _uiManager.ToggleCollisionBounds();
+                _uiRenderer.ToggleCollisionBounds();
 
             if (input.IsNewKeyPress(Keys.F2, ControllingPlayer, out _))
-                _uiManager.ToggleEntityInfo();
+                _uiRenderer.ToggleEntityInfo();
 
             if (input.IsNewKeyPress(Keys.F3, ControllingPlayer, out _))
-                _uiManager.ToggleMousePosition();
+                _uiRenderer.ToggleMousePosition();
 
-            if ((GameStateManager.IsGameOver || GameStateManager.IsGameWon) &&
+            if ((GameStateOrganizer.IsGameOver || GameStateOrganizer.IsGameWon) &&
                 input.IsNewKeyPress(Keys.R, ControllingPlayer, out playerIndex))
             {
-                GameStateManager.Reset();
+                GameStateOrganizer.Reset();
+                // Reset the timer when restarting the game
+                GameTimer.Reset();
                 ScreenManager.ResetScreen(this);
             }
         }
 
+        /// <summary>
+        /// Updates the gameplay screen each frame. Handles game state updates, camera movement,
+        /// and pause screen effects.
+        /// </summary>
+        /// <param name="gameTime">Timing information for the current frame.</param>
+        /// <param name="otherScreenHasFocus">Whether another screen currently has input focus.</param>
+        /// <param name="coveredByOtherScreen">Whether this screen is covered by another screen.</param>
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
-            base.Update(gameTime, otherScreenHasFocus, false);
+            // Call the base update method
+            base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
 
-            if (!IsActive) return;
+            // Check if we're covered by a screen that should pause the game
+            bool shouldPause = false;
+            bool wasPreviouslyPaused = _pauseAlpha > 0.1f; // Check if we were paused before
 
-            GameStateManager.Update(gameTime);
-            _camera.Update(GameStateManager.GetPlayerPosition(), gameTime);
-            UpdatePauseAlpha(coveredByOtherScreen); // Pass coveredByOtherScreen
+            if (coveredByOtherScreen || otherScreenHasFocus)
+            {
+                GameScreen[] screens = ScreenManager.GetScreens();
+
+                foreach (GameScreen screen in screens)
+                {
+                    // Skip inactive screens
+                    if (screen.ScreenState == ScreenState.Hidden)
+                        continue;
+
+                    // Check if the screen is a type that should pause the game
+                    if (ShouldPause(screen))
+                    {
+                        shouldPause = true;
+                        break;
+                    }
+
+                    // Check if screen has the ShouldPauseGame property
+                    if (HasPauseProperty(screen))
+                    {
+                        shouldPause = true;
+                        break;
+                    }
+                }
+            }
+
+            // Check if we were paused but aren't anymore - this means we're transitioning back to gameplay
+            if (wasPreviouslyPaused && !shouldPause)
+            {
+                _returningFromPause = true;
+            }
+
+            // If we should pause, pause the timer and return
+            if (shouldPause)
+            {
+                GameTimer.Pause();
+                _returningFromPause = false; // Reset the transition flag
+            }
+            else
+            {
+                // Continue with normal gameplay updates
+                GameTimer.Resume();
+                GameTimer.Update(gameTime);
+                GameStateOrganizer.Update(gameTime);
+                _camera.Update(GameStateOrganizer.GetPlayerPosition(), gameTime);
+
+                // Periodically check for nearby items
+                UpdateNearbyItemCheck(gameTime);
+            }
+
+            // Always update the pause alpha, whether we're pausing or unpausing
+            UpdatePauseAlpha(shouldPause);
+
+            // If we've fully transitioned back, reset the flag
+            if (_returningFromPause && _pauseAlpha <= 0)
+            {
+                _returningFromPause = false;
+            }
         }
 
+
+        /// <summary>
+        /// Renders the game world, UI elements, and transition effects to the screen.
+        /// Draws in layers: background, map, entities, UI, and overlay effects.
+        /// </summary>
+        /// <param name="gameTime">Timing information for the current frame.</param>
         public override void Draw(GameTime gameTime)
         {
             ScreenManager.GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -174,7 +455,13 @@ namespace Superorganism.Screens
                 Vector2.Zero  // Use Vector2.Zero since camera transform is handled by SpriteBatch
             );
 
-            GameStateManager.Draw(gameTime, spriteBatch);
+            GameStateOrganizer.Draw(gameTime, spriteBatch);
+
+            // Draw world indicator for item (if in world view)
+            if (_nearestCollectibleItem != null && _nearestCollectibleItem.CanBeCollected)
+            {
+                _uiRenderer.DrawItemWorldIndicator(gameTime, _nearestCollectibleItem, _camera.TransformMatrix);
+            }
 
             spriteBatch.End();
 
@@ -187,38 +474,75 @@ namespace Superorganism.Screens
                 RasterizerState.CullNone
             );
 
-            _uiManager.DrawHealthBar(GameStateManager.GetPlayerHealth(), GameStateManager.GetPlayerMaxHealth());
-            _uiManager.DrawCropsLeft(GameStateManager.CropsLeft);
-            _uiManager.DrawDebugInfo(gameTime, DecisionMaker.Entities, _camera.TransformMatrix, GameStateManager.GetPlayerPosition());
+            _uiRenderer.DrawPlayerStatus(GameStateOrganizer.GetPlayerHealth(), GameStateOrganizer.GetPlayerMaxHealth(),
+                GameStateOrganizer.GetPlayerStamina(), GameStateOrganizer.GetPlayerMaxStamina(),
+                GameStateOrganizer.GetPlayerHunger(), GameStateOrganizer.GetPlayerMaxHunger());
+            _uiRenderer.DrawCropsLeft(GameStateOrganizer.CropsLeft);
+            _uiRenderer.DrawEnemiesRemaining(GameStateOrganizer.EnemiesRemaining);
+            _uiRenderer.DrawDebugInfo(gameTime, DecisionMaker.Entities, _camera.TransformMatrix, GameStateOrganizer.GetPlayerPosition());
+
+            // Draw item pickup indicator if we have a nearby item
+            if (_nearestCollectibleItem != null && _nearestCollectibleItem.CanBeCollected)
+            {
+                _uiRenderer.DrawNearbyItemIndicator(gameTime, _nearestCollectibleItem);
+            }
 
             // Draw win/lose screen if game is over
-            if (GameStateManager.IsGameOver)
+            if (GameStateOrganizer.IsGameOver)
             {
-                _uiManager.DrawGameOverScreen();
+                _uiRenderer.DrawGameOverScreen();
             }
-            else if (GameStateManager.IsGameWon)
+            else if (GameStateOrganizer.IsGameWon)
             {
-                _uiManager.DrawWinScreen();
+                _uiRenderer.DrawWinScreen();
             }
 
             spriteBatch.End();
 
-            if (!(TransitionPosition > 0) && !(_pauseAlpha > 0)) return;
-            float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
-            ScreenManager.FadeBackBufferToBlack(alpha);
+            if (TransitionPosition > 0 || _pauseAlpha > 0)
+            {
+                float alpha = MathHelper.Lerp(1f - TransitionAlpha, 1f, _pauseAlpha / 2);
+                ScreenManager.FadeBackBufferToBlack(alpha);
+            }
         }
 
-        private void UpdatePauseAlpha(bool coveredByOtherScreen)
+        /// <summary>
+        /// Updates the pause fade effect alpha value based on the game's pause state.
+        /// Creates smooth transitions between gameplay and paused states with different
+        /// fade speeds for a more natural visual effect.
+        /// </summary>
+        /// <param name="isPaused">Whether the game is currently paused or transitioning to paused</param>
+        private void UpdatePauseAlpha(bool isPaused)
         {
-            _pauseAlpha = coveredByOtherScreen ?
-                Math.Min(_pauseAlpha + 0.05f, 1.0f) : Math.Max(_pauseAlpha - 0.05f, 0f);
+            // Adjust the speed for fading in and out
+            float fadeInSpeed = 0.05f;  // Speed when going from gameplay to pause
+            float fadeOutSpeed = 0.05f;  // Slower speed when returning from pause to gameplay
+
+            if (isPaused)
+            {
+                // Fade to dark when pausing
+                _pauseAlpha = Math.Min(_pauseAlpha + fadeInSpeed, 1.0f);
+            }
+            else
+            {
+                // Fade to transparent when unpausing - use slower speed if we're returning from pause
+                float speed = _returningFromPause ? fadeOutSpeed : fadeInSpeed;
+                _pauseAlpha = Math.Max(_pauseAlpha - speed, 0f);
+            }
         }
 
+        /// <summary>
+        /// Unloads all resources when the screen is no longer needed.
+        /// Called when the screen is removed from the screen manager.
+        /// </summary>
         public override void Unload()
         {
-            _uiManager?.Dispose();
+            // Reset the timer when the screen is unloaded
+            GameTimer.Reset();
+
+            _uiRenderer?.Dispose();
             _parallaxBackground?.Unload();
-            GameStateManager?.Unload();
+            GameStateOrganizer?.Unload();
             _content?.Unload();
         }
     }

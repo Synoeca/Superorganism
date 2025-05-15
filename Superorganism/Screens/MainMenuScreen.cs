@@ -2,11 +2,18 @@
 using System;
 using System.IO;
 using System.Linq;
+using Superorganism.ScreenManagement;
 
 namespace Superorganism.Screens
 {
     public class MainMenuScreen : MenuScreen
     {
+        // Flag to track if we have a child screen open
+        private bool _hasOpenChildScreen;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public MainMenuScreen() : base("Superorganism")
         {
             TransitionOnTime = TimeSpan.FromSeconds(1.0);
@@ -42,6 +49,78 @@ namespace Superorganism.Screens
             MenuEntries.Add(instructionsMenuEntry);
             MenuEntries.Add(optionsMenuEntry);
             MenuEntries.Add(exitMenuEntry);
+        }
+
+        /// <summary>
+        /// Override the base Update method to prevent auto-transitioning to Active when child screens are open
+        /// </summary>
+        public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
+        {
+            // Check if any of our child screens are active
+            if (ScreenManager != null)
+            {
+                _hasOpenChildScreen = HasActiveChildScreen();
+            }
+
+            // If we have an open child screen, we should stay hidden regardless of covered state
+            if (_hasOpenChildScreen)
+            {
+                // Call base update but force it to think it's covered
+                base.Update(gameTime, otherScreenHasFocus, true);
+
+                // Ensure we stay hidden even if base would transition us off
+                if (ScreenState != ScreenState.Hidden)
+                {
+                    ScreenState = ScreenState.Hidden;
+                }
+
+                return;
+            }
+
+            // Normal update behavior when no child screens
+            base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
+        }
+
+        /// <summary>
+        /// Checks if any child screens are currently active
+        /// </summary>
+        private bool HasActiveChildScreen()
+        {
+            GameScreen[] screens = ScreenManager.GetScreens();
+
+            foreach (GameScreen screen in screens)
+            {
+                // Skip inactive or hidden screens
+                if (screen.ScreenState == ScreenState.Hidden)
+                    continue;
+
+                // Check for specific child screen types with a reference back to this
+                if (screen is OptionsMenuScreen optScreen && optScreen.SourceMainMenu == this)
+                    return true;
+
+                if (screen is SaveFileMenuScreen saveScreen && saveScreen.SourceMainMenu == this)
+                    return true;
+
+                if (screen is InstructionsScreen instructionsScreen && instructionsScreen.SourceMainMenu == this)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Draw the menu screen
+        /// </summary>
+        public override void Draw(GameTime gameTime)
+        {
+            // Don't draw if we're hidden or have an open child screen
+            if (ScreenState == ScreenState.Hidden || _hasOpenChildScreen)
+            {
+                return;
+            }
+
+            // Draw the menu entries
+            base.Draw(gameTime);
         }
 
         public bool HasSaveFiles()
@@ -84,17 +163,41 @@ namespace Superorganism.Screens
 
         private void LoadMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
-            ScreenManager.AddScreen(new SaveFileMenuScreen(true), e.PlayerIndex);
+            // Hide this main menu screen
+            ScreenState = ScreenState.Hidden;
+
+            // Create and add the save file menu screen
+            SaveFileMenuScreen loadScreen = new(true)
+            {
+                SourceMainMenu = this
+            };
+            ScreenManager.AddScreen(loadScreen, e.PlayerIndex);
         }
 
         private void InstructionsMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
-            ScreenManager.AddScreen(new InstructionsScreen(), e.PlayerIndex);
+            // Hide this main menu screen
+            ScreenState = ScreenState.Hidden;
+
+            // Create and add the instructions screen
+            InstructionsScreen instructionsScreen = new()
+            {
+                SourceMainMenu = this
+            };
+            ScreenManager.AddScreen(instructionsScreen, e.PlayerIndex);
         }
 
         private void OptionsMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
-            ScreenManager.AddScreen(new OptionsMenuScreen(), e.PlayerIndex);
+            // Hide this main menu screen
+            ScreenState = ScreenState.Hidden;
+
+            // Create and add the options menu screen
+            OptionsMenuScreen optionsScreen = new()
+            {
+                SourceMainMenu = this
+            };
+            ScreenManager.AddScreen(optionsScreen, e.PlayerIndex);
         }
 
         protected override void OnCancel(PlayerIndex playerIndex)

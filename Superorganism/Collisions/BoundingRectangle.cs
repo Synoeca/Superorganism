@@ -47,8 +47,8 @@ namespace Superorganism.Collisions
         {
             return other switch
             {
-                BoundingRectangle otherRectangle => CollisionHelper.Collides(this, otherRectangle),
-                BoundingCircle otherCircle => CollisionHelper.Collides(otherCircle, this),
+                BoundingRectangle otherRectangle => CollisionCalculator.Collides(this, otherRectangle),
+                BoundingCircle otherCircle => CollisionCalculator.Collides(otherCircle, this),
                 _ => false
             };
         }

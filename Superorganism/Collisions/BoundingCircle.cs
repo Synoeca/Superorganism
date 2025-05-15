@@ -37,11 +37,11 @@ namespace Superorganism.Collisions
 		{
 			if (other is BoundingCircle otherCircle)
 			{
-				return CollisionHelper.Collides(this, otherCircle);
+				return CollisionCalculator.Collides(this, otherCircle);
 			}
 			else if (other is BoundingRectangle otherRectangle)
 			{
-				return CollisionHelper.Collides(this, otherRectangle);
+				return CollisionCalculator.Collides(this, otherRectangle);
 			}
 			return false;
 		}

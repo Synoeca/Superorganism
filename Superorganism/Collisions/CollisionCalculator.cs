@@ -3,7 +3,10 @@ using System;
 
 namespace Superorganism.Collisions
 {
-	public static class CollisionHelper
+	/// <summary>
+	/// 
+	/// </summary>
+	public static class CollisionCalculator
 	{
 		/// <summary>
 		/// Detects a collision between two BoundingCircles

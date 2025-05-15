@@ -9,6 +9,7 @@ namespace Superorganism.Core.Managers
         private readonly SoundEffect _cropPickup = content.Load<SoundEffect>("Pickup_Coin4");
         private readonly SoundEffect _fliesDestroy = content.Load<SoundEffect>("damaged");
         private readonly Song _backgroundMusic = content.Load<Song>("Music/strauss_blue_danube_waltz");
+        private readonly SoundEffect _jumpSound = content.Load<SoundEffect>("Jump");
 
         public void Initialize(float soundEffectVolume, float musicVolume)
         {
@@ -16,6 +17,18 @@ namespace Superorganism.Core.Managers
             MediaPlayer.IsRepeating = true;
             MediaPlayer.Volume = musicVolume;
             MediaPlayer.Play(_backgroundMusic);
+        }
+
+        public void PlayJumpSound()
+        {
+            // Implementation depends on how your audio system works
+            // Here are some common approaches:
+
+            // Option 1: If you have direct SoundEffect references
+            if (_jumpSound != null)
+            {
+                _jumpSound.Play(0.7f, 0, 0);
+            }
         }
 
         public void PlayCropPickup() => _cropPickup.Play();

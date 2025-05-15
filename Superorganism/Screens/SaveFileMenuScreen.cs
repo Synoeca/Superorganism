@@ -10,12 +10,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.Xna.Framework.Content;
 using Superorganism.Graphics;
 
 namespace Superorganism.Screens
 {
     public class SaveFileMenuScreen : GameScreen
     {
+        public bool ShouldPauseGame { get; } = true;
+        public PauseMenuScreen SourcePauseMenu { get; set; }
+        public MainMenuScreen SourceMainMenu { get; set; }
+        public GameScreen ExitFrom { get; set; }
+
         private const int EntriesPerPage = 6;
         private readonly bool _isLoadingMode;
         private readonly string _savePath;
@@ -46,6 +52,8 @@ namespace Superorganism.Screens
 
         public SaveFileMenuScreen(bool isLoadingMode)
         {
+            IsPopup = true;
+
             _isLoadingMode = isLoadingMode;
             _menuTitle = _isLoadingMode ? "LOAD GAME" : "SAVE GAME";
 
@@ -354,6 +362,25 @@ namespace Superorganism.Screens
                     // Delete the map file if it exists
                     if (!string.IsNullOrEmpty(saveState.MapFileName))
                     {
+                        // Check in the SavedMaps directory first (NEW!)
+                        string savedMapsPath = Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                            "Superorganism", "SavedMaps");
+
+                        // Ensure the map filename has .tmx extension
+                        string mapFileName = Path.HasExtension(saveState.MapFileName)
+                            ? saveState.MapFileName
+                            : $"{saveState.MapFileName}.tmx";
+
+                        // Check in the SavedMaps directory (NEW!)
+                        string savedMapPath = Path.Combine(savedMapsPath, mapFileName);
+                        if (File.Exists(savedMapPath))
+                        {
+                            Console.WriteLine($"Deleting saved map: {savedMapPath}");
+                            File.Delete(savedMapPath);
+                        }
+
+                        // Also check the old locations for backward compatibility
                         string mapContentPath = Path.Combine(
                             Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory)!.Parent!.Parent!.Parent!.FullName,
                             "Content", "Tileset", "Maps");
@@ -361,32 +388,33 @@ namespace Superorganism.Screens
                             AppDomain.CurrentDomain.BaseDirectory,
                             "Content", "Tileset", "Maps");
 
-                        // Ensure the map filename has .tmx extension
-                        string mapFileName = Path.HasExtension(saveState.MapFileName)
-                            ? saveState.MapFileName
-                            : $"{saveState.MapFileName}.tmx";
-
                         string contentMapPath = Path.Combine(mapContentPath, mapFileName);
                         string runtimeMapPath = Path.Combine(mapRuntimePath, mapFileName);
 
-                        // Delete map files if they exist
+                        // Delete map files if they exist in old locations
                         if (File.Exists(contentMapPath))
                         {
+                            Console.WriteLine($"Deleting content map: {contentMapPath}");
                             File.Delete(contentMapPath);
                         }
                         if (File.Exists(runtimeMapPath))
                         {
+                            Console.WriteLine($"Deleting runtime map: {runtimeMapPath}");
                             File.Delete(runtimeMapPath);
                         }
                     }
 
                     // Delete the save file
+                    Console.WriteLine($"Deleting save file: {savePath}");
                     File.Delete(savePath);
                     PopulateEntries();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error deleting save file: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
                 const string message = "Failed to delete save file and associated map file.";
                 MessageBoxScreen errorBox = new(message);
                 ScreenManager.AddScreen(errorBox, ControllingPlayer);
@@ -453,6 +481,11 @@ namespace Superorganism.Screens
 
             if (_menuCancel.Occurred(input, ControllingPlayer, out _))
             {
+                // When exiting, show the pause menu again if it exists
+                if (SourcePauseMenu != null)
+                {
+                    SourcePauseMenu.ScreenState = ScreenState.Active;
+                }
                 ExitScreen();
             }
         }
@@ -470,6 +503,17 @@ namespace Superorganism.Screens
 
             if (selectedEntry.Text == "Back")
             {
+                // When exiting, show the pause menu again if it exists
+                if (SourcePauseMenu != null)
+                {
+                    SourcePauseMenu.ScreenState = ScreenState.Active;
+                }
+
+                else if (SourceMainMenu != null)
+                {
+                    SourceMainMenu.ScreenState = ScreenState.TransitionOn;
+                }
+
                 ExitScreen();
                 return;
             }
@@ -506,16 +550,29 @@ namespace Superorganism.Screens
         private void SaveToFile(string fileName)
         {
             GameplayScreen gameplayScreen = GetGameplayScreen();
-            if (gameplayScreen?.GameStateManager == null) return;
+            if (gameplayScreen?.GameStateOrganizer == null) return;
+
+            // Get the ContentManager from GameStateOrganizer
+            ContentManager contentManager = gameplayScreen.GameStateOrganizer.GetContentManager();
+
+            // If we can't get ContentManager, we might need to handle this differently
+            if (contentManager == null)
+            {
+                const string errorMessage = "Cannot save: ContentManager not available.";
+                MessageBoxScreen errorBox = new(errorMessage);
+                ScreenManager.AddScreen(errorBox, ControllingPlayer);
+                return;
+            }
 
             GameStateSaver.SaveGameState(
                 new GameStateInfo
                 {
                     Entities = DecisionMaker.Entities,
-                    GameProgressTime = gameplayScreen.GameStateManager.GameTime.TotalGameTime
+                    GameProgressTime = gameplayScreen.GameStateOrganizer.GameTime.TotalGameTime
                 },
                 GameState.CurrentMapName,
-                fileName
+                contentManager,  // Pass the ContentManager here
+                fileName         // And fileName here
             );
 
             const string message = "Game saved successfully!";
@@ -527,7 +584,7 @@ namespace Superorganism.Screens
         private void CreateNewSave()
         {
             GameplayScreen gameplayScreen = GetGameplayScreen();
-            if (gameplayScreen?.GameStateManager == null) return;
+            if (gameplayScreen?.GameStateOrganizer == null) return;
 
             // Start naming process
             _isNaming = true;
@@ -557,6 +614,10 @@ namespace Superorganism.Screens
             SpriteBatch spriteBatch = ScreenManager.SpriteBatch;
             Viewport viewport = ScreenManager.GraphicsDevice.Viewport;
 
+            if (SourcePauseMenu != null)
+            {
+                ScreenManager.FadeBackBufferToBlack(0.6f);
+            }
 
             // Draw the 3D title first if it exists
             if (_titleRenderer != null && !string.IsNullOrEmpty(_menuTitle) && !IsExiting)
@@ -690,6 +751,18 @@ namespace Superorganism.Screens
                 _pageIndicatorPosition,
                 Color.White * TransitionAlpha,
                 0, Vector2.Zero, 0.8f, SpriteEffects.None, 0);
+        }
+
+        private void HandleExitingScreen()
+        {
+            // If we came from a pause menu, restore it to active state when we exit
+            if (SourcePauseMenu != null)
+            {
+                // Don't just set to Active - let the screen transition naturally
+                SourcePauseMenu.ScreenState = ScreenState.TransitionOn;
+            }
+
+            ExitScreen();
         }
     }
 }
