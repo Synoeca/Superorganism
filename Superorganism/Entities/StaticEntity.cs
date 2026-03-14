@@ -11,9 +11,21 @@ namespace Superorganism.Entities
 	{
 		public override Texture2D Texture { get; set; }
 		public override EntityStatus EntityStatus { get; set; }
-        public override Vector2 Position { get; set; }
+
+        protected Vector2 _position;
+        public override Vector2 Position
+        {
+            get => _position;
+            set => _position = value;
+        }
 		public override Color Color { get; set; } = Color.White;
-        public virtual Vector2 Velocity { get; set; }
+
+        protected Vector2 _velocity;
+        public virtual Vector2 Velocity
+        {
+            get => _velocity;
+            set => _velocity = value;
+        }
 
         protected ICollisionBounding _collisionBounding;
         public override ICollisionBounding CollisionBounding
@@ -57,13 +69,13 @@ namespace Superorganism.Entities
             // Check map bounds
             newPosition.X = MathHelper.Clamp(newPosition.X,
                 (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f,
-                MapHelper.GetMapWorldBounds().Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
+                TilePhysicsInspector.GetMapWorldBounds().Width - (TextureInfo.UnitTextureWidth * TextureInfo.SizeScale) / 2f);
 
             bool hitsDiagonal = false;
             float slope = 0;
 
             // Get ground level at new position
-            float groundY = MapHelper.GetGroundYPosition(
+            float groundY = TilePhysicsInspector.GetGroundYPosition(
                 GameState.CurrentMap,
                 newPosition.X,
                 Position.Y,

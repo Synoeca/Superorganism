@@ -1,93 +1,105 @@
-# Superorganism v0.2.0
-![image](https://github.com/user-attachments/assets/d8296160-dbe5-4664-9a51-b4a618fb6b38)
-
-## Save/Load System Enhancement:
-- **Advanced map state persistence** with isolated map copies per save
-- **Dynamic .tmx modification** with runtime support
-- **Enhanced save file management** with proper cleanup
----
+# Superorganism v0.3.0 (Version 1.0)
+![Game Title Screen](https://github.com/user-attachments/assets/ce9200bb-805c-4002-9363-8c78df979b27)
 
 
-https://github.com/user-attachments/assets/dc805279-be1f-48f5-b704-57c9259cc0b8
+Welcome to Superorganism, a platformer game where you navigate through complex ecosystems, collect resources, and survive hostile environments by mastering digging, inventory management, and combat mechanics.
 
+## Key Features
 
+### Enhanced Movement & Combat System
+- **Robust Collision Detection**:
+  - Complete solution for diagonal and flat surface handling
+  - Intelligent collision resolution for various surface types
+  - Fixed numerous edge cases including diagonal climbing and sinking issues
+- **Jumping Mechanics**:
+  - Cooldown timer between jumps for balanced gameplay
+  - Fixed flipped jump collision detection
+  - Improved upward and diagonal jumping physics
+- **Combat Capabilities**:
+  - Enemy stomping mechanic
+  - Stamina-based attacks and movement
+  - Health system with hit points (HP)
 
-## Core Game Features:
-- **Interactive Ground Digging (Press 'F')**:
-  - Press 'F' while moving left/right to dig in that direction
-  - Press 'F' + Up/W to dig upward from current position
-  - Press 'F' while stationary to dig directly below
-  - Smart position adjustment based on entity size and direction
-- **Sophisticated collision resolution** for controlled entities
-- **Enhanced map modification** with per-tile opacity support
----
+![image](https://github.com/user-attachments/assets/eb0a649b-81de-418e-8ddd-606d325a42a6)
 
-## Technical Implementation Details:
-- Complete overhaul of save/load system with unique map states
-- Runtime .tmx modification and tile property management
-- Advanced collision handling for diagonal and flat surfaces
-- Context-aware digging system with:
-  - Direction-based offset calculation
-  - Entity size consideration
-  - Multi-directional capability
-- Comprehensive save file cleanup with associated map files
----
-![image](https://github.com/user-attachments/assets/f3bf73c9-079e-44b3-a00c-42d949fa3ef2)
+### Advanced Inventory System
+- **Dynamic Item Management**:
+  - Resizable inventory UI with minimize/maximize controls
+  - Tileset-based inventory item textures
+  - Seamless item pickup and usage
+- **Item Interaction**:
+  - Throw and collect items
+  - Nearest item indicator for improved gameplay experience
+  - Visual cues for available collectibles
+
+### Resource Management
+- **Survival Mechanics**:
+  - Stamina system with gradual regeneration
+  - Hunger system affecting overall performance
+  - Float-based resource values for precise management
+- **UI Indicators**:
+  - Real-time status displays for stamina, hunger, and HP
+  - Visual feedback for resource consumption and regeneration
+
+### World Interaction
+- **Interactive Ground Digging** (Press 'F'):
+  - Multi-directional digging based on movement and input
+  - Strategic pathway creation for navigation
+  - Escape route planning from enemies
+- **Tilemap Modification**:
+  - Runtime .tmx file editing
+  - Per-tile opacity support
+  - Dynamic environment changes
+
+### Game Progress Tracking
+- **In-Game Timer**:
+  - Track your gameplay duration
+  - Timer persistence between save/load cycles
+- **Save/Load System**:
+  - Advanced map state persistence with isolated map copies per save
+  - Comprehensive save file management with proper cleanup
+  - Fixed issues with collectible items and modified tilemaps
 
 ## Game Objective
-- **Collect all crops** scattered throughout the map to win
-- **Avoid hostile entities**:
-  - Red ants patrolling with smart AI
+- **Collect all resources** scattered throughout the map
+- **Manage your survival resources** (stamina, hunger, health)
+- **Avoid or combat hostile entities**:
+  - Red ants with intelligent patrol AI
   - Flying enemies with unique movement patterns
-- **Use digging mechanics** to create pathways and escape routes
----
-## Fixed:
-- Multiple collision-related issues:
-  - Entity sinking during enemy chase
-  - Diagonal tile climbing during pursuit
-  - Ground sinking from proposed Y movement
-  - Center-on-diagonal collision detection
-  - Jump landing on diagonal/flat tile borders
-  - Negative slope tile collision
-  - Right diagonal collision issues
-  - Upward collision detection
-- Save system issues:
-  - Continue button persistence after save removal
-  - Save file cleanup and management
-  - Map file association tracking
+- **Create strategic pathways** using the digging mechanic
 
-## Changed:
-- Revamped TilemapEngine without Content Pipeline dependency
-- Modified save file naming scheme
-- Updated collision handling system
-- Restructured map file management
-- Enhanced tile property system
-- Improved diagonal collision response
+## Controls
+- **Movement**: WASD or Arrow Keys
+- **Jump**: Space
+- **Dig**: F + Direction (F alone digs downward)
+- **Throw Item**: X
+- **Inventory**: I
 
-## Added:
-- Ground digging feature
-- Per-tile opacity support
-- Runtime .tmx modification
-- Map state isolation per save
-- Comprehensive save file cleanup
-- Upward digging capability
-- Enhanced collision documentation
+## Technical Improvements
+- Complete overhaul of the save/load system with unique map states
+- Removed Content Pipeline dependency for improved portability
+- Enhanced AI strategy behaviors with save state persistence
+- Revamped TilemapEngine for better performance
+- Advanced collision handling with precise physics calculations
+- Seamless menu transitions with parent-child screen relationships
 
-## Removed:
-- Content Pipeline dependency
-- Redundant tile properties
-- Unnecessary position UI
-- Legacy collision systems
-- Unused comments
+## Fixed Issues Since v0.2.0
+- Complete resolution of diagonal collision problems
+- Save system reliability with proper file management
+- AI strategy persistence across save/load cycles
+- Modified tilemap and collectible item loading
+- UI scaling and positioning
+- Entity status synchronization with UI elements
 
-## Known Issues:
-- While collision system for ControllableEntity is mostly resolved, uncontrolled entities (AI) still need to implement the same sophisticated collision logic
+## Known Issues
+- While AI entities have improved, some edge cases in their collision detection may still occur
 
-## Future Development Plans:
-- Implementation of core RPG elements:
-  - Stamina system
-  - Hunger mechanics
-  - Inventory system
-  - Collectables
-  - Character stats
+## Future Development
+- Enhanced RPG elements:
+  - Expanded inventory system with crafting
+  - More detailed character progression
+  - Advanced enemy AI patterns
+  - Environmental interactions
+  - Quest system
+
 ---

@@ -23,8 +23,15 @@ namespace Superorganism.Entities
 		public virtual short AnimationFrame { get; set; }
 
         protected bool UseRotation { get; set; }
-        protected float Rotation { get; set; }
+        protected internal float Rotation { get; set; }
         protected const float RotationSmoothing = 0.05f;
+
+        protected Vector2 _lastKnownTargetPosition;
+        public Vector2 LastKnownTargetPosition
+        {
+            get => _lastKnownTargetPosition;
+            set => _lastKnownTargetPosition = value;
+        }
 
         protected virtual void UpdateRotation()
         {
@@ -183,7 +190,7 @@ namespace Superorganism.Entities
 			CollisionBounding ??= TextureInfo.CollisionType;
             if (UseRotation) { UpdateRotation(); }
 
-            DecisionMaker.Action(ref _strategy, ref _strategyHistory, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding,
+            DecisionMaker.Action(ref _strategy, ref _strategyHistory, gameTime, ref _direction, ref _position, ref _directionTimer, ref _directionInterval, ref _collisionBounding, ref _lastKnownTargetPosition,
 				ref _velocity, 800, 420, TextureInfo, EntityStatus, ref _isOnGround, ref _isJumping, ref _friction, ref _isCenterOnDiagonal, ref _jumpDiagonalPosY, ref Flipped);
 		}
 	}

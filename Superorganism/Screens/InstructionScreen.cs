@@ -21,6 +21,9 @@ namespace Superorganism.Screens
         private PixelTextRenderer _titleRenderer;
         private readonly string _menuTitle = "Instructions";
 
+        public PauseMenuScreen SourcePauseMenu { get; set; }
+        public MainMenuScreen SourceMainMenu { get; set; }
+
         private readonly InputAction _menuLeft;
         private readonly InputAction _menuRight;
         private readonly InputAction _menuSelect;
@@ -94,11 +97,31 @@ namespace Superorganism.Screens
             {
                 _currentPage = (_currentPage + 1) % _pages.Count;
             }
+
             if (_menuSelect.Occurred(input, ControllingPlayer, out PlayerIndex _) ||
                 _menuCancel.Occurred(input, ControllingPlayer, out PlayerIndex _))
             {
-                ExitScreen();
+                HandleExit();
             }
+        }
+
+        /// <summary>
+        /// Handles exiting this screen and returning to the appropriate parent screen
+        /// </summary>
+        private void HandleExit()
+        {
+            // Check which source menu we came from and restore it
+            if (SourcePauseMenu != null)
+            {
+                SourcePauseMenu.ScreenState = ScreenState.TransitionOn;
+            }
+            else if (SourceMainMenu != null)
+            {
+                SourceMainMenu.ScreenState = ScreenState.TransitionOn;
+            }
+
+            // Now exit this screen
+            ExitScreen();
         }
 
         public override void Activate()
@@ -128,7 +151,7 @@ namespace Superorganism.Screens
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
-                ExitScreen();
+                HandleExit();
             }
         }
 

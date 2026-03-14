@@ -8,7 +8,7 @@ namespace Superorganism.Core.Managers
     {
         public static void InitializeAtTile(this Entity entity, int tileX, int tileY)
         {
-            Vector2 worldPos = MapHelper.TileToWorld(tileX, tileY);
+            Vector2 worldPos = TilePhysicsInspector.TileToWorld(tileX, tileY);
             entity.Position = worldPos;
         }
     }

@@ -239,7 +239,7 @@ namespace Superorganism.ScreenManagement
                     {
                         if (gs is GameplayScreen gps)
                         {
-                            gps.GameStateManager.ResumeMusic();
+                            gps.GameStateOrganizer.ResumeMusic();
                         }
                     }
 

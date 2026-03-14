@@ -7,19 +7,47 @@ using Superorganism.Collisions;
 using Superorganism.Common;
 using Superorganism.Entities;
 using Superorganism.Tiles;
+using Superorganism.Core.Timing;
 
 namespace Superorganism.Core.Managers;
 
 /// <summary>
-/// 
+/// Static utility class that provides comprehensive movement and physics functionality
+/// for both player and AI entities. Handles player input, physics calculations,
+/// collision detection, and various AI movement strategies.
 /// </summary>
 public static class MovementUtilities
 {
+    /// <summary>
+    /// Random number generator used for AI movement patterns and decision-making.
+    /// </summary>
     private static readonly Random Rand = new();
 
     /// <summary>
-    /// Handles player input for movement
+    /// Handles player input for movement including walking, running, and jumping.
+    /// Processes keyboard input and applies appropriate movement physics.
     /// </summary>
+    /// <param name="position">Current position of the player entity.</param>
+    /// <param name="velocity">Current velocity of the player entity.</param>
+    /// <param name="isOnGround">Whether the player is currently on the ground.</param>
+    /// <param name="isJumping">Whether the player is currently in a jumping state.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal slope jumping calculations.</param>
+    /// <param name="isCenterOnDiagonal">Whether the player is centered on a diagonal slope.</param>
+    /// <param name="soundTimer">Timer for controlling movement sound playback.</param>
+    /// <param name="movementSpeed">Current movement speed of the player.</param>
+    /// <param name="animationSpeed">Speed of the walking animation.</param>
+    /// <param name="keyboardState">Current frame's keyboard state.</param>
+    /// <param name="previousKeyboardState">Previous frame's keyboard state for edge detection.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the player entity.</param>
+    /// <param name="textureInfo">Information about the player's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the player entity.</param>
+    /// <param name="flipped">Whether the player sprite is horizontally flipped.</param>
+    /// <param name="friction">Ground friction coefficient affecting movement.</param>
+    /// <param name="gravity">Gravity acceleration applied to the player.</param>
+    /// <param name="jumpStrength">Strength/force of the player's jump.</param>
+    /// <param name="playMoveSound">Action callback for playing movement sounds.</param>
+    /// <param name="gameTime">Game timing information.</param>
     public static void HandlePlayerInput(
         ref Vector2 position,
         ref Vector2 velocity,
@@ -35,6 +63,7 @@ public static class MovementUtilities
         TiledMap currentMap,
         ICollisionBounding collisionBounding,
         TextureInfo textureInfo,
+        EntityStatus entityStatus,
         ref bool flipped,
         float friction,
         float gravity,
@@ -42,25 +71,27 @@ public static class MovementUtilities
         Action<GameTime> playMoveSound,
         GameTime gameTime)
     {
-        movementSpeed = 1.0f;
+        //movementSpeed = 1.0f;
+        movementSpeed = entityStatus.Agility * 1.0f;
         animationSpeed = 0.15f;
 
         // Update movement speed based on shift key
         if (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift))
         {
-            movementSpeed = 4.5f;
+            //movementSpeed = 4.5f;
+            movementSpeed = entityStatus.Agility * 2.0f;
             animationSpeed = 0.1f;
         }
 
         float proposedXVelocity = 0;
 
         // Calculate proposed horizontal movement
-        if (keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A))
+        if (keyboardState.IsKeyDown(Keys.A))
         {
             proposedXVelocity = -movementSpeed;
             flipped = true;
         }
-        else if (keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D))
+        else if (keyboardState.IsKeyDown(Keys.D))
         {
              proposedXVelocity = movementSpeed;
             flipped = false;
@@ -105,8 +136,14 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles F key map modification
+    /// Handles map modification based on F key input and directional keys.
+    /// Allows players to remove or place tiles in the game world.
     /// </summary>
+    /// <param name="position">Current position of the player.</param>
+    /// <param name="proposedXVelocity">The intended horizontal velocity.</param>
+    /// <param name="keyboardState">Current keyboard state for directional inputs.</param>
+    /// <param name="currentMap">The map to modify.</param>
+    /// <param name="textureInfo">Player texture information for calculating modification position.</param>
     private static void HandleMapModification(
         Vector2 position,
         float proposedXVelocity,
@@ -165,8 +202,28 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles AI movement
+    /// Handles AI movement based on the current strategy. Routes to specific strategy handlers
+    /// and manages overall AI behavior patterns.
     /// </summary>
+    /// <param name="position">Current position of the AI entity.</param>
+    /// <param name="velocity">Current velocity of the AI entity.</param>
+    /// <param name="isOnGround">Whether the AI is currently on the ground.</param>
+    /// <param name="isJumping">Whether the AI is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="isCenterOnDiagonalSlope">Whether the AI is centered on a diagonal slope.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the AI entity.</param>
+    /// <param name="textureInfo">Information about the AI's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the AI entity.</param>
+    /// <param name="flipped">Whether the AI sprite is horizontally flipped.</param>
+    /// <param name="strategy">Current AI strategy being executed.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="lastKnownTargetPosition">Last known position of the target for chase strategies.</param>
+    /// <param name="entities">List of all active entities for proximity checks.</param>
+    /// <param name="targetStrategy">Target strategy during transitions.</param>
+    /// <param name="currentStrategyDuration">How long the current strategy has been active.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    /// <param name="canJump">Whether the AI is allowed to jump (default: false).</param>
     public static void HandleAIMovement(
         ref Vector2 position,
         ref Vector2 velocity,
@@ -177,6 +234,7 @@ public static class MovementUtilities
         TiledMap currentMap,
         ICollisionBounding collisionBounding,
         TextureInfo textureInfo,
+        EntityStatus entityStatus,
         ref bool flipped,
         Strategy strategy,
         List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
@@ -200,6 +258,7 @@ public static class MovementUtilities
                     currentMap,
                     collisionBounding,
                     textureInfo,
+                    entityStatus,
                     ref flipped,
                     ref strategy,
                     ref strategyHistory,
@@ -220,6 +279,7 @@ public static class MovementUtilities
                     currentMap,
                     collisionBounding,
                     textureInfo,
+                    entityStatus,
                     ref flipped,
                     ref strategy,
                     strategyHistory,
@@ -240,6 +300,7 @@ public static class MovementUtilities
                     currentMap,
                     collisionBounding,
                     textureInfo,
+                    entityStatus,
                     ref flipped,
                     ref strategy,
                     ref strategyHistory,
@@ -251,10 +312,148 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles AI patrol strategy movement
+    /// Handles player input with stamina restrictions on sprinting and jumping.
+    /// Similar to HandlePlayerInput but includes stamina checks before allowing
+    /// energy-intensive actions.
     /// </summary>
-    public static void HandlePatrolStrategy(
+    /// <param name="position">Current position of the player entity.</param>
+    /// <param name="velocity">Current velocity of the player entity.</param>
+    /// <param name="isOnGround">Whether the player is currently on the ground.</param>
+    /// <param name="isJumping">Whether the player is currently in a jumping state.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal slope jumping calculations.</param>
+    /// <param name="isCenterOnDiagonal">Whether the player is centered on a diagonal slope.</param>
+    /// <param name="soundTimer">Timer for controlling movement sound playback.</param>
+    /// <param name="movementSpeed">Current movement speed of the player.</param>
+    /// <param name="animationSpeed">Speed of the walking animation.</param>
+    /// <param name="keyboardState">Current frame's keyboard state.</param>
+    /// <param name="previousKeyboardState">Previous frame's keyboard state for edge detection.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the player entity.</param>
+    /// <param name="textureInfo">Information about the player's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the player entity.</param>
+    /// <param name="flipped">Whether the player sprite is horizontally flipped.</param>
+    /// <param name="friction">Ground friction coefficient affecting movement.</param>
+    /// <param name="gravity">Gravity acceleration applied to the player.</param>
+    /// <param name="jumpStrength">Strength/force of the player's jump.</param>
+    /// <param name="playMoveSound">Action callback for playing movement sounds.</param>
+    /// <param name="canSprint">Whether the player has enough stamina to sprint.</param>
+    /// <param name="canJump">Whether the player has enough stamina to jump.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    public static void HandlePlayerInputWithStaminaRestrictions(
         ref Vector2 position,
+        ref Vector2 velocity,
+        ref bool isOnGround,
+        ref bool isJumping,
+        ref float jumpDiagonalPosY,
+        ref bool isCenterOnDiagonal,
+        ref float soundTimer,
+        ref float movementSpeed,
+        ref float animationSpeed,
+        KeyboardState keyboardState,
+        KeyboardState previousKeyboardState,
+        TiledMap currentMap,
+        ICollisionBounding collisionBounding,
+        TextureInfo textureInfo,
+        EntityStatus entityStatus,
+        ref bool flipped,
+        float friction,
+        float gravity,
+        float jumpStrength,
+        Action<GameTime> playMoveSound,
+        bool canSprint,
+        bool canJump,
+        GameTime gameTime)
+    {
+        //movementSpeed = 1.0f;
+        movementSpeed = entityStatus.Agility * 1.0f;
+        animationSpeed = 0.15f;
+
+        // Update movement speed based on shift key AND stamina
+        bool isAttemptingToSprint = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
+        bool isSprinting = isAttemptingToSprint && canSprint;
+
+        if (isSprinting)
+        {
+            //movementSpeed = 4.5f;
+            movementSpeed = entityStatus.Agility * 2.0f;
+            animationSpeed = 0.1f;
+        }
+
+        float proposedXVelocity = 0;
+
+        // Calculate proposed horizontal movement
+        if (keyboardState.IsKeyDown(Keys.A))
+        {
+            proposedXVelocity = -movementSpeed;
+            flipped = true;
+        }
+        else if (keyboardState.IsKeyDown(Keys.D))
+        {
+            proposedXVelocity = movementSpeed;
+            flipped = false;
+        }
+        else if (isOnGround)
+        {
+            proposedXVelocity = velocity.X * friction;
+            if (Math.Abs(proposedXVelocity) < 0.1f)
+            {
+                proposedXVelocity = 0;
+                soundTimer = 0f;
+            }
+        }
+
+        // Handle map modifications with F key
+        if (previousKeyboardState.IsKeyDown(Keys.F) && keyboardState.IsKeyUp(Keys.F))
+        {
+            HandleMapModification(position, proposedXVelocity, keyboardState, currentMap, textureInfo);
+        }
+
+        // Handle jumping and physics movement - only allow jumping if enough stamina
+        bool isAttemptingToJump = isOnGround && keyboardState.IsKeyDown(Keys.Space);
+        bool startingJump = isAttemptingToJump && canJump;
+
+        HandleMovementPhysics(
+            ref position,
+            ref velocity,
+            ref isOnGround,
+            ref isJumping,
+            ref jumpDiagonalPosY,
+            ref isCenterOnDiagonal,
+            proposedXVelocity,
+            gravity,
+            startingJump,
+            jumpStrength,
+            textureInfo,
+            collisionBounding,
+            currentMap,
+            flipped,
+            movementSpeed,
+            gameTime,
+            playMoveSound);
+    }
+
+    /// <summary>
+    /// Handles the AI patrol strategy where entities move in a pattern,
+    /// typically back and forth, until they detect a target to chase.
+    /// </summary>
+    /// <param name="position">Current position of the AI entity.</param>
+    /// <param name="velocity">Current velocity of the AI entity.</param>
+    /// <param name="isOnGround">Whether the AI is currently on the ground.</param>
+    /// <param name="isJumping">Whether the AI is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="isCenterOnDiagonalSlope">Whether the AI is centered on a diagonal slope.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the AI entity.</param>
+    /// <param name="textureInfo">Information about the AI's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the AI entity.</param>
+    /// <param name="flipped">Whether the AI sprite is horizontally flipped.</param>
+    /// <param name="strategy">Current AI strategy reference.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="entities">List of all active entities for proximity checks.</param>
+    /// <param name="currentStrategyDuration">How long the current strategy has been active.</param>
+    /// <param name="lastKnownTargetPosition">Last known position of any target (for persistence).</param>
+    /// <param name="gameTime">Game timing information.</param>
+    public static void HandlePatrolStrategy(ref Vector2 position,
         ref Vector2 velocity,
         ref bool isOnGround,
         ref bool isJumping,
@@ -263,6 +462,7 @@ public static class MovementUtilities
         TiledMap currentMap,
         ICollisionBounding collisionBounding,
         TextureInfo textureInfo,
+        EntityStatus entityStatus,
         ref bool flipped,
         ref Strategy strategy,
         ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
@@ -271,7 +471,8 @@ public static class MovementUtilities
         ref Vector2 lastKnownTargetPosition,
         GameTime gameTime)
     {
-        const float movementSpeed = 1.0f;
+        //const float movementSpeed = 1.0f;
+        float movementSpeed = entityStatus.Agility;
         const float gravity = 0.2f;
 
         float proposedXVelocity = velocity.X;
@@ -285,7 +486,8 @@ public static class MovementUtilities
         {
             proposedXVelocity = -proposedXVelocity; // Reverse direction
             (Strategy Strategy, double StartTime, double LastActionTime) current = strategyHistory[^1];
-            strategyHistory[^1] = (current.Strategy, current.StartTime, gameTime.TotalGameTime.TotalSeconds);
+            // Use GameTimer instead of gameTime.TotalGameTime.TotalSeconds
+            strategyHistory[^1] = (current.Strategy, current.StartTime, GameTimer.TotalGameplayTime);
         }
 
         // Handle ground friction
@@ -327,10 +529,27 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles AI chase strategy movement
+    /// Handles the AI chase strategy where entities pursue a target aggressively.
+    /// Entities will use their last known target position if the target goes out of range.
     /// </summary>
-    public static void HandleChaseStrategy(
-        ref Vector2 position,
+    /// <param name="position">Current position of the AI entity.</param>
+    /// <param name="velocity">Current velocity of the AI entity.</param>
+    /// <param name="isOnGround">Whether the AI is currently on the ground.</param>
+    /// <param name="isJumping">Whether the AI is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="isCenterOnDiagonalSlope">Whether the AI is centered on a diagonal slope.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the AI entity.</param>
+    /// <param name="textureInfo">Information about the AI's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the AI entity.</param>
+    /// <param name="flipped">Whether the AI sprite is horizontally flipped.</param>
+    /// <param name="strategy">Current AI strategy reference.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="entities">List of all active entities for finding targets.</param>
+    /// <param name="currentStrategyDuration">How long the current strategy has been active.</param>
+    /// <param name="lastKnownTargetPosition">Last known position of the target.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    public static void HandleChaseStrategy(ref Vector2 position,
         ref Vector2 velocity,
         ref bool isOnGround,
         ref bool isJumping,
@@ -339,6 +558,7 @@ public static class MovementUtilities
         TiledMap currentMap,
         ICollisionBounding collisionBounding,
         TextureInfo textureInfo,
+        EntityStatus entityStatus,
         ref bool flipped,
         ref Strategy strategy,
         List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
@@ -347,7 +567,8 @@ public static class MovementUtilities
         ref Vector2 lastKnownTargetPosition,
         GameTime gameTime)
     {
-        const float chaseSpeed = 3.0f;
+        //const float chaseSpeed = 3.0f;
+        float chaseSpeed = entityStatus.Agility * 2.0f;
         const float gravity = 0.2f;
 
         // Find target
@@ -384,7 +605,7 @@ public static class MovementUtilities
         float proposedXVelocity = chaseDirection.X * chaseSpeed;
 
         // Initialize movement if needed
-        if (velocity.X == 0)
+        if (velocity.X == 0 && proposedXVelocity == 0)
         {
             proposedXVelocity = chaseSpeed;
         }
@@ -410,10 +631,26 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles AI transition strategy movement
+    /// Handles the AI transition strategy which creates a pause between strategy changes.
+    /// Entities remain stationary during transitions to create more natural behavior changes.
     /// </summary>
-    public static void HandleTransitionStrategy(
-        ref Vector2 position,
+    /// <param name="position">Current position of the AI entity.</param>
+    /// <param name="velocity">Current velocity of the AI entity.</param>
+    /// <param name="isOnGround">Whether the AI is currently on the ground.</param>
+    /// <param name="isJumping">Whether the AI is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="isCenterOnDiagonalSlope">Whether the AI is centered on a diagonal slope.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="collisionBounding">Collision boundary for the AI entity.</param>
+    /// <param name="textureInfo">Information about the AI's texture and size.</param>
+    /// <param name="entityStatus">Current stats and status of the AI entity.</param>
+    /// <param name="flipped">Whether the AI sprite is horizontally flipped.</param>
+    /// <param name="strategy">Current AI strategy reference.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="targetStrategy">The strategy to transition to after the transition completes.</param>
+    /// <param name="currentStrategyDuration">How long the current strategy has been active.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    public static void HandleTransitionStrategy(ref Vector2 position,
         ref Vector2 velocity,
         ref bool isOnGround,
         ref bool isJumping,
@@ -422,6 +659,7 @@ public static class MovementUtilities
         TiledMap currentMap,
         ICollisionBounding collisionBounding,
         TextureInfo textureInfo,
+        EntityStatus entityStatus,
         ref bool flipped,
         ref Strategy strategy,
         ref List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
@@ -468,8 +706,26 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles the physics movement for an entity
+    /// Handles the core physics movement for any entity including collision detection,
+    /// jumping, gravity, and diagonal slope interactions.
     /// </summary>
+    /// <param name="position">Current position of the entity.</param>
+    /// <param name="velocity">Current velocity of the entity.</param>
+    /// <param name="isOnGround">Whether the entity is currently on the ground.</param>
+    /// <param name="isJumping">Whether the entity is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="isCenterOnDiagonalSlope">Whether the entity is centered on a diagonal slope.</param>
+    /// <param name="proposedXVelocity">The intended horizontal velocity for this frame.</param>
+    /// <param name="gravity">Gravity acceleration to apply.</param>
+    /// <param name="startingJump">Whether a jump is being initiated this frame.</param>
+    /// <param name="jumpStrength">Strength/force of the jump (typically negative).</param>
+    /// <param name="textureInfo">Information about the entity's texture and size.</param>
+    /// <param name="collisionBounding">Collision boundary for the entity.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="flipped">Whether the entity sprite is horizontally flipped.</param>
+    /// <param name="movementSpeed">Base movement speed for the entity.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    /// <param name="playMoveSound">Optional callback for playing movement sounds.</param>
     public static void HandleMovementPhysics(
         ref Vector2 position,
         ref Vector2 velocity,
@@ -502,7 +758,8 @@ public static class MovementUtilities
             // Check if there's ground below us
             bool diagonal = false;
             bool isCenterOnDiagonal = false;
-            bool hasGroundBelow = CheckCollisionAtPosition(position, currentMap, collisionBounding, ref diagonal, ref isCenterOnDiagonal);
+            bool yCollisionFromAbove = false;
+            bool hasGroundBelow = CheckCollisionAtPosition(position, currentMap, collisionBounding, velocity.Y, ref diagonal, ref isCenterOnDiagonal, ref yCollisionFromAbove);
 
             if (!hasGroundBelow || diagonal)
             {
@@ -520,7 +777,8 @@ public static class MovementUtilities
         Vector2 proposedXPosition = position + new Vector2(proposedXVelocity, 0);
         bool diagonalX = false;
         bool isCenterOnDiagonalTile = false;
-        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, currentMap, collisionBounding, ref diagonalX, ref isCenterOnDiagonalTile);
+        bool isYCollisionFromAbove = false;
+        bool hasXCollision = CheckCollisionAtPosition(proposedXPosition, currentMap, collisionBounding, velocity.Y, ref diagonalX, ref isCenterOnDiagonalTile, ref isYCollisionFromAbove);
         bool xMovementBlocked = false;
 
         // Apply X movement if no collision
@@ -541,7 +799,7 @@ public static class MovementUtilities
             BoundingRectangle xTileRec = new();
 
             // Check if the collision is with a diagonal tile
-            if (MapHelper.HandleDiagonalCollision(currentMap, position, proposedXPosition, collisionBounding,
+            if (TilePhysicsInspector.HandleDiagonalCollision(currentMap, position, proposedXPosition, collisionBounding,
                     ref velocity, ref newPosY, ref xTileRec, ref hasLeftDiagonal, ref hasRightDiagonal))
             {
                 position.X = proposedXPosition.X;
@@ -576,6 +834,8 @@ public static class MovementUtilities
         {
             bool isDiagonal = false;
             bool isCenterOnDiagonal = false;
+            bool yCollisionFromAbove = false;
+
             Vector2 proposedYPosition = position + new Vector2(0, velocity.Y);
             if (xMovementBlocked)
             {
@@ -589,7 +849,11 @@ public static class MovementUtilities
                 }
             }
 
-            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, currentMap, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal);
+            if (isJumping)
+            {
+
+            }
+            bool hasYCollision = CheckCollisionAtPosition(proposedYPosition, currentMap, collisionBounding, velocity.Y, ref isDiagonal, ref isCenterOnDiagonal, ref yCollisionFromAbove);
 
             if (!hasYCollision && !isDiagonal)
             {
@@ -603,7 +867,7 @@ public static class MovementUtilities
                     if (velocity.Y < 0 && !isDiagonal) // Moving upward
                     {
                         // Hit ceiling, stop upward movement
-                        if (!xMovementBlocked)
+                        if (!xMovementBlocked && yCollisionFromAbove)
                         {
                             velocity.Y = 0;
                             isJumping = false;
@@ -612,11 +876,29 @@ public static class MovementUtilities
                         {
                             if (flipped)
                             {
+                                //if (isJumping)
+                                //{
+                                //    position.X -= movementSpeed;
+                                //}
+                                //else
+                                //{
+                                //    position.X += movementSpeed;
+                                //}
                                 position.X += movementSpeed;
                             }
                             else
                             {
+                                //if (isJumping)
+                                //{
+                                //    position.X += movementSpeed;
+                                //}
+                                //else
+                                //{
+                                //    position.X -= movementSpeed;
+                                //}
+
                                 position.X -= movementSpeed;
+
                             }
                         }
                     }
@@ -647,7 +929,7 @@ public static class MovementUtilities
         }
 
         // Check map bounds
-        Rectangle mapBounds = MapHelper.GetMapWorldBounds();
+        Rectangle mapBounds = TilePhysicsInspector.GetMapWorldBounds();
         position.X = MathHelper.Clamp(position.X,
             (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f,
             mapBounds.Width - (textureInfo.UnitTextureWidth * textureInfo.SizeScale) / 2f);
@@ -658,8 +940,11 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles ground friction for movement
+    /// Handles ground friction for movement, reducing velocity when the entity is on the ground
+    /// and not actively moving. Prevents sliding on surfaces.
     /// </summary>
+    /// <param name="proposedXVelocity">Current proposed horizontal velocity.</param>
+    /// <param name="isOnGround">Whether the entity is currently on the ground.</param>
     private static void HandleGroundFriction(ref float proposedXVelocity, bool isOnGround)
     {
         if (isOnGround && Math.Abs(proposedXVelocity) < 0.1f)
@@ -670,8 +955,22 @@ public static class MovementUtilities
 
 
     /// <summary>
-    /// Handles ground collision and diagonal slope movement
+    /// Handles ground collision detection and adjusts the entity's position when landing on surfaces,
+    /// including special handling for diagonal slopes and mixed terrain types.
     /// </summary>
+    /// <param name="position">Current position of the entity.</param>
+    /// <param name="velocity">Current velocity of the entity.</param>
+    /// <param name="isOnGround">Whether the entity is currently on the ground.</param>
+    /// <param name="isJumping">Whether the entity is currently jumping.</param>
+    /// <param name="jumpDiagonalPosY">Y position for diagonal jumping calculations.</param>
+    /// <param name="proposedYPosition">The intended Y position after movement.</param>
+    /// <param name="xMovementBlocked">Whether horizontal movement was blocked by collision.</param>
+    /// <param name="movementSpeed">Base movement speed for position adjustments.</param>
+    /// <param name="textureInfo">Information about the entity's texture and size.</param>
+    /// <param name="collisionBounding">Collision boundary for the entity.</param>
+    /// <param name="currentMap">The current tiled map for collision detection.</param>
+    /// <param name="isCenterOnDiagonal">Whether the entity is centered on a diagonal slope.</param>
+    /// <param name="flipped">Whether the entity sprite is horizontally flipped.</param>
     private static void HandleGroundCollision(
         ref Vector2 position,
         ref Vector2 velocity,
@@ -693,7 +992,7 @@ public static class MovementUtilities
         float rightSlope = 0;
 
         // Check ground at both bottom corners
-        float leftGroundY = MapHelper.GetGroundYPosition(
+        float leftGroundY = TilePhysicsInspector.GetGroundYPosition(
             currentMap,
             position.X,
             position.Y,
@@ -703,7 +1002,7 @@ public static class MovementUtilities
             ref leftSlope
         );
 
-        float rightGroundY = MapHelper.GetGroundYPosition(
+        float rightGroundY = TilePhysicsInspector.GetGroundYPosition(
             currentMap,
             position.X + (textureInfo.UnitTextureWidth * textureInfo.SizeScale),
             position.Y,
@@ -767,16 +1066,6 @@ public static class MovementUtilities
                 }
                 else if (leftHitsDiagonal)
                 {
-                    if (newGroundY < 920f)
-                    {
-
-                    }
-
-                    float prevNewGy = newGroundY;
-                    if (prevNewGy > 963f)
-                    {
-
-                    }
                     HandleLeftDiagonalSlope(
                         ref position,
                         ref newGroundY,
@@ -786,10 +1075,6 @@ public static class MovementUtilities
                         xMovementBlocked,
                         movementSpeed,
                         textureInfo);
-                    if (newGroundY < 920f)
-                    {
-
-                    }
                 }
                 else if (rightHitsDiagonal)
                 {
@@ -823,7 +1108,7 @@ public static class MovementUtilities
             }
             else
             {
-                if (position.Y -  newGroundY > 20)
+                if (position.Y -  newGroundY > 16)
                 {
 
                 }
@@ -837,16 +1122,18 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Handles left diagonal slope collision
+    /// Duration in seconds for strategy transitions. Provides a pause between
+    /// different AI behaviors for more natural transitions.
     /// </summary>
-    /// <summary>
-    /// Helper constant for strategy transitions
-    /// </summary>
-    private const float TransitionDuration = 1.0f; // Duration in seconds
+    private const float TransitionDuration = 1.0f;
 
     /// <summary>
-    /// Gets the last known target position from strategy history
+    /// Gets the last known target position from the strategy history.
+    /// Used when an AI loses sight of its target during a chase.
     /// </summary>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    /// <returns>The last known target position, or null if no target has been tracked.</returns>
     private static Vector2? GetLastTargetPosition(
         List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
         GameTime gameTime)
@@ -857,8 +1144,13 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Transitions to a new strategy
+    /// Initiates a transition to a new strategy. First switches to a transition state
+    /// before switching to the target strategy.
     /// </summary>
+    /// <param name="currentStrategy">Current AI strategy reference.</param>
+    /// <param name="targetStrategy">Strategy to transition to.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="gameTime">Game timing information.</param>
     private static void TransitionToStrategy(
         ref Strategy currentStrategy,
         Strategy targetStrategy,
@@ -866,12 +1158,16 @@ public static class MovementUtilities
         GameTime gameTime)
     {
         AddStrategyToHistory(ref currentStrategy, Strategy.Transition, ref strategyHistory, gameTime);
-        DecisionMaker._targetStrategy = targetStrategy;
+        DecisionMaker.TargetStrategy = targetStrategy;
     }
 
     /// <summary>
-    /// Adds a strategy to history
+    /// Adds a new strategy to the AI's strategy history and updates the current strategy.
     /// </summary>
+    /// <param name="currentStrategy">Current AI strategy reference.</param>
+    /// <param name="newStrategy">New strategy to add to history and set as current.</param>
+    /// <param name="strategyHistory">History of strategies for tracking behavior patterns.</param>
+    /// <param name="gameTime">Game timing information.</param>
     private static void AddStrategyToHistory(
         ref Strategy currentStrategy,
         Strategy newStrategy,
@@ -879,13 +1175,23 @@ public static class MovementUtilities
         GameTime gameTime)
     {
         currentStrategy = newStrategy;
-        double currentTime = gameTime.TotalGameTime.TotalSeconds;
+        // Use GameTimer instead of gameTime.TotalGameTime.TotalSeconds
+        double currentTime = GameTimer.TotalGameplayTime;
         strategyHistory.Add((newStrategy, currentTime, currentTime));
     }
 
     /// <summary>
-    /// Handles left diagonal slope collision
+    /// Handles specific collision behavior for left diagonal slopes.
+    /// Adjusts entity position based on slope direction and collision context.
     /// </summary>
+    /// <param name="position">Current position of the entity.</param>
+    /// <param name="newGroundY">The calculated ground Y position to be adjusted.</param>
+    /// <param name="leftGroundY">Ground Y position on the left side of the entity.</param>
+    /// <param name="rightGroundY">Ground Y position on the right side of the entity.</param>
+    /// <param name="leftSlope">Slope value of the left diagonal tile.</param>
+    /// <param name="xMovementBlocked">Whether horizontal movement was blocked.</param>
+    /// <param name="movementSpeed">Base movement speed for position adjustments.</param>
+    /// <param name="textureInfo">Information about the entity's texture and size.</param>
     private static void HandleLeftDiagonalSlope(
         ref Vector2 position,
         ref float newGroundY,
@@ -904,28 +1210,21 @@ public static class MovementUtilities
             }
             else
             {
-                float prevNewGrounY = newGroundY;
-                if (prevNewGrounY > 959)
-                {
-
-                }
                 if (xMovementBlocked)
                 {
-                    //position.X += movementSpeed;
-                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                 }
                 if (newGroundY - position.Y > 64)
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                 }
                 else
                 {
-                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
-                }
-
-                if (newGroundY < 920f)
-                {
-
+                    newGroundY = leftGroundY - (textureInfo.ScaledHeight);
+                    if (position.Y - newGroundY > 15)
+                    {
+                        newGroundY = rightGroundY - (textureInfo.ScaledHeight);
+                    }
                 }
             }
         }
@@ -935,30 +1234,39 @@ public static class MovementUtilities
             {
                 if (rightGroundY - leftGroundY < 2)
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                 }
                 else
                 {
-                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                 }
             }
             else
             {
                 if (leftGroundY - rightGroundY < 64)
                 {
-                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                 }
                 else
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                 }
             }
         }
     }
 
     /// <summary>
-    /// Handles right diagonal slope collision
+    /// Handles specific collision behavior for right diagonal slopes.
+    /// Adjusts entity position based on slope direction and collision context.
     /// </summary>
+    /// <param name="position">Current position of the entity.</param>
+    /// <param name="newGroundY">The calculated ground Y position to be adjusted.</param>
+    /// <param name="leftGroundY">Ground Y position on the left side of the entity.</param>
+    /// <param name="rightGroundY">Ground Y position on the right side of the entity.</param>
+    /// <param name="rightSlope">Slope value of the right diagonal tile.</param>
+    /// <param name="xMovementBlocked">Whether horizontal movement was blocked.</param>
+    /// <param name="movementSpeed">Base movement speed for position adjustments.</param>
+    /// <param name="textureInfo">Information about the entity's texture and size.</param>
     private static void HandleRightDiagonalSlope(
         ref Vector2 position,
         ref float newGroundY,
@@ -973,23 +1281,23 @@ public static class MovementUtilities
         {
             if (leftGroundY < rightGroundY && rightGroundY - leftGroundY < 64)
             {
-                newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                newGroundY = rightGroundY - (textureInfo.ScaledHeight);
             }
             else
             {
                 if (leftGroundY < position.Y)
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                 }
                 else
                 {
                     if (leftGroundY < rightGroundY)
                     {
-                        newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                     }
                     else
                     {
-                        newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                     }
                 }
             }
@@ -1002,19 +1310,19 @@ public static class MovementUtilities
                 {
                     if (leftGroundY > position.Y)
                     {
-                        newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                     }
                     else
                     {
-                        newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                     }
                 }
                 else
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
                     if (newGroundY - position.Y > 64)
                     {
-                        newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                        newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                     }
                 }
             }
@@ -1022,26 +1330,41 @@ public static class MovementUtilities
             {
                 if (xMovementBlocked)
                 {
-                    position.X -= movementSpeed;
-                    newGroundY = leftGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    //position.X -= movementSpeed;
+                    newGroundY = leftGroundY - (textureInfo.ScaledHeight);
                 }
                 else
                 {
-                    newGroundY = rightGroundY - (textureInfo.UnitTextureHeight * textureInfo.SizeScale);
+                    newGroundY = rightGroundY - (textureInfo.ScaledHeight);
+                    if (position.Y - newGroundY > 15)
+                    {
+                        newGroundY = leftGroundY - (textureInfo.ScaledHeight);
+                    }
                 }
             }
         }
     }
 
     /// <summary>
-    /// Checks for collision at a position
+    /// Checks for collision at a specific position by testing against all map layers.
+    /// Returns collision information including diagonal status for specialized handling.
     /// </summary>
-    public static bool CheckCollisionAtPosition(
-        Vector2 position,
+    /// <param name="position">Position to check for collision.</param>
+    /// <param name="map">The tiled map to check against.</param>
+    /// <param name="collisionBounding">Collision boundary for the entity.</param>
+    /// <param name="velocityY">Vertical velocity for detecting fall-through conditions.</param>
+    /// <param name="isDiagonal">Outputs whether collision is with a diagonal tile.</param>
+    /// <param name="isCenterOnDiagonal">Outputs whether the entity center is on a diagonal.</param>
+    /// <param name="yCollisionFromAbove">Outputs whether collision is from above (ceiling hit).</param>
+    /// <returns>True if collision is detected, false otherwise.</returns>
+    /// <returns></returns>
+    public static bool CheckCollisionAtPosition(Vector2 position,
         TiledMap map,
         ICollisionBounding collisionBounding,
+        float velocityY,
         ref bool isDiagonal,
-        ref bool isCenterOnDiagonal)
+        ref bool isCenterOnDiagonal,
+        ref bool yCollisionFromAbove)
     {
         int leftTile = 0;
         int rightTile = 0;
@@ -1058,24 +1381,24 @@ public static class MovementUtilities
                 br.Height
             );
 
-            leftTile = (int)(testBounds.Left / MapHelper.TileSize) - 1;
-            rightTile = (int)Math.Ceiling(testBounds.Right / MapHelper.TileSize);
-            topTile = (int)(testBounds.Top / MapHelper.TileSize) - 1;
-            bottomTile = (int)Math.Ceiling(testBounds.Bottom / MapHelper.TileSize) - 1;
+            leftTile = (int)(testBounds.Left / TilePhysicsInspector.TileSize) - 1;
+            rightTile = (int)Math.Ceiling(testBounds.Right / TilePhysicsInspector.TileSize);
+            topTile = (int)(testBounds.Top / TilePhysicsInspector.TileSize) - 1;
+            bottomTile = (int)Math.Ceiling(testBounds.Bottom / TilePhysicsInspector.TileSize) - 1;
         }
         else if (collisionBounding is BoundingCircle bc)
         {
             Vector2 testCenter = new(position.X, position.Y);
-            leftTile = (int)((testCenter.X - bc.Radius) / MapHelper.TileSize);
-            rightTile = (int)Math.Ceiling((testCenter.X + bc.Radius) / MapHelper.TileSize);
-            topTile = (int)((testCenter.Y - bc.Radius) / MapHelper.TileSize);
-            bottomTile = (int)Math.Ceiling((testCenter.Y + bc.Radius) / MapHelper.TileSize);
+            leftTile = (int)((testCenter.X - bc.Radius) / TilePhysicsInspector.TileSize);
+            rightTile = (int)Math.Ceiling((testCenter.X + bc.Radius) / TilePhysicsInspector.TileSize);
+            topTile = (int)((testCenter.Y - bc.Radius) / TilePhysicsInspector.TileSize);
+            bottomTile = (int)Math.Ceiling((testCenter.Y + bc.Radius) / TilePhysicsInspector.TileSize);
         }
 
         // Check collision with map layers
         foreach (Layer layer in map.Layers.Values)
         {
-            if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal))
+            if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, velocityY, ref isDiagonal, ref isCenterOnDiagonal, ref yCollisionFromAbove))
                 return true;
         }
 
@@ -1084,7 +1407,7 @@ public static class MovementUtilities
         {
             foreach (Layer layer in group.Layers.Values)
             {
-                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, ref isDiagonal, ref isCenterOnDiagonal))
+                if (CheckLayerCollision(layer, leftTile, rightTile, topTile, bottomTile, position, collisionBounding, velocityY, ref isDiagonal, ref isCenterOnDiagonal, ref yCollisionFromAbove))
                     return true;
             }
         }
@@ -1093,26 +1416,41 @@ public static class MovementUtilities
     }
 
     /// <summary>
-    /// Checks for collision with a specific layer
+    /// Checks for collision with a specific layer within the given tile bounds.
+    /// Handles both regular and diagonal tile collisions.
     /// </summary>
-    private static bool CheckLayerCollision(
-        Layer layer,
+    /// <param name="layer">Map layer to check.</param>
+    /// <param name="leftTile">Left boundary tile index.</param>
+    /// <param name="rightTile">Right boundary tile index.</param>
+    /// <param name="topTile">Top boundary tile index.</param>
+    /// <param name="bottomTile">Bottom boundary tile index.</param>
+    /// <param name="position">Entity position to check.</param>
+    /// <param name="collisionBounding">Collision boundary for the entity.</param>
+    /// <param name="velocityY">Vertical velocity for detecting movement direction.</param>
+    /// <param name="isThisDiagonalTile">Outputs whether a diagonal tile was hit.</param>
+    /// <param name="isCenterOnDiagonal">Outputs whether entity center is on a diagonal.</param>
+    /// <param name="yCollisionFromAbove">Outputs whether collision is from above.</param>
+    /// <returns>True if collision is detected, false otherwise.</returns>
+    /// <returns></returns>
+    private static bool CheckLayerCollision(Layer layer,
         int leftTile,
         int rightTile,
         int topTile,
         int bottomTile,
         Vector2 position,
         ICollisionBounding collisionBounding,
+        float velocityY,
         ref bool isThisDiagonalTile,
-        ref bool isCenterOnDiagonal)
+        ref bool isCenterOnDiagonal, 
+        ref bool yCollisionFromAbove)
     {
-        int tilex = (int)(collisionBounding.Center.X / MapHelper.TileSize);
-        int tiley = (int)(collisionBounding.Center.Y / MapHelper.TileSize);
+        int tilex = (int)(collisionBounding.Center.X / TilePhysicsInspector.TileSize);
+        int tiley = (int)(collisionBounding.Center.Y / TilePhysicsInspector.TileSize);
 
         if (leftTile < 0 || rightTile < 0) { leftTile = rightTile = 0; }
-        if (leftTile >= MapHelper.MapWidth || rightTile >= MapHelper.MapWidth) { leftTile = rightTile = MapHelper.MapWidth - 1; }
+        if (leftTile >= TilePhysicsInspector.MapWidth || rightTile >= TilePhysicsInspector.MapWidth) { leftTile = rightTile = TilePhysicsInspector.MapWidth - 1; }
         if (topTile < 0 || bottomTile < 0) { topTile = bottomTile = 0; }
-        if (topTile >= MapHelper.MapHeight || bottomTile >= MapHelper.MapHeight) { topTile = bottomTile = MapHelper.MapHeight - 1; }
+        if (topTile >= TilePhysicsInspector.MapHeight || bottomTile >= TilePhysicsInspector.MapHeight) { topTile = bottomTile = TilePhysicsInspector.MapHeight - 1; }
 
         for (int y = topTile; y <= bottomTile; y++)
         {
@@ -1122,7 +1460,7 @@ public static class MovementUtilities
 
                 if (tileId != 0)
                 {
-                    Dictionary<string, string> property = MapHelper.GetTileProperties(tileId);
+                    Dictionary<string, string> property = TilePhysicsInspector.GetTileProperties(tileId);
 
                     // Skip non-collidable tiles
                     if (property.TryGetValue("isCollidable", out string isCollidable) && isCollidable == "false")
@@ -1131,10 +1469,10 @@ public static class MovementUtilities
                     }
 
                     BoundingRectangle tileRect = new(
-                        x * MapHelper.TileSize,
-                        y * MapHelper.TileSize,
-                        MapHelper.TileSize - 5,
-                        MapHelper.TileSize - 5
+                        x * TilePhysicsInspector.TileSize,
+                        y * TilePhysicsInspector.TileSize,
+                        TilePhysicsInspector.TileSize - 5,
+                        TilePhysicsInspector.TileSize - 5
                     );
 
                     bool isDiagonalTile = false;
@@ -1150,10 +1488,10 @@ public static class MovementUtilities
                         {
                             if (collisionBounding is BoundingRectangle br)
                             {
-                                float tileLeft = x * MapHelper.TileSize;
-                                float slope = (slopeRight - slopeLeft) / (float)MapHelper.TileSize;
+                                float tileLeft = x * TilePhysicsInspector.TileSize;
+                                float slope = (slopeRight - slopeLeft) / (float)TilePhysicsInspector.TileSize;
                                 float distanceFromLeft = collisionBounding.Center.X - tileLeft;
-                                float tileBottom = (y + 1) * MapHelper.TileSize;
+                                float tileBottom = (y + 1) * TilePhysicsInspector.TileSize;
 
                                 float slopeY;
                                 if (slope > 0)
@@ -1162,12 +1500,13 @@ public static class MovementUtilities
                                 }
                                 else
                                 {
-                                    slopeY = (tileBottom - slopeRight) + (slope * (MapHelper.TileSize - Math.Abs(distanceFromLeft)));
+                                    slopeY = (tileBottom - slopeRight) + (slope * (TilePhysicsInspector.TileSize - Math.Abs(distanceFromLeft)));
                                 }
 
-                                if (position.Y < slopeY)
+                                if (position.Y < slopeY && velocityY < 0)
                                 {
                                     isDiagonalTile = true;
+                                    yCollisionFromAbove = true;
                                 }
                             }
                             else if (collisionBounding is BoundingCircle)
@@ -1211,6 +1550,39 @@ public static class MovementUtilities
                         else
                         {
                             isCenterOnDiagonal = false;
+                        }
+
+                        if (velocityY < 0)
+                        {
+                            yCollisionFromAbove = true;
+                            if (collisionBounding is BoundingRectangle brag)
+                            {
+                                if (tileRect.Left < brag.Left)
+                                {
+                                    if (tileRect.Right > brag.Left)
+                                    {
+                                        if (tileRect.Right - 5 < brag.Left)
+                                        {
+                                            yCollisionFromAbove = false;
+                                        }
+                                    }
+                                }
+                                if (tileRect.Right > brag.Right)
+                                {
+                                    if (tileRect.Left < brag.Right)
+                                    {
+                                        if (tileRect.Left + 5 > brag.Right)
+                                        {
+                                            yCollisionFromAbove = false;
+                                        }
+                                    }
+                                }
+
+                                if (velocityY < 0 && yCollisionFromAbove)
+                                {
+
+                                }
+                            }
                         }
                         return true;
                     }

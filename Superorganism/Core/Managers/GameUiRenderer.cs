@@ -11,28 +11,54 @@ using Superorganism.Tiles;
 
 namespace Superorganism.Core.Managers
 {
-    public class GameUiManager
+    /// <summary>
+    /// Renders game UI elements and debug visualizations
+    /// </summary>
+    public class GameUiRenderer
     {
         private readonly SpriteFont _gameFont;
         private readonly SpriteBatch _spriteBatch;
         private Texture2D _grayTexture;
         private Texture2D _redTexture;
+        private Texture2D _greenTexture;
+        private Texture2D _orangeTexture;
         private Texture2D _borderTexture;
+        private Texture2D _itemIndicatorTexture;
 
         // UI Constants
         private const int ScreenMargin = 40; 
         private const int BarPadding = 10;
+        private const int BarSpacing = 10;
 
         // Debug flags
         private bool _showCollisionBounds;
         private bool _showEntityInfo;
         private bool _showMousePosition;
 
+        private float _itemIndicatorPulse = 0f;
+        private const float PulseSpeed = 4.0f;  // Adjust for faster/slower pulsing
+
+        /// <summary>
+        /// Toggles the visibility of collision boundaries in debug view.
+        /// </summary>
         public void ToggleCollisionBounds() => _showCollisionBounds = !_showCollisionBounds;
+
+        /// <summary>
+        /// Toggles the display of detailed entity information in debug view.
+        /// </summary>
         public void ToggleEntityInfo() => _showEntityInfo = !_showEntityInfo;
+
+        /// <summary>
+        /// Toggles the visibility of mouse position coordinates in debug view.
+        /// </summary>
         public void ToggleMousePosition() => _showMousePosition = !_showMousePosition;
 
-        public GameUiManager(SpriteFont gameFont, SpriteBatch spriteBatch)
+        /// <summary>
+        /// Initializes a new instance of the GameUiRenderer with required rendering resources.
+        /// </summary>
+        /// <param name="gameFont">The font used for rendering text elements.</param>
+        /// <param name="spriteBatch">The sprite batch used for drawing operations.</param>
+        public GameUiRenderer(SpriteFont gameFont, SpriteBatch spriteBatch)
         {
             _gameFont = gameFont;
             _spriteBatch = spriteBatch;
@@ -44,7 +70,10 @@ namespace Superorganism.Core.Managers
             // Create textures once and store them
             _grayTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Gray);
             _redTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Red);
+            _greenTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Green);
+            _orangeTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Orange);
             _borderTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.Red);
+            _itemIndicatorTexture = CreateTexture(_spriteBatch.GraphicsDevice, Color.White);
         }
 
         public void DrawCollisionBounds(Entity entity, ICollisionBounding collisionBounds, Matrix cameraMatrix)
@@ -135,36 +164,112 @@ namespace Superorganism.Core.Managers
             );
         }
 
-
-        public void DrawHealthBar(int currentHealth, int maxHealth)
+        /// <summary>
+        /// Draws health, stamina, and hunger bars for the player.
+        /// </summary>
+        /// <param name="hitPoints">Current hit points value.</param>
+        /// <param name="maxHitPoints">Maximum hit points value.</param>
+        /// <param name="stamina">Current stamina value.</param>
+        /// <param name="maxStamina">Maximum stamina value.</param>
+        /// <param name="hunger">Current hunger value.</param>
+        /// <param name="maxHunger">Maximum hunger value.</param>
+        public void DrawPlayerStatus(float hitPoints, float maxHitPoints, float stamina, float maxStamina, float hunger, float maxHunger)
         {
             const int barWidth = 200;
             const int barHeight = 30;
 
+            // Calculate positions
+            int healthBarY = ScreenMargin;
+            int staminaBarY = healthBarY + barHeight + BarSpacing;
+            int hungerBarY = staminaBarY + barHeight + BarSpacing;
+
+            // Draw health bar
+            DrawStatusBar(hitPoints, maxHitPoints, barWidth, barHeight, ScreenMargin, healthBarY, _redTexture, "Health");
+
+            // Draw stamina bar
+            DrawStatusBar((int)stamina, (int)maxStamina, barWidth, barHeight, ScreenMargin, staminaBarY, _greenTexture, "Stamina");
+
+            // Draw hunger bar
+            DrawStatusBar((int)hunger, (int)maxHunger, barWidth, barHeight, ScreenMargin, hungerBarY, _orangeTexture, "Hunger");
+        }
+
+        /// <summary>
+        /// Draws a generic status bar with label.
+        /// </summary>
+        /// <param name="currentValue">Current value to display.</param>
+        /// <param name="maxValue">Maximum possible value.</param>
+        /// <param name="barWidth">Width of the status bar.</param>
+        /// <param name="barHeight">Height of the status bar.</param>
+        /// <param name="xPosition">X position of the bar.</param>
+        /// <param name="yPosition">Y position of the bar.</param>
+        /// <param name="fillTexture">Texture to use for filling the bar.</param>
+        /// <param name="label">Label text to display.</param>
+        private void DrawStatusBar(float currentValue, float maxValue, int barWidth, int barHeight,
+                                   int xPosition, int yPosition, Texture2D fillTexture, string label)
+        {
             // Draw background (gray) bar
-            Rectangle backgroundRect = new(ScreenMargin, ScreenMargin, barWidth, barHeight);
+            Rectangle backgroundRect = new(xPosition, yPosition, barWidth, barHeight);
             _spriteBatch.Draw(_grayTexture, backgroundRect, Color.White);
 
-            // Calculate and clamp health percentage
-            float healthPercentage = Math.Clamp((float)currentHealth / maxHealth, 0f, 1f);
+            // Calculate and clamp percentage
+            float percentage = Math.Clamp((float)currentValue / maxValue, 0f, 1f);
 
-            // Draw foreground (red) bar only if health > 0
-            if (healthPercentage > 0)
+            // Draw foreground bar only if value > 0
+            if (percentage > 0)
             {
-                Rectangle healthRect = new(ScreenMargin, ScreenMargin, (int)(barWidth * healthPercentage), barHeight);
-                _spriteBatch.Draw(_redTexture, healthRect, Color.White);
+                Rectangle foregroundRect = new(xPosition, yPosition, (int)(barWidth * percentage), barHeight);
+                _spriteBatch.Draw(fillTexture, foregroundRect, Color.White);
             }
 
-            // Draw health text with padding
-            string healthText = $"{currentHealth}/{maxHealth}";
+            // Draw text with padding
+            string statusText = $"{label}: {currentValue}/{maxValue}";
             const float textScale = 0.55f;
-            Vector2 textSize = _gameFont.MeasureString(healthText) * textScale;
+            Vector2 textSize = _gameFont.MeasureString(statusText) * textScale;
             Vector2 textPosition = new(
-                ScreenMargin + (barWidth - textSize.X) / 2,
-                ScreenMargin + (barHeight - textSize.Y) / 2 - 2
+                xPosition + (barWidth - textSize.X) / 2,
+                yPosition + (barHeight - textSize.Y) / 2 - 2
             );
-            DrawTextWithShadow(healthText, textPosition, Color.White, textScale);
+            DrawTextWithShadow(statusText, textPosition, Color.White, textScale);
         }
+
+        // Original DrawHealthBar can now be simplified to use DrawStatusBar
+        public void DrawHealthBar(int currentHealth, int maxHealth)
+        {
+            const int barWidth = 200;
+            const int barHeight = 30;
+            DrawStatusBar(currentHealth, maxHealth, barWidth, barHeight, ScreenMargin, ScreenMargin, _redTexture, "Health");
+        }
+
+
+        //public void DrawHealthBar(int currentHealth, int maxHealth)
+        //{
+        //    const int barWidth = 200;
+        //    const int barHeight = 30;
+
+        //    // Draw background (gray) bar
+        //    Rectangle backgroundRect = new(ScreenMargin, ScreenMargin, barWidth, barHeight);
+        //    _spriteBatch.Draw(_grayTexture, backgroundRect, Color.White);
+
+        //    // Calculate and clamp health percentage
+        //    float healthPercentage = Math.Clamp((float)currentHealth / maxHealth, 0f, 1f);
+
+        //    // Draw foreground (red) bar only if health > 0
+        //    if (healthPercentage > 0)
+        //    {
+        //        Rectangle healthRect = new(ScreenMargin, ScreenMargin, (int)(barWidth * healthPercentage), barHeight);
+        //        _spriteBatch.Draw(_redTexture, healthRect, Color.White);
+        //    }
+
+        //    // Draw health text with padding
+        //    string healthText = $"{currentHealth}/{maxHealth}";
+        //    const float textScale = 0.55f;
+        //    Vector2 textSize = _gameFont.MeasureString(healthText) * textScale;
+        //    Vector2 textPosition = new(
+        //        ScreenMargin + (barWidth - textSize.X) / 2,
+        //        ScreenMargin + (barHeight - textSize.Y) / 2 - 2
+        //    );
+        //    DrawTextWithShadow(healthText, textPosition, Color.White, textScale);
+        //}
 
         public void DrawCropsLeft(int cropsLeft)
         {
@@ -176,6 +281,99 @@ namespace Superorganism.Core.Managers
                 ScreenMargin
             );
             DrawTextWithShadow(cropsLeftText, textPosition, Color.White, textScale);
+        }
+
+        /// <summary>
+        /// Draws an indicator when items are nearby and can be collected
+        /// </summary>
+        /// <param name="gameTime">Current game time for animation</param>
+        /// <param name="nearbyItem">The nearby item that can be collected, or null if none</param>
+        public void DrawNearbyItemIndicator(GameTime gameTime, DroppedItem nearbyItem)
+        {
+            // Early return if there's no nearby item or it can't be collected
+            if (nearbyItem == null || !nearbyItem.CanBeCollected || nearbyItem.Collected)
+                return;
+
+            // Update the pulse animation
+            _itemIndicatorPulse += (float)gameTime.ElapsedGameTime.TotalSeconds * PulseSpeed;
+            float pulse = (float)Math.Sin(_itemIndicatorPulse) * 0.2f + 0.8f;
+
+            // Determine indicator text
+            string indicatorText = $"Press G to collect: {nearbyItem.ItemName}";
+
+            // Draw at bottom center of screen
+            float textScale = 0.8f;
+            Vector2 textSize = _gameFont.MeasureString(indicatorText) * textScale;
+
+            // Position text at bottom center with some margin
+            int bottomMargin = 60;
+            Vector2 textPosition = new(
+                (_spriteBatch.GraphicsDevice.Viewport.Width - textSize.X) / 2,
+                _spriteBatch.GraphicsDevice.Viewport.Height - textSize.Y - bottomMargin
+            );
+
+            // Draw background panel with animation
+            Rectangle panelRect = new(
+                (int)textPosition.X - 15,
+                (int)textPosition.Y - 5,
+                (int)textSize.X + 60,
+                (int)textSize.Y + 20
+            );
+
+            // Background panel with pulsating transparency
+            Color panelColor = new(40, 40, 60, 200);
+            _spriteBatch.Draw(_grayTexture, panelRect, panelColor);
+
+            // Draw border with highlight color
+            Color borderColor = new(
+                255,
+                (215 * pulse),  // Yellow-gold pulsating
+                0,
+                255
+            );
+            DrawRectangleOutline(panelRect, 2, borderColor);
+
+            // Draw text with shadow for better readability
+            DrawTextWithShadow(indicatorText, textPosition, Color.White, textScale);
+        }
+
+        // Add this method to your GameUiRenderer class
+        /// <summary>
+        /// Draws a visual indicator at the position of collectible item in the world
+        /// </summary>
+        /// <param name="gameTime">Current game time for animation</param>
+        /// <param name="nearbyItem">The nearby item to highlight</param>
+        /// <param name="cameraMatrix">The camera transformation matrix</param>
+        public void DrawItemWorldIndicator(GameTime gameTime, DroppedItem nearbyItem, Matrix cameraMatrix)
+        {
+            if (nearbyItem == null || !nearbyItem.CanBeCollected || nearbyItem.Collected)
+                return;
+
+            // Update the pulse animation (uses the shared pulse value)
+            float pulse = (float)Math.Sin(_itemIndicatorPulse) * 0.3f + 0.7f;
+
+            // Transform item position to screen coordinates
+            Vector2 screenPos = Vector2.Transform(nearbyItem.Position, cameraMatrix);
+
+            // Calculate size of the indicator (increased for better visibility)
+            int indicatorSize = 24;
+
+            // Draw an arrow or indicator above the item
+            Vector2 arrowTop = screenPos + new Vector2(0, -indicatorSize * 2.2f);
+            Vector2 arrowLeft = screenPos + new Vector2(-indicatorSize / 2, -indicatorSize * 1.4f);
+            Vector2 arrowRight = screenPos + new Vector2(indicatorSize / 2, -indicatorSize * 1.4f);
+
+            // Brighter, more pulsing gold/yellow color
+            Color indicatorColor = new Color(255, (byte)(215 * pulse), 0) * pulse;
+
+            // Draw a triangle arrow pointing down at the item
+            DrawLine(arrowTop, arrowLeft, indicatorColor, 3); // Thicker lines
+            DrawLine(arrowLeft, arrowRight, indicatorColor, 3);
+            DrawLine(arrowRight, arrowTop, indicatorColor, 3);
+
+            // Draw a circle around the item
+            float circleRadius = indicatorSize * (0.8f + (pulse * 0.3f)); // More pulsating
+            DrawCircleOutline(screenPos, circleRadius, 3, indicatorColor); // Thicker circle
         }
 
         public void DrawDebugInfo(Vector2 position, Matrix cameraMatrix, float distanceToPlayer, ICollisionBounding collisionBounding)
@@ -301,6 +499,43 @@ namespace Superorganism.Core.Managers
             }
         }
 
+        /// <summary>
+        /// Draws the remaining enemy ants counter on the UI
+        /// </summary>
+        /// <param name="enemiesRemaining">Current number of remaining enemies</param>
+        public void DrawEnemiesRemaining(int enemiesRemaining)
+        {
+            // Display the enemy counter near the crops counter in the top-right
+            string enemiesText = $"Red Ants: {enemiesRemaining}";
+            const float textScale = 0.75f;
+            Vector2 textSize = _gameFont.MeasureString(enemiesText) * textScale;
+
+            // Position below the crops counter
+            Vector2 cropsTextSize = _gameFont.MeasureString("Crops Left: 0") * textScale;
+            Vector2 textPosition = new(
+                _spriteBatch.GraphicsDevice.Viewport.Width - textSize.X - ScreenMargin,
+                ScreenMargin + cropsTextSize.Y + BarSpacing
+            );
+
+            // If near zero, use red color to highlight
+            Color textColor = enemiesRemaining <= 3 ? Color.Red : Color.White;
+
+            DrawTextWithShadow(enemiesText, textPosition, textColor, textScale);
+
+            // If only a few enemies remain, add a pulsing effect
+            if (enemiesRemaining <= 3 && enemiesRemaining > 0)
+            {
+                // Draw attention-grabbing indicator
+                float pulse = (float)Math.Sin(_itemIndicatorPulse) * 0.3f + 0.7f;
+                Color indicatorColor = new Color(255, (byte)(50 * pulse), 0) * pulse;
+
+                // Draw arrow/indicator
+                Vector2 arrowLeft = textPosition + new Vector2(-25, textSize.Y / 2);
+                Vector2 arrowRight = textPosition + new Vector2(-5, textSize.Y / 2);
+                DrawLine(arrowLeft, arrowRight, indicatorColor, 3);
+            }
+        }
+
         public void DrawDebugInfo(
             Vector2 position,
             Matrix cameraMatrix,
@@ -394,7 +629,7 @@ namespace Superorganism.Core.Managers
             currentOffset.Y += _gameFont.MeasureString(worldPosText).Y * textScale;
 
             // Draw tile coordinates
-            (int tileX, int tileY) = MapHelper.WorldToTile(mouseWorldPosition);
+            (int tileX, int tileY) = TilePhysicsInspector.WorldToTile(mouseWorldPosition);
             string tilePosText = $"Tile: {tileX}, {tileY}";
             DrawDebugText(tilePosText, textPosition + currentOffset, textScale);
 
@@ -557,7 +792,10 @@ namespace Superorganism.Core.Managers
         {
             _grayTexture?.Dispose();
             _redTexture?.Dispose();
+            _greenTexture?.Dispose();
+            _orangeTexture?.Dispose();
             _borderTexture?.Dispose();
+            _itemIndicatorTexture?.Dispose();
         }
     }
 }

@@ -89,19 +89,19 @@ namespace Superorganism.ScreenManagement
         public PlayerIndex? ControllingPlayer { protected get; set; }
 
         /// <summary>
-        /// Activates the screen.  Called when the screen is added to the screen manager 
+        /// Activates the screen.  Called when the screen is added to the screen organizer 
         /// or the game returns from being paused.
         /// </summary>
         public virtual void Activate() { }
 
         /// <summary>
-        /// Deactivates the screen.  Called when the screen is removed from the screen manager 
+        /// Deactivates the screen.  Called when the screen is removed from the screen organizer 
         /// or when the game is paused.
         /// </summary>
         public virtual void Deactivate() { }
 
         /// <summary>
-        /// Unloads content for the screen. Called when the screen is removed from the screen manager
+        /// Unloads content for the screen. Called when the screen is removed from the screen organizer
         /// </summary>
         public virtual void Unload() { }
 

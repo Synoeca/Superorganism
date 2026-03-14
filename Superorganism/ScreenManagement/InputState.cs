@@ -18,6 +18,8 @@ namespace Superorganism.ScreenManagement
 
         public readonly KeyboardState[] CurrentKeyboardStates;
         public readonly GamePadState[] CurrentGamePadStates;
+        public MouseState CurrentMouseState { get; private set; }
+        public MouseState LastMouseState { get; private set; }
 
         private readonly KeyboardState[] _lastKeyboardStates;
         private readonly GamePadState[] _lastGamePadStates;
@@ -36,6 +38,9 @@ namespace Superorganism.ScreenManagement
             _lastGamePadStates = new GamePadState[MaxInputs];
 
             GamePadWasConnected = new bool[MaxInputs];
+
+            CurrentMouseState = Mouse.GetState();
+            LastMouseState = CurrentMouseState;
         }
 
         // Reads the latest user input state.
@@ -54,6 +59,10 @@ namespace Superorganism.ScreenManagement
                 if (CurrentGamePadStates[i].IsConnected)
                     GamePadWasConnected[i] = true;
             }
+
+            // Update mouse state
+            LastMouseState = CurrentMouseState;
+            CurrentMouseState = Mouse.GetState();
         }
 
         /// <summary>
@@ -156,5 +165,58 @@ namespace Superorganism.ScreenManagement
                     IsNewButtonPress(button, PlayerIndex.Three, out playerIndex) ||
                     IsNewButtonPress(button, PlayerIndex.Four, out playerIndex);
         }
+
+        /// <summary>
+        /// Helper for checking if a mouse button was newly pressed during this update.
+        /// </summary>
+        /// <param name="button">The mouse button to check</param>
+        /// <returns>True if the button was pressed this update, but not the previous update</returns>
+        public bool IsNewMouseButtonPress(MouseButtons button)
+        {
+            return button switch
+            {
+                MouseButtons.Left => CurrentMouseState.LeftButton == ButtonState.Pressed &&
+                                    LastMouseState.LeftButton == ButtonState.Released,
+                MouseButtons.Right => CurrentMouseState.RightButton == ButtonState.Pressed &&
+                                     LastMouseState.RightButton == ButtonState.Released,
+                MouseButtons.Middle => CurrentMouseState.MiddleButton == ButtonState.Pressed &&
+                                      LastMouseState.MiddleButton == ButtonState.Released,
+                MouseButtons.XButton1 => CurrentMouseState.XButton1 == ButtonState.Pressed &&
+                                        LastMouseState.XButton1 == ButtonState.Released,
+                MouseButtons.XButton2 => CurrentMouseState.XButton2 == ButtonState.Pressed &&
+                                        LastMouseState.XButton2 == ButtonState.Released,
+                _ => false
+            };
+        }
+
+        /// <summary>
+        /// Helper for checking if a mouse button is currently pressed.
+        /// </summary>
+        /// <param name="button">The mouse button to check</param>
+        /// <returns>True if the button is currently pressed</returns>
+        public bool IsMouseButtonPressed(MouseButtons button)
+        {
+            return button switch
+            {
+                MouseButtons.Left => CurrentMouseState.LeftButton == ButtonState.Pressed,
+                MouseButtons.Right => CurrentMouseState.RightButton == ButtonState.Pressed,
+                MouseButtons.Middle => CurrentMouseState.MiddleButton == ButtonState.Pressed,
+                MouseButtons.XButton1 => CurrentMouseState.XButton1 == ButtonState.Pressed,
+                MouseButtons.XButton2 => CurrentMouseState.XButton2 == ButtonState.Pressed,
+                _ => false
+            };
+        }
+    }
+
+    /// <summary>
+    /// Enumeration of mouse buttons
+    /// </summary>
+    public enum MouseButtons
+    {
+        Left,
+        Right,
+        Middle,
+        XButton1,
+        XButton2
     }
 }
