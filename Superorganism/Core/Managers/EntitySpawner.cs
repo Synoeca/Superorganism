@@ -13,7 +13,10 @@ using Superorganism.Tiles;
 
 namespace Superorganism.Core.Managers;
 
-public class EntityManager
+/// <summary>
+/// Manage entities
+/// </summary>
+public class EntitySpawner
 {
     private Ant _ant;
     private readonly List<AntEnemy> _antEnemies = [];
@@ -108,7 +111,7 @@ public class EntityManager
     }
     public TiledMap GetCurrentMap() => _map;
 
-    public EntityManager(Game game, ContentManager content,
+    public EntitySpawner(Game game, ContentManager content,
         GraphicsDevice graphicsDevice, TiledMap map, GameStateInfo gameStateInfo)
     {
         _game = game;
@@ -148,11 +151,11 @@ public class EntityManager
     private void InitializeEntities(GraphicsDevice graphicsDevice)
     {
         _ant = new Ant();
-        _ant.InitializeAtTile(72, 10);
+        _ant.InitializeAtTile(114, 10);
         _ant.IsControlled = true;
 
         // Initialize multiple ant enemies
-        int count = 20;
+        const int count = 50;
         Random rand = new();
 
         for (int i = 0; i < count; i++)
@@ -161,6 +164,7 @@ public class EntityManager
             int enemyY = 10 + rand.Next(8);   // Spread between tile 5-12
             AntEnemy antEnemy = new();
             antEnemy.InitializeAtTile(enemyX, enemyY);
+            //antEnemy.InitializeAtTile(116, 10);
             _antEnemies.Add(antEnemy);
         }
 
@@ -180,7 +184,7 @@ public class EntityManager
     private void InitializeCrops(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 15;
+        int count = 1;
         for (int i = 0; i < count; i++)
         {
             // Spread crops across different heights
@@ -201,7 +205,7 @@ public class EntityManager
     private void InitializeFlies(GraphicsDevice graphicsDevice)
     {
         Random rand = new();
-        int count = 50;
+        int count = 1;
         for (int i = 0; i < count; i++)
         {
             Fly fly = new();

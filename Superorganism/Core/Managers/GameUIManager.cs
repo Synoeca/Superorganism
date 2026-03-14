@@ -178,8 +178,7 @@ namespace Superorganism.Core.Managers
             DrawTextWithShadow(cropsLeftText, textPosition, Color.White, textScale);
         }
 
-        public void DrawDebugInfo(Vector2 position, Matrix cameraMatrix,
-    float distanceToPlayer, ICollisionBounding collisionBounding)
+        public void DrawDebugInfo(Vector2 position, Matrix cameraMatrix, float distanceToPlayer, ICollisionBounding collisionBounding)
         {
             Vector2 enemyScreenPosition = Vector2.Transform(position, cameraMatrix);
             Vector2 textOffset = new(BarPadding, -40);
@@ -228,6 +227,78 @@ namespace Superorganism.Core.Managers
             const string historyHeader = "History:";
             DrawDebugText(historyHeader, textPosition + currentOffset, textScale);
             currentOffset.Y += _gameFont.MeasureString(historyHeader).Y * textScale;
+        }
+
+        public void DrawDebugInfo(
+            Vector2 position,
+            Vector2 velocity,
+            Matrix cameraMatrix,
+            Strategy currentStrategy,
+            float distanceToPlayer,
+            List<(Strategy Strategy, double StartTime, double LastActionTime)> strategyHistory,
+            ICollisionBounding collisionBounding)
+        {
+            Vector2 screenPosition = Vector2.Transform(position, cameraMatrix);
+            Vector2 textOffset = new(BarPadding, -40);
+            Vector2 textPosition = screenPosition + textOffset;
+            const float textScale = 0.4f;
+            Vector2 currentOffset = Vector2.Zero;
+
+            string currentStrategyText = $"Current: {currentStrategy}";
+            DrawDebugText(currentStrategyText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(currentStrategyText).Y * textScale;
+
+            string positionText = $"Position: {position.X:0.0}, {position.Y:0.0}";
+            DrawDebugText(positionText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(positionText).Y * textScale;
+
+            string screenPosText = $"Screen Position: {screenPosition.X:0.0}, {screenPosition.Y:0.0}";
+            DrawDebugText(screenPosText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(screenPosText).Y * textScale;
+
+            string velocityText = $"Velocity: {velocity.X:0.0}, {velocity.Y:0.0}";
+            DrawDebugText(velocityText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(velocityText).Y * textScale;
+
+            string distanceText = $"Distance: {distanceToPlayer:0.0}";
+            DrawDebugText(distanceText, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(distanceText).Y * textScale;
+
+            // Enhanced collision bounding information
+            string boundingText = "Bounding: ";
+            if (collisionBounding is BoundingCircle circle)
+            {
+                boundingText += $"Circle (Center: {circle.Center.X:0.0}, {circle.Center.Y:0.0}, Radius: {circle.Radius:0.0})";
+                DrawDebugText(boundingText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+            }
+            else if (collisionBounding is BoundingRectangle rect)
+            {
+                boundingText += $"Rectangle (X: {rect.X:0.0}, Y: {rect.Y:0.0}, W: {rect.Width:0.0}, H: {rect.Height:0.0})";
+                string leftRightText = $"Left: {rect.Left:0.0}, Right: {rect.Right:0.0}";
+                string topBottomText = $"Top: {rect.Top:0.0}, Bottom: {rect.Bottom:0.0}";
+                string rectCenterText = $"  Center: {rect.Center.X:0.0}, {rect.Center.Y:0.0}";
+
+                DrawDebugText(boundingText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(leftRightText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(topBottomText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(boundingText).Y * textScale;
+                DrawDebugText(rectCenterText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(rectCenterText).Y * textScale;
+            }
+
+            const string historyHeader = "History:";
+            DrawDebugText(historyHeader, textPosition + currentOffset, textScale);
+            currentOffset.Y += _gameFont.MeasureString(historyHeader).Y * textScale;
+
+            foreach ((Strategy strategy, double startTime, double lastActionTime) in strategyHistory.Skip(Math.Max(0, strategyHistory.Count - 3)))
+            {
+                string historyText = $"- {strategy} Start: {startTime:0.0}s Last: {lastActionTime:0.0}s";
+                DrawDebugText(historyText, textPosition + currentOffset, textScale);
+                currentOffset.Y += _gameFont.MeasureString(historyText).Y * textScale;
+            }
         }
 
         public void DrawDebugInfo(
@@ -462,6 +533,7 @@ namespace Superorganism.Core.Managers
                     case AntEnemy antEnemy:
                         DrawDebugInfo(
                             antEnemy.Position,
+                            antEnemy.Velocity,
                             cameraMatrix,
                             antEnemy.Strategy,
                             distanceToPlayer,
